@@ -19,17 +19,17 @@ export default function Header() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg font-headline">
           <OnenessKingdomLogo className="w-8 h-8" />
-          <span>Oneness Kingdom</span>
+          <span>ワンネスキングダム</span>
         </Link>
         <nav className="flex items-center gap-4">
           <Button variant="ghost" asChild className={cn(isTransparent && "hover:bg-white/10")}>
-            <Link href="/login">Login</Link>
+            <Link href="/login">ログイン</Link>
           </Button>
           <Button asChild className={cn(isTransparent ? "bg-white/90 text-black hover:bg-white" : "bg-primary text-primary-foreground")}>
-            <Link href="/register">Register</Link>
+            <Link href="/register">登録</Link>
           </Button>
           <Button variant="outline" asChild className={cn(isTransparent && "border-white/80 text-white hover:bg-white/10")}>
-            <Link href="/verify-age">Verify Age</Link>
+            <Link href="/verify-age">年齢確認</Link>
           </Button>
         </nav>
       </div>

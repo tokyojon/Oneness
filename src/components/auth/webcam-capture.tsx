@@ -25,8 +25,8 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ onCapture }) => {
         setIsStreaming(true);
       }
     } catch (err) {
-      console.error("Error accessing webcam:", err);
-      setError("Could not access the webcam. Please check permissions and try again.");
+      console.error("Webカメラへのアクセスエラー:", err);
+      setError("Webカメラにアクセスできませんでした。権限を確認してもう一度お試しください。");
       setIsStreaming(false);
     }
   }, []);
@@ -75,11 +75,11 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ onCapture }) => {
       <canvas ref={canvasRef} className="hidden" />
       {imageSrc ? (
         <>
-          <Image src={imageSrc} alt="Captured" layout="fill" objectFit="cover" />
+          <Image src={imageSrc} alt="撮影した画像" layout="fill" objectFit="cover" />
           <div className="absolute bottom-2 right-2 flex gap-2">
             <Button size="icon" variant="secondary" onClick={reset}>
               <RefreshCcw className="w-5 h-5" />
-              <span className="sr-only">Retake</span>
+              <span className="sr-only">再撮影</span>
             </Button>
           </div>
           <div className="absolute top-2 right-2 bg-green-500 text-white p-2 rounded-full">
@@ -93,7 +93,7 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ onCapture }) => {
             <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
                 <Button size="icon" onClick={capture} className="rounded-full w-14 h-14 bg-primary hover:bg-primary/90">
                     <Camera className="w-7 h-7" />
-                    <span className="sr-only">Capture</span>
+                    <span className="sr-only">撮影</span>
                 </Button>
             </div>
           )}

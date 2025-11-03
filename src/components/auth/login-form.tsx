@@ -21,10 +21,10 @@ import { LoadingSpinner } from "@/lib/icons";
 
 const formSchema = z.object({
   email: z.string().email({
-    message: "Please enter a valid email address.",
+    message: "有効なメールアドレスを入力してください。",
   }),
   password: z.string().min(1, {
-    message: "Password is required.",
+    message: "パスワードは必須です。",
   }),
 })
 
@@ -47,14 +47,14 @@ export default function LoginForm() {
 
     if (result.success) {
       toast({
-        title: "Login Successful",
+        title: "ログイン成功",
         description: result.message,
       });
       // In a real app, you would redirect the user e.g. router.push('/dashboard')
     } else {
       toast({
         variant: "destructive",
-        title: "Login Failed",
+        title: "ログイン失敗",
         description: result.message,
       });
     }
@@ -68,7 +68,7 @@ export default function LoginForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>メールアドレス</FormLabel>
               <FormControl>
                 <Input placeholder="citizen@oneness.kingdom" {...field} />
               </FormControl>
@@ -81,7 +81,7 @@ export default function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>パスワード</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
@@ -90,7 +90,7 @@ export default function LoginForm() {
           )}
         />
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? <LoadingSpinner /> : 'Login'}
+          {isLoading ? <LoadingSpinner /> : 'ログイン'}
         </Button>
       </form>
     </Form>

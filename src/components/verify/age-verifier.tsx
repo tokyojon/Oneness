@@ -25,7 +25,7 @@ import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { AgeVerificationOutput } from "@/ai/flows/automated-age-verification";
 
 const formSchema = z.object({
-  document: z.instanceof(File).refine(file => file.size > 0, "A document is required."),
+  document: z.instanceof(File).refine(file => file.size > 0, "書類が必要です。"),
 });
 
 export default function AgeVerifier() {
@@ -50,15 +50,15 @@ export default function AgeVerifier() {
         } else {
             toast({
                 variant: "destructive",
-                title: "Verification Failed",
-                description: response.message || "Could not process the document.",
+                title: "確認失敗",
+                description: response.message || "書類を処理できませんでした。",
             });
         }
     } catch (error) {
         toast({
             variant: "destructive",
-            title: "Error",
-            description: "An unexpected error occurred.",
+            title: "エラー",
+            description: "予期せぬエラーが発生しました。",
         });
     } finally {
         setIsLoading(false);
@@ -74,7 +74,7 @@ export default function AgeVerifier() {
                 name="document"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel>ID Document</FormLabel>
+                        <FormLabel>身分証明書</FormLabel>
                         <FormControl>
                             <Input 
                                 type="file" 
@@ -82,25 +82,25 @@ export default function AgeVerifier() {
                                 onChange={(e) => field.onChange(e.target.files?.[0])}
                             />
                         </FormControl>
-                        <FormDescription>Upload a clear photo of your ID.</FormDescription>
+                        <FormDescription>身分証明書の鮮明な写真をアップロードしてください。</FormDescription>
                         <FormMessage />
                     </FormItem>
                 )}
                 />
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? <LoadingSpinner /> : 'Verify Age'}
+                {isLoading ? <LoadingSpinner /> : '年齢を確認'}
                 </Button>
             </form>
         </Form>
         {result && (
             <Alert variant={result.isVerified ? "default" : "destructive"}>
                 {result.isVerified ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-                <AlertTitle>{result.isVerified ? "Verification Successful" : "Verification Unsuccessful"}</AlertTitle>
+                <AlertTitle>{result.isVerified ? "確認成功" : "確認失敗"}</AlertTitle>
                 <AlertDescription>
                     <p>
-                        {result.isVerified ? "This document appears to belong to an adult." : "This document does not seem to belong to an adult."}
+                        {result.isVerified ? "この書類は成人のもののようです。" : "この書類は成人のものではないようです。"}
                     </p>
-                    {result.age && <p>Estimated Age: <strong>{result.age}</strong></p>}
+                    {result.age && <p>推定年齢: <strong>{result.age}</strong></p>}
                 </AlertDescription>
             </Alert>
         )}

@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { CheckCircle2, Heart, Users, BrainCircuit } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -27,13 +26,13 @@ export default function Home() {
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10 p-4 max-w-4xl mx-auto animate-fade-in-up">
           <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight mb-4">
-            Welcome to the Oneness Kingdom
+            ワンネスキングダムへようこそ
           </h1>
           <p className="text-lg md:text-2xl text-primary-foreground/90 mb-8">
-            A new social model based on contribution, connection, love, peace, and harmony.
+            貢献、つながり、愛、平和、そして調和に基づく新しいソーシャルモデル。
           </p>
           <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 transition-transform duration-300 hover:scale-105">
-            <Link href="/register">Join our kingdom</Link>
+            <Link href="/register">私たちの王国に参加する</Link>
           </Button>
         </div>
       </section>
@@ -41,25 +40,25 @@ export default function Home() {
       <section id="features" className="w-full py-16 md:py-24 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-headline font-bold mb-4">A Meta-Social Platform of Love and Contribution</h2>
+            <h2 className="text-3xl md:text-4xl font-headline font-bold mb-4">愛と貢献のメタソーシャルプラットフォーム</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              We are building a new international community state where value is not defined by economic or military power, but by love and connection.
+              私たちは、価値が経済力や軍事力ではなく、愛とつながりによって定義される新しい国際コミュニティ国家を構築しています。
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FeatureCard
-              title="Contribute & Connect"
-              description="Your actions of love, learning, and contribution are visualized and circulated as value within our community."
+              title="貢献とつながり"
+              description="あなたの愛、学び、貢献の行動は、私たちのコミュニティ内で価値として視覚化され、循環します。"
               image={feature1Image}
             />
             <FeatureCard
-              title="Build a Human Network"
-              description="Create meaningful relationships through follows, evaluations, recommendations, and even form digital family bonds."
+              title="ヒューマンネットワークの構築"
+              description="フォロー、評価、推薦を通じて有意義な関係を築き、デジタルな家族の絆さえも形成します。"
               image={feature2Image}
             />
             <FeatureCard
-              title="AI-Powered Community"
-              description="Our platform uses AI for fair matching, recommendations, and to ensure the safety and harmony of our kingdom."
+              title="AIを活用したコミュニティ"
+              description="私たちのプラットフォームは、公正なマッチング、推薦、そして私たちの王国の安全と調和を確保するためにAIを使用しています。"
               image={feature3Image}
             />
           </div>
@@ -69,26 +68,26 @@ export default function Home() {
       <section className="w-full py-16 md:py-24 bg-secondary">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-headline font-bold mb-4">How to Become a Citizen</h2>
+            <h2 className="text-3xl md:text-4xl font-headline font-bold mb-4">市民になる方法</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Follow these simple steps to start your journey in the Oneness Kingdom.
+              ワンネスキングダムでの旅を始めるには、これらの簡単な手順に従ってください。
             </p>
           </div>
           <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <Step
               step="1"
-              title="Register Your Account"
-              description="Create your profile and begin your journey towards oneness."
+              title="アカウントを登録"
+              description="あなたのプロフィールを作成し、ワンネスへの旅を始めましょう。"
             />
             <Step
               step="2"
-              title="AI-Powered Verification"
-              description="Secure your identity with our advanced, AI-enhanced verification process."
+              title="AIによる認証"
+              description="高度なAI強化認証プロセスであなたの身元を保護します。"
             />
             <Step
               step="3"
-              title="Contribute & Flourish"
-              description="Engage with the community, share your gifts, and grow within the kingdom."
+              title="貢献し、繁栄する"
+              description="コミュニティと関わり、あなたの才能を分かち合い、王国の中で成長してください。"
             />
           </div>
         </div>
@@ -96,12 +95,12 @@ export default function Home() {
 
       <section className="w-full py-16 md:py-24 bg-background">
         <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl md:text-4xl font-headline font-bold mb-4">Ready to Change the World?</h2>
+            <h2 className="text-3xl md:text-4xl font-headline font-bold mb-4">世界を変える準備はできていますか？</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-                Join a global movement dedicated to creating a society built on the foundations of love, peace, and harmony. Your journey starts now.
+                愛、平和、調和の基盤の上に築かれた社会を創造することに専念する世界的な運動に参加してください。あなたの旅は今始まります。
             </p>
             <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 transition-transform duration-300 hover:scale-105">
-                <Link href="/register">Start Your Journey</Link>
+                <Link href="/register">あなたの旅を始める</Link>
             </Button>
         </div>
       </section>

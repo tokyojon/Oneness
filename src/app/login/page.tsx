@@ -15,16 +15,16 @@ export default function LoginPage() {
                         <Link href="/" className="flex justify-center items-center gap-2 mb-4">
                             <OnenessKingdomLogo className="h-10 w-10" />
                         </Link>
-                        <h1 className="text-3xl font-bold font-headline">Welcome Back</h1>
+                        <h1 className="text-3xl font-bold font-headline">おかえりなさい</h1>
                         <p className="text-balance text-muted-foreground">
-                            Enter your credentials to access your account
+                            アカウントにアクセスするには資格情報を入力してください
                         </p>
                     </div>
                     <LoginForm />
                     <div className="mt-4 text-center text-sm">
-                        Don&apos;t have an account?{" "}
+                        アカウントをお持ちでないですか？{" "}
                         <Link href="/register" className="underline hover:text-primary">
-                            Register here
+                            こちらで登録
                         </Link>
                     </div>
                 </div>

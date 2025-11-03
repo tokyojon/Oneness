@@ -15,16 +15,16 @@ export default function RegisterPage() {
                         <Link href="/" className="flex justify-center items-center gap-2 mb-4">
                             <OnenessKingdomLogo className="h-10 w-10" />
                         </Link>
-                        <h1 className="text-3xl font-bold font-headline">Join the Kingdom</h1>
+                        <h1 className="text-3xl font-bold font-headline">王国に参加する</h1>
                         <p className="text-balance text-muted-foreground">
-                            Create your account and start your journey towards harmony.
+                            アカウントを作成して、調和への旅を始めましょう。
                         </p>
                     </div>
                     <RegisterForm />
                     <div className="mt-4 text-center text-sm">
-                        Already have an account?{" "}
+                        すでにアカウントをお持ちですか？{" "}
                         <Link href="/login" className="underline hover:text-primary">
-                            Login here
+                            こちらでログイン
                         </Link>
                     </div>
                 </div>

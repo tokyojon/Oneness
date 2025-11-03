@@ -29,27 +29,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 
 const formSchema = z.object({
-    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-    email: z.string().email({ message: "Please enter a valid email." }),
-    password: z.string().min(8, { message: "Password must be at least 8 characters." }),
-    day: z.string().min(1, { message: "Day is required." }),
-    month: z.string().min(1, { message: "Month is required." }),
-    year: z.string().min(1, { message: "Year is required." }),
+    name: z.string().min(2, { message: "名前は2文字以上である必要があります。" }),
+    email: z.string().email({ message: "有効なメールアドレスを入力してください。" }),
+    password: z.string().min(8, { message: "パスワードは8文字以上である必要があります。" }),
+    day: z.string().min(1, { message: "日が必要です。" }),
+    month: z.string().min(1, { message: "月が必要です。" }),
+    year: z.string().min(1, { message: "年が必要です。" }),
 }).refine(data => {
     const { day, month, year } = data;
     const date = new Date(`${year}-${month}-${day}`);
     return date.getDate() === parseInt(day) && (date.getMonth() + 1) === parseInt(month);
 }, {
-    message: "Invalid date.",
+    message: "無効な日付です。",
     path: ["day"], // Or you can point to a common field
 });
 
 const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
 const months = [
-    { value: "01", label: "January" }, { value: "02", label: "February" }, { value: "03", label: "March" },
-    { value: "04", label: "April" }, { value: "05", label: "May" }, { value: "06", label: "June" },
-    { value: "07", label: "July" }, { value: "08", label: "August" }, { value: "09", label: "September" },
-    { value: "10", label: "October" }, { value: "11", label: "November" }, { value: "12", label: "December" }
+    { value: "01", label: "1月" }, { value: "02", label: "2月" }, { value: "03", label: "3月" },
+    { value: "04", label: "4月" }, { value: "05", label: "5月" }, { value: "06", label: "6月" },
+    { value: "07", label: "7月" }, { value: "08", label: "8月" }, { value: "09", label: "9月" },
+    { value: "10", label: "10月" }, { value: "11", label: "11月" }, { value: "12", label: "12月" }
 ];
 const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0'));
 
@@ -86,8 +86,8 @@ export default function RegisterForm() {
         if (!photoDataUri || !documentFile) {
             toast({
                 variant: "destructive",
-                title: "Missing Information",
-                description: "Please provide both a photo and a document for verification.",
+                title: "情報が不足しています",
+                description: "認証のために写真と書類の両方を提供してください。",
             });
             return;
         }
@@ -112,7 +112,7 @@ export default function RegisterForm() {
 
             if (result.success) {
                 toast({
-                    title: "Registration Successful",
+                    title: "登録成功",
                     description: result.message,
                 });
                 setStep(3); // Go to success step
@@ -122,7 +122,7 @@ export default function RegisterForm() {
             } else {
                 toast({
                     variant: "destructive",
-                    title: "Registration Failed",
+                    title: "登録失敗",
                     description: result.message,
                 });
                 if(result.aiResult){
@@ -132,8 +132,8 @@ export default function RegisterForm() {
         } catch (error) {
             toast({
                 variant: "destructive",
-                title: "Error",
-                description: "An unexpected error occurred while processing your documents.",
+                title: "エラー",
+                description: "書類の処理中に予期せぬエラーが発生しました。",
             });
         } finally {
             setIsLoading(false);
@@ -145,19 +145,19 @@ export default function RegisterForm() {
             <Card>
                 <CardContent className="p-6">
                     <div className="text-center space-y-4">
-                        <h2 className="text-2xl font-headline font-semibold">Welcome to the Kingdom!</h2>
-                        <p className="text-muted-foreground">Your registration is complete. We are delighted to have you with us.</p>
+                        <h2 className="text-2xl font-headline font-semibold">王国へようこそ！</h2>
+                        <p className="text-muted-foreground">登録が完了しました。ご参加いただき、誠にありがとうございます。</p>
                         {aiResult && (
                              <Alert variant={aiResult.isLegitimate ? "default" : "destructive"}>
                                 <AlertCircle className="h-4 w-4" />
-                                <AlertTitle>{aiResult.isLegitimate ? "Verification Details" : "Verification Issue"}</AlertTitle>
+                                <AlertTitle>{aiResult.isLegitimate ? "認証詳細" : "認証の問題"}</AlertTitle>
                                 <AlertDescription>
-                                    <p className="font-semibold">AI Assessment:</p>
+                                    <p className="font-semibold">AI評価：</p>
                                     <p>{aiResult.reason}</p>
                                 </AlertDescription>
                             </Alert>
                         )}
-                        <Button onClick={() => window.location.href = '/login'}>Proceed to Login</Button>
+                        <Button onClick={() => window.location.href = '/login'}>ログインに進む</Button>
                     </div>
                 </CardContent>
             </Card>
@@ -174,8 +174,8 @@ export default function RegisterForm() {
                             name="name"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Full Name</FormLabel>
-                                    <FormControl><Input placeholder="Love Harmony" {...field} /></FormControl>
+                                    <FormLabel>氏名</FormLabel>
+                                    <FormControl><Input placeholder="愛 平和" {...field} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -185,7 +185,7 @@ export default function RegisterForm() {
                             name="email"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Email</FormLabel>
+                                    <FormLabel>メールアドレス</FormLabel>
                                     <FormControl><Input placeholder="citizen@oneness.kingdom" {...field} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -196,35 +196,35 @@ export default function RegisterForm() {
                             name="password"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Password</FormLabel>
+                                    <FormLabel>パスワード</FormLabel>
                                     <FormControl><Input type="password" placeholder="••••••••" /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
                         <FormItem>
-                            <FormLabel>Date of birth</FormLabel>
+                            <FormLabel>生年月日</FormLabel>
                             <div className="grid grid-cols-3 gap-2">
                                 <FormField
                                     control={form.control}
-                                    name="day"
+                                    name="year"
                                     render={({ field }) => (
                                         <FormItem>
                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Day" />
+                                                        <SelectValue placeholder="年" />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {days.map(day => <SelectItem key={day} value={day}>{day}</SelectItem>)}
+                                                    {years.map(year => <SelectItem key={year} value={year.toString()}>{year}</SelectItem>)}
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
-                                <FormField
+                                 <FormField
                                     control={form.control}
                                     name="month"
                                     render={({ field }) => (
@@ -232,7 +232,7 @@ export default function RegisterForm() {
                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Month" />
+                                                        <SelectValue placeholder="月" />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
@@ -245,17 +245,17 @@ export default function RegisterForm() {
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="year"
+                                    name="day"
                                     render={({ field }) => (
                                         <FormItem>
                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Year" />
+                                                        <SelectValue placeholder="日" />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {years.map(year => <SelectItem key={year} value={year.toString()}>{year}</SelectItem>)}
+                                                    {days.map(day => <SelectItem key={day} value={day}>{day}</SelectItem>)}
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
@@ -264,11 +264,11 @@ export default function RegisterForm() {
                                 />
                             </div>
                             <FormDescription>
-                                Users under 18 have restricted permissions.
+                                18歳未満のユーザーは権限が制限されます。
                             </FormDescription>
                         </FormItem>
                         <Button type="button" onClick={handleNextStep} className="w-full">
-                            Next: Verification
+                            次へ：確認
                         </Button>
                     </>
                 )}
@@ -276,35 +276,35 @@ export default function RegisterForm() {
                 {step === 2 && (
                     <div className="space-y-6">
                         <div>
-                            <h3 className="text-lg font-medium font-headline">AI Identity Verification</h3>
-                            <p className="text-sm text-muted-foreground">To prevent fraud, we need a live photo and an ID document.</p>
+                            <h3 className="text-lg font-medium font-headline">AI本人確認</h3>
+                            <p className="text-sm text-muted-foreground">詐欺防止のため、ライブ写真と身分証明書が必要です。</p>
                         </div>
                         <FormItem>
-                            <FormLabel>1. Live Photo</FormLabel>
+                            <FormLabel>1. ライブ写真</FormLabel>
                             <WebcamCapture onCapture={setPhotoDataUri} />
                         </FormItem>
                         <FormItem>
-                            <FormLabel>2. ID Document</FormLabel>
+                            <FormLabel>2. 身分証明書</FormLabel>
                             <FormControl>
                                 <Input type="file" accept="image/*" onChange={(e) => e.target.files && setDocumentFile(e.target.files[0])} />
                             </FormControl>
-                            <FormDescription>Upload a clear photo of your driver's license, passport, or national ID card.</FormDescription>
+                            <FormDescription>運転免許証、パスポート、または国民IDカードの鮮明な写真をアップロードしてください。</FormDescription>
                         </FormItem>
                         
                         {aiResult && !aiResult.isLegitimate && (
                             <Alert variant="destructive">
                                 <AlertCircle className="h-4 w-4" />
-                                <AlertTitle>Verification Issue</AlertTitle>
+                                <AlertTitle>認証の問題</AlertTitle>
                                 <AlertDescription>{aiResult.reason}</AlertDescription>
                             </Alert>
                         )}
                         
                         <div className="flex gap-4">
                             <Button type="button" variant="outline" onClick={() => setStep(1)} className="w-full">
-                                Back
+                                戻る
                             </Button>
                             <Button type="submit" className="w-full" disabled={isLoading || !photoDataUri || !documentFile}>
-                                {isLoading ? <LoadingSpinner /> : 'Complete Registration'}
+                                {isLoading ? <LoadingSpinner /> : '登録を完了する'}
                             </Button>
                         </div>
                     </div>

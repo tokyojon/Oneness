@@ -15,9 +15,9 @@ export default function VerifyAgePage() {
                         <Link href="/" className="flex justify-center items-center gap-2 mb-4">
                             <OnenessKingdomLogo className="h-10 w-10" />
                         </Link>
-                        <h1 className="text-3xl font-bold font-headline">Automated Age Verification</h1>
+                        <h1 className="text-3xl font-bold font-headline">自動年齢確認</h1>
                         <p className="text-balance text-muted-foreground">
-                            Upload a government-issued document to verify your age automatically using our AI.
+                            政府発行の書類をアップロードして、AIを使用して自動的に年齢を確認します。
                         </p>
                     </div>
                     <AgeVerifier />
