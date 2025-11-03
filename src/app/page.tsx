@@ -1,10 +1,27 @@
+
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Simulate checking if the user is logged in.
+    // In a real app, you'd use a proper auth state manager.
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    if (isLoggedIn) {
+      router.replace('/dashboard');
+    }
+  }, [router]);
+
+
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-image');
   const feature1Image = PlaceHolderImages.find(p => p.id === 'feature-1');
   const feature2Image = PlaceHolderImages.find(p => p.id === 'feature-2');

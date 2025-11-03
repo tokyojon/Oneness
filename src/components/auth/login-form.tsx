@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -52,6 +53,8 @@ export default function LoginForm() {
         title: "ログイン成功",
         description: result.message,
       });
+      // In a real app, a token would be stored, not just a flag.
+      localStorage.setItem('isLoggedIn', 'true');
       router.push('/dashboard');
     } else {
       toast({
