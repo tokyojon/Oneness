@@ -2,9 +2,9 @@
   "placeholderImages": [
     {
       "id": "hero-image",
-      "description": "A serene, abstract representation of global unity and harmony.",
-      "imageUrl": "https://images.unsplash.com/photo-1749006813473-e397da7e0a78?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxoYXJtb255JTIwdW5pdHl8ZW58MHx8fHwxNzYyMTUwMjEyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "harmony unity"
+      "description": "A futuristic city with a grand fountain and people gathering around tables of fruit.",
+      "imageUrl": "https://storage.googleapis.com/aifirebase-765b4.appspot.com/users%2F-MEulvX245vybC06AS2a%2Fstudio%2Fm73pwxm1%2F25821.png?alt=media&token=48f075d9-7e50-42d4-a74b-22c6085a864d",
+      "imageHint": "futuristic city"
     },
     {
       "id": "feature-1",
