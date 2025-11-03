@@ -19,13 +19,14 @@ import { useToast } from "@/hooks/use-toast"
 import { useState } from "react"
 import { registerAction } from "@/app/actions";
 import { LoadingSpinner } from "@/lib/icons";
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, CheckCircle } from "lucide-react"
 import { cn, fileToDataUri } from "@/lib/utils"
 import WebcamCapture from "./webcam-capture"
 import { AIEnhancedRegistrationOutput } from "@/ai/flows/ai-enhanced-registration";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Card, CardContent } from "../ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { useRouter } from "next/navigation"
 
 
 const formSchema = z.object({
@@ -56,6 +57,7 @@ const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2,
 
 export default function RegisterForm() {
     const { toast } = useToast();
+    const router = useRouter();
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [aiResult, setAiResult] = useState<AIEnhancedRegistrationOutput | null>(null);
@@ -115,7 +117,11 @@ export default function RegisterForm() {
                     title: "登録成功",
                     description: result.message,
                 });
-                setStep(3); // Go to success step
+                if(result.redirect) {
+                    router.push(result.redirect);
+                } else {
+                    setStep(3); // Go to success step
+                }
                 if (result.aiResult) {
                     setAiResult(result.aiResult);
                 }
@@ -146,6 +152,9 @@ export default function RegisterForm() {
                 <CardContent className="p-6">
                     <div className="text-center space-y-4">
                         <h2 className="text-2xl font-headline font-semibold">王国へようこそ！</h2>
+                        <div className="flex justify-center">
+                          <CheckCircle className="w-12 h-12 text-green-500" />
+                        </div>
                         <p className="text-muted-foreground">登録が完了しました。ご参加いただき、誠にありがとうございます。</p>
                         {aiResult && (
                              <Alert variant={aiResult.isLegitimate ? "default" : "destructive"}>
@@ -157,7 +166,7 @@ export default function RegisterForm() {
                                 </AlertDescription>
                             </Alert>
                         )}
-                        <Button onClick={() => window.location.href = '/login'}>ログインに進む</Button>
+                        <Button onClick={() => router.push('/dashboard')}>ダッシュボードへ</Button>
                     </div>
                 </CardContent>
             </Card>
@@ -197,7 +206,7 @@ export default function RegisterForm() {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>パスワード</FormLabel>
-                                    <FormControl><Input type="password" placeholder="••••••••" /></FormControl>
+                                    <FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -229,7 +238,7 @@ export default function RegisterForm() {
                                     name="month"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <Select onValuechange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="月" />

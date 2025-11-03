@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { aiEnhancedRegistration, AIEnhancedRegistrationOutput } from '@/ai/flows/ai-enhanced-registration';
 import { automatedAgeVerification } from '@/ai/flows/automated-age-verification';
+import { generateWelcomeEmail } from '@/ai/flows/welcome-email';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -25,7 +26,7 @@ const registrationSchema = z.object({
   documentDataUri: z.string(),
 });
 
-export async function registerAction(values: z.infer<typeof registrationSchema>): Promise<{ success: boolean; message: string; aiResult?: AIEnhancedRegistrationOutput }> {
+export async function registerAction(values: z.infer<typeof registrationSchema>): Promise<{ success: boolean; message: string; aiResult?: AIEnhancedRegistrationOutput, redirect?: string }> {
     try {
         const age = new Date().getFullYear() - new Date(values.dob).getFullYear();
 
@@ -46,10 +47,15 @@ export async function registerAction(values: z.infer<typeof registrationSchema>)
         // In a real app, you would save the user to the database here.
         console.log('User registered successfully with AI verification:', values.email);
 
+        // Send a welcome email
+        await generateWelcomeEmail({ name: values.name });
+
+        // Simulate login and return redirect path
         return {
             success: true,
             message: '登録に成功しました！ワンネスキングダムへようこそ。',
             aiResult,
+            redirect: '/dashboard',
         };
 
     } catch (error) {
