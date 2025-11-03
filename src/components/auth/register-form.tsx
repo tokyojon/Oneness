@@ -19,23 +19,40 @@ import { useToast } from "@/hooks/use-toast"
 import { useState } from "react"
 import { registerAction } from "@/app/actions";
 import { LoadingSpinner } from "@/lib/icons";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CalendarIcon, AlertCircle } from "lucide-react"
-import { Calendar } from "@/components/ui/calendar"
+import { AlertCircle } from "lucide-react"
 import { cn, fileToDataUri } from "@/lib/utils"
-import { format } from "date-fns"
 import WebcamCapture from "./webcam-capture"
 import { AIEnhancedRegistrationOutput } from "@/ai/flows/ai-enhanced-registration";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Card, CardContent } from "../ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 
 const formSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters." }),
     email: z.string().email({ message: "Please enter a valid email." }),
     password: z.string().min(8, { message: "Password must be at least 8 characters." }),
-    dob: z.date({ required_error: "A date of birth is required." }),
+    day: z.string().min(1, { message: "Day is required." }),
+    month: z.string().min(1, { message: "Month is required." }),
+    year: z.string().min(1, { message: "Year is required." }),
+}).refine(data => {
+    const { day, month, year } = data;
+    const date = new Date(`${year}-${month}-${day}`);
+    return date.getDate() === parseInt(day) && (date.getMonth() + 1) === parseInt(month);
+}, {
+    message: "Invalid date.",
+    path: ["day"], // Or you can point to a common field
 });
+
+const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
+const months = [
+    { value: "01", label: "January" }, { value: "02", label: "February" }, { value: "03", label: "March" },
+    { value: "04", label: "April" }, { value: "05", label: "May" }, { value: "06", label: "June" },
+    { value: "07", label: "July" }, { value: "08", label: "August" }, { value: "09", label: "September" },
+    { value: "10", label: "October" }, { value: "11", label: "November" }, { value: "12", label: "December" }
+];
+const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0'));
+
 
 export default function RegisterForm() {
     const { toast } = useToast();
@@ -52,6 +69,9 @@ export default function RegisterForm() {
             name: "",
             email: "",
             password: "",
+            day: "",
+            month: "",
+            year: "",
         },
     });
 
@@ -78,9 +98,12 @@ export default function RegisterForm() {
         try {
             const documentDataUri = await fileToDataUri(documentFile);
             
+            const { day, month, year, ...restOfValues } = values;
+            const dob = new Date(`${year}-${month}-${day}`).toISOString();
+
             const registrationData = {
-                ...values,
-                dob: values.dob.toISOString(),
+                ...restOfValues,
+                dob: dob,
                 photoDataUri,
                 documentDataUri
             };
@@ -174,49 +197,76 @@ export default function RegisterForm() {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Password</FormLabel>
-                                    <FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl>
+                                    <FormControl><Input type="password" placeholder="••••••••" /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={form.control}
-                            name="dob"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                    <FormLabel>Date of birth</FormLabel>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <FormControl>
-                                                <Button
-                                                    variant={"outline"}
-                                                    className={cn(
-                                                        "w-full pl-3 text-left font-normal",
-                                                        !field.value && "text-muted-foreground"
-                                                    )}
-                                                >
-                                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                            <Calendar
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
-                                    <FormMessage />
-                                    <FormDescription>
-                                        Users under 18 have restricted permissions.
-                                    </FormDescription>
-                                </FormItem>
-                            )}
-                        />
+                        <FormItem>
+                            <FormLabel>Date of birth</FormLabel>
+                            <div className="grid grid-cols-3 gap-2">
+                                <FormField
+                                    control={form.control}
+                                    name="day"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Day" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {days.map(day => <SelectItem key={day} value={day}>{day}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="month"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Month" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {months.map(month => <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="year"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Year" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {years.map(year => <SelectItem key={year} value={year.toString()}>{year}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <FormDescription>
+                                Users under 18 have restricted permissions.
+                            </FormDescription>
+                        </FormItem>
                         <Button type="button" onClick={handleNextStep} className="w-full">
                             Next: Verification
                         </Button>
