@@ -26,7 +26,7 @@ interface BuyOpFormProps {
     };
 }
 
-const JPY_PER_OP = 1.0;
+const JPY_PER_OP = 100.0;
 
 const formSchema = z.object({
     op_amount: z.coerce.number().positive("購入額は正でなければなりません。").min(100, "最低100 OPから購入できます。"),
@@ -91,6 +91,10 @@ export default function BuyOpForm({ user }: BuyOpFormProps) {
                         />
 
                         <div className="space-y-2 text-sm border-t pt-4">
+                             <div className="flex justify-between">
+                                <span className="text-muted-foreground">現在のレート:</span>
+                                <span>1 OP = {JPY_PER_OP} JPY</span>
+                            </div>
                              <div className="flex justify-between text-lg font-bold text-primary pt-2">
                                 <span>お支払い金額:</span>
                                 <span>
