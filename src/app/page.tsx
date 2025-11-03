@@ -13,27 +13,16 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <section className="relative w-full h-[60vh] md:h-[80vh] flex items-center justify-center text-center text-white">
-        {heroImage && (
-          <Image
-            src={heroImage.imageUrl}
-            alt={heroImage.description}
-            fill
-            className="object-cover"
-            priority
-            data-ai-hint={heroImage.imageHint}
-          />
-        )}
-        <div className="absolute inset-0 bg-black/50" />
+      <section className="relative w-full h-[60vh] md:h-[80vh] flex items-center justify-center text-center text-foreground bg-secondary">
         <div className="relative z-10 p-4 max-w-4xl mx-auto animate-fade-in-up">
           <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight mb-4">
-            Welcome to the Oneness Kingdom
+            Welcome to the Oneness <br /> <span className='text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent'>Kingdom</span>
           </h1>
-          <p className="text-lg md:text-2xl text-primary-foreground/90 mb-8">
+          <p className="text-lg md:text-2xl text-muted-foreground mb-8">
             A new social model based on contribution, connection, love, peace, and harmony.
           </p>
           <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 transition-transform duration-300 hover:scale-105">
-            <Link href="/register">Join the Kingdom</Link>
+            <Link href="/register">Join our kingdom</Link>
           </Button>
         </div>
       </section>
@@ -48,19 +37,16 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FeatureCard
-              icon={<Heart className="w-10 h-10 text-primary" />}
               title="Contribute & Connect"
               description="Your actions of love, learning, and contribution are visualized and circulated as value within our community."
               image={feature1Image}
             />
             <FeatureCard
-              icon={<Users className="w-10 h-10 text-primary" />}
               title="Build a Human Network"
               description="Create meaningful relationships through follows, evaluations, recommendations, and even form digital family bonds."
               image={feature2Image}
             />
             <FeatureCard
-              icon={<BrainCircuit className="w-10 h-10 text-primary" />}
               title="AI-Powered Community"
               description="Our platform uses AI for fair matching, recommendations, and to ensure the safety and harmony of our kingdom."
               image={feature3Image}
@@ -112,16 +98,12 @@ export default function Home() {
   );
 }
 
-const FeatureCard = ({ icon, title, description, image }: { icon: React.ReactNode; title: string; description: string; image?: { imageUrl: string; description: string; imageHint: string } }) => (
+const FeatureCard = ({ title, description, image }: { title: string; description: string; image?: { imageUrl: string; description: string; imageHint: string } }) => (
   <Card className="text-center bg-card shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:-translate-y-2">
     <CardHeader className="items-center">
-      {image ? (
+      {image && (
         <div className="relative w-full h-40 mb-4 rounded-t-lg overflow-hidden">
           <Image src={image.imageUrl} alt={image.description} layout="fill" objectFit="cover" data-ai-hint={image.imageHint} />
-        </div>
-      ) : (
-        <div className="p-4 bg-primary/10 rounded-full mb-4">
-          {icon}
         </div>
       )}
       <CardTitle className="font-headline text-2xl">{title}</CardTitle>

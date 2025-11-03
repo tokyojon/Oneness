@@ -8,9 +8,9 @@
     },
     {
       "id": "feature-1",
-      "description": "Illustration of people connecting and sharing love.",
-      "imageUrl": "https://images.unsplash.com/photo-1761840642063-99424e99608e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjb21tdW5pdHklMjBjb25uZWN0aW9ufGVufDB8fHx8MTc2MjExNTY2MXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "community connection"
+      "description": "A chalkboard with the text 'Give joy in the neighborhood'.",
+      "imageUrl": "https://images.unsplash.com/photo-1518928828822-9205b38580b2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjaGFsa2JvYXJkJTIwbWVzc2FnZXxlbnwwfHx8fDE3MjE4MzYzNjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "community message"
     },
     {
       "id": "feature-2",
@@ -20,9 +20,9 @@
     },
     {
       "id": "feature-3",
-      "description": "An abstract image representing artificial intelligence and data processing.",
-      "imageUrl": "https://images.unsplash.com/photo-1680783954745-3249be59e527?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxhYnN0cmFjdCUyMEFJfGVufDB8fHx8MTc2MjEwNDcxM3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "abstract AI"
+      "description": "An abstract image representing artificial intelligence with a helping hand.",
+      "imageUrl": "https://images.unsplash.com/photo-1589254066228-2ae1b1a436e1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhcnRpZmljaWFsJTIwaW50ZWxsaWdlbmNlJTIwaGFuZHxlbnwwfHx8fDE3MjE4MzY0NDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "AI helping"
     },
     {
       "id": "login-image",
