@@ -8,11 +8,13 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Bookmark, Heart, Image as ImageIcon, MessageCircle, MoreHorizontal, Send, Smile, Video } from "lucide-react";
+import { Bookmark, Heart, Image as ImageIcon, MessageCircle, MoreHorizontal, Send, Smile, Video, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { fileToDataUri } from "@/lib/utils";
 
 // Mock Data
 const userProfile = {
@@ -63,8 +65,8 @@ const suggestions = [
 export default function DashboardPage() {
     const [posts, setPosts] = useState(initialPosts);
 
-    const handleNewPost = (content: string) => {
-        const newPost = {
+    const handleNewPost = (content: string, mediaUrl?: string, mediaType?: 'image' | 'video') => {
+        const newPost: any = {
             id: posts.length + 3,
             author: userProfile,
             content,
@@ -72,6 +74,14 @@ export default function DashboardPage() {
             comments: 0,
             timestamp: "たった今",
         };
+        if (mediaUrl) {
+            if (mediaType === 'image') {
+                 newPost.imageUrl = mediaUrl;
+                 newPost.imageHint = "user uploaded content";
+            } else {
+                 newPost.videoUrl = mediaUrl;
+            }
+        }
         setPosts([newPost, ...posts]);
     };
 
@@ -106,26 +116,65 @@ const Stories = () => (
     </Card>
 );
 
-const CreatePostCard = ({ onNewPost }: { onNewPost: (content: string) => void }) => {
+const EMOJIS = ['😊', '😂', '😍', '🤔', '😢', '🙏', '❤️', '✨', '🎉', '🔥', '👍', '🌿'];
+
+const CreatePostCard = ({ onNewPost }: { onNewPost: (content: string, mediaUrl?: string, mediaType?: 'image' | 'video') => void }) => {
     const [content, setContent] = useState('');
+    const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+    const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
 
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            try {
+                const dataUri = await fileToDataUri(file);
+                setMediaUrl(dataUri);
+                setMediaType(file.type.startsWith('image') ? 'image' : 'video');
+            } catch (error) {
+                toast({ variant: 'destructive', title: 'ファイル処理エラー', description: 'ファイルの読み込み中にエラーが発生しました。' });
+            }
+        }
+    };
+
+    const handleMediaButtonClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const removeMedia = () => {
+        setMediaUrl(null);
+        setMediaType(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
     const handleSubmit = () => {
-        if (!content.trim()) {
+        if (!content.trim() && !mediaUrl) {
             toast({
                 variant: 'destructive',
                 title: '投稿は空にできません',
-                description: '何かメッセージを入力してください。',
+                description: '何かメッセージを入力するか、メディアをアップロードしてください。',
             });
             return;
         }
-        onNewPost(content);
+        onNewPost(content, mediaUrl || undefined, mediaType || undefined);
         setContent('');
+        setMediaUrl(null);
+        setMediaType(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
         toast({
             title: '投稿しました！',
             description: 'あなたの考えが共有されました。',
         });
     };
+    
+    const addEmoji = (emoji: string) => {
+        setContent(currentContent => currentContent + emoji);
+    }
 
     return (
         <Card>
@@ -144,20 +193,50 @@ const CreatePostCard = ({ onNewPost }: { onNewPost: (content: string) => void })
                         onChange={(e) => setContent(e.target.value)}
                     />
                 </div>
+                 {mediaUrl && (
+                    <div className="relative w-fit mx-auto">
+                        {mediaType === 'image' ? (
+                             <Image src={mediaUrl} alt="プレビュー" width={400} height={300} className="rounded-md max-h-72 w-auto object-contain" />
+                        ) : (
+                             <video src={mediaUrl} controls className="rounded-md max-h-72 w-auto" />
+                        )}
+                        <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={removeMedia}>
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                )}
                 <div className="flex justify-between items-center">
                     <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="text-muted-foreground"><ImageIcon className="text-green-500" /></Button>
-                        <Button variant="ghost" size="icon" className="text-muted-foreground"><Video className="text-blue-500" /></Button>
-                        <Button variant="ghost" size="icon" className="text-muted-foreground"><Smile className="text-yellow-500" /></Button>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            accept="image/*,video/*"
+                            onChange={handleFileChange}
+                        />
+                        <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={handleMediaButtonClick}><ImageIcon className="text-green-500" /></Button>
+                        <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={handleMediaButtonClick}><Video className="text-blue-500" /></Button>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-muted-foreground"><Smile className="text-yellow-500" /></Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-2">
+                                <div className="grid grid-cols-6 gap-1">
+                                    {EMOJIS.map(emoji => (
+                                        <Button key={emoji} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>{emoji}</Button>
+                                    ))}
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                     </div>
-                    <Button onClick={handleSubmit} disabled={!content.trim()}>投稿する</Button>
+                    <Button onClick={handleSubmit} disabled={!content.trim() && !mediaUrl}>投稿する</Button>
                 </div>
             </CardContent>
         </Card>
     );
 };
 
-const PostCard = ({ post }: { post: (typeof initialPosts)[0] | { id: number; author: typeof userProfile; content: string; likes: number; comments: number; timestamp: string; imageUrl?: string | undefined, imageHint?: string | undefined } }) => {
+const PostCard = ({ post }: { post: any }) => {
     const { toast } = useToast();
     const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(post.likes);
@@ -204,7 +283,7 @@ const PostCard = ({ post }: { post: (typeof initialPosts)[0] | { id: number; aut
             </CardHeader>
             <CardContent className="p-4 pt-0 space-y-4">
                 <p>{post.content}</p>
-                {post.imageUrl && (
+                 {post.imageUrl && (
                     <div className="rounded-lg overflow-hidden border">
                         <Image
                             src={post.imageUrl}
@@ -213,6 +292,15 @@ const PostCard = ({ post }: { post: (typeof initialPosts)[0] | { id: number; aut
                             height={400}
                             className="w-full h-auto object-cover"
                             data-ai-hint={post.imageHint}
+                        />
+                    </div>
+                )}
+                 {post.videoUrl && (
+                    <div className="rounded-lg overflow-hidden border">
+                        <video
+                            src={post.videoUrl}
+                            controls
+                            className="w-full h-auto"
                         />
                     </div>
                 )}
