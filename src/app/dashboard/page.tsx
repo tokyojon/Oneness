@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,6 +12,7 @@ import { Bookmark, Heart, Image as ImageIcon, MessageCircle, MoreHorizontal, Sen
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
 
 // Mock Data
 const userProfile = {
@@ -29,7 +31,7 @@ const stories = [
     { id: 6, username: "Ren", avatarUrl: "https://picsum.photos/seed/story6/80/80" },
 ];
 
-const posts = [
+const initialPosts = [
     {
         id: 1,
         author: { name: "コミュニティガーデン", username: "community_garden_jp", avatarUrl: "https://picsum.photos/seed/post1/80/80" },
@@ -59,10 +61,24 @@ const suggestions = [
 
 // Main Component
 export default function DashboardPage() {
+    const [posts, setPosts] = useState(initialPosts);
+
+    const handleNewPost = (content: string) => {
+        const newPost = {
+            id: posts.length + 3,
+            author: userProfile,
+            content,
+            likes: 0,
+            comments: 0,
+            timestamp: "たった今",
+        };
+        setPosts([newPost, ...posts]);
+    };
+
     return (
         <div className="space-y-6">
             <Stories />
-            <CreatePostCard />
+            <CreatePostCard onNewPost={handleNewPost} />
             {posts.map(post => <PostCard key={post.id} post={post} />)}
              <RightSidebar />
         </div>
@@ -90,29 +106,58 @@ const Stories = () => (
     </Card>
 );
 
-const CreatePostCard = () => (
-    <Card>
-        <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-                <Link href="/dashboard/profile">
-                    <Avatar>
-                        <AvatarImage src={userProfile.avatarUrl} alt={userProfile.name} />
-                        <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                </Link>
-                <Input placeholder={`何を考えていますか、${userProfile.name}さん？`} className="flex-grow bg-muted border-none" />
-            </div>
-            <Separator className="my-3" />
-            <div className="flex justify-around">
-                <Button variant="ghost" className="text-muted-foreground"><ImageIcon className="mr-2 text-green-500" />写真</Button>
-                <Button variant="ghost" className="text-muted-foreground"><Video className="mr-2 text-blue-500" />動画</Button>
-                <Button variant="ghost" className="text-muted-foreground"><Smile className="mr-2 text-yellow-500" />気分</Button>
-            </div>
-        </CardContent>
-    </Card>
-);
+const CreatePostCard = ({ onNewPost }: { onNewPost: (content: string) => void }) => {
+    const [content, setContent] = useState('');
+    const { toast } = useToast();
 
-const PostCard = ({ post }: { post: (typeof posts)[0] }) => {
+    const handleSubmit = () => {
+        if (!content.trim()) {
+            toast({
+                variant: 'destructive',
+                title: '投稿は空にできません',
+                description: '何かメッセージを入力してください。',
+            });
+            return;
+        }
+        onNewPost(content);
+        setContent('');
+        toast({
+            title: '投稿しました！',
+            description: 'あなたの考えが共有されました。',
+        });
+    };
+
+    return (
+        <Card>
+            <CardContent className="p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                    <Link href="/dashboard/profile">
+                        <Avatar>
+                            <AvatarImage src={userProfile.avatarUrl} alt={userProfile.name} />
+                            <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                    </Link>
+                    <Textarea 
+                        placeholder={`何を考えていますか、${userProfile.name}さん？`} 
+                        className="flex-grow bg-muted border-none min-h-[60px]"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                    />
+                </div>
+                <div className="flex justify-between items-center">
+                    <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="text-muted-foreground"><ImageIcon className="text-green-500" /></Button>
+                        <Button variant="ghost" size="icon" className="text-muted-foreground"><Video className="text-blue-500" /></Button>
+                        <Button variant="ghost" size="icon" className="text-muted-foreground"><Smile className="text-yellow-500" /></Button>
+                    </div>
+                    <Button onClick={handleSubmit} disabled={!content.trim()}>投稿する</Button>
+                </div>
+            </CardContent>
+        </Card>
+    );
+};
+
+const PostCard = ({ post }: { post: (typeof initialPosts)[0] | { id: number; author: typeof userProfile; content: string; likes: number; comments: number; timestamp: string; imageUrl?: string | undefined, imageHint?: string | undefined } }) => {
     const { toast } = useToast();
     const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(post.likes);
