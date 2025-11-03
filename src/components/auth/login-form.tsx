@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useState } from "react"
 import { loginAction } from "@/app/actions";
 import { LoadingSpinner } from "@/lib/icons";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -30,6 +31,7 @@ const formSchema = z.object({
 
 export default function LoginForm() {
   const { toast } = useToast()
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -50,7 +52,7 @@ export default function LoginForm() {
         title: "ログイン成功",
         description: result.message,
       });
-      // In a real app, you would redirect the user e.g. router.push('/dashboard')
+      router.push('/dashboard');
     } else {
       toast({
         variant: "destructive",
