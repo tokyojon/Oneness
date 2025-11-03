@@ -1,3 +1,46 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-image",
+      "description": "A serene, abstract representation of global unity and harmony.",
+      "imageUrl": "https://images.unsplash.com/photo-1749006813473-e397da7e0a78?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxoYXJtb255JTIwdW5pdHl8ZW58MHx8fHwxNzYyMTUwMjEyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "harmony unity"
+    },
+    {
+      "id": "feature-1",
+      "description": "Illustration of people connecting and sharing love.",
+      "imageUrl": "https://images.unsplash.com/photo-1761840642063-99424e99608e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjb21tdW5pdHklMjBjb25uZWN0aW9ufGVufDB8fHx8MTc2MjExNTY2MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "community connection"
+    },
+    {
+      "id": "feature-2",
+      "description": "A network of interconnected people forming a global family.",
+      "imageUrl": "https://images.unsplash.com/photo-1454923634634-bd1614719a7b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxuZXR3b3JrJTIwcGVvcGxlfGVufDB8fHx8MTc2MjE1MDIxMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "network people"
+    },
+    {
+      "id": "feature-3",
+      "description": "An abstract image representing artificial intelligence and data processing.",
+      "imageUrl": "https://images.unsplash.com/photo-1680783954745-3249be59e527?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxhYnN0cmFjdCUyMEFJfGVufDB8fHx8MTc2MjEwNDcxM3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract AI"
+    },
+    {
+      "id": "login-image",
+      "description": "A peaceful pathway or open door, inviting users to enter.",
+      "imageUrl": "https://images.unsplash.com/photo-1535556572967-276cd0ad5cba?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxvcGVuJTIwZG9vcnxlbnwwfHx8fDE3NjIxNTAyMTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "open door"
+    },
+    {
+      "id": "register-image",
+      "description": "A diverse group of people coming together, symbolizing new beginnings.",
+      "imageUrl": "https://images.unsplash.com/photo-1556484687-30636164638b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxkaXZlcnNlJTIwcGVvcGxlfGVufDB8fHx8MTc2MjE1MDIxMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "diverse people"
+    },
+    {
+      "id": "verify-image",
+      "description": "Abstract image of a secure digital lock or shield.",
+      "imageUrl": "https://images.unsplash.com/photo-1667453466805-75bbf36e8707?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxkaWdpdGFsJTIwc2VjdXJpdHl8ZW58MHx8fHwxNzYyMTAwNDg2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "digital security"
+    }
+  ]
 }
