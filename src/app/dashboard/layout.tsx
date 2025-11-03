@@ -38,8 +38,8 @@ const LeftSidebar = () => (
 
         <nav className="space-y-1">
             <SidebarLink href="/dashboard" icon={Home} label="ホーム" active />
-            <SidebarLink href="#" icon={Compass} label="発見" />
-            <SidebarLink href="#" icon={Clapperboard} label="リール" />
+            <SidebarLink href="/dashboard/discover" icon={Compass} label="発見" />
+            <SidebarLink href="/dashboard/reels" icon={Clapperboard} label="リール" />
             <SidebarLink href="/exchange" icon={Send} label="OPを交換" />
             <SidebarLink href="/dashboard/notifications" icon={Bell} label="お知らせ" />
             <SidebarLink href="/dashboard/profile" icon={User} label="プロフィール" />
