@@ -2,9 +2,9 @@
   "placeholderImages": [
     {
       "id": "hero-image",
-      "description": "A futuristic city with a grand fountain and people gathering around tables of fruit.",
-      "imageUrl": "https://storage.googleapis.com/aifirebase-765b4.appspot.com/users%2F-MEulvX245vybC06AS2a%2Fstudio%2Fm73pwxm1%2F25821.png?alt=media&token=48f075d9-7e50-42d4-a74b-22c6085a864d",
-      "imageHint": "futuristic city"
+      "description": "Hero section image for Oneness Kingdom",
+      "imageUrl": "/hero-image.png",
+      "imageHint": "hero image"
     },
     {
       "id": "feature-1",
