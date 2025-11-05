@@ -3,17 +3,33 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { OnenessKingdomLogo } from '@/lib/icons';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Search, MessageSquare, Bell } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { logoutAction } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { toast } = useToast();
 
   const isDashboard = pathname.startsWith('/dashboard');
+
+  const handleLogout = async () => {
+    const result = await logoutAction();
+    if (result.success) {
+      localStorage.removeItem('isLoggedIn');
+      toast({
+        title: 'ログアウト成功',
+        description: result.message,
+      });
+      router.push('/');
+    }
+  };
 
   if (isDashboard) {
     return (
@@ -67,7 +83,7 @@ export default function Header() {
                 <DropdownMenuItem asChild><Link href="/dashboard/profile">プロフィール</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link href="/dashboard/settings">設定</Link></DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>ログアウト</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>ログアウト</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 

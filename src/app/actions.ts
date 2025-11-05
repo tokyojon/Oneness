@@ -112,3 +112,7 @@ export async function verifyAgeAction(values: z.infer<typeof ageVerificationSche
         return { success: false, message: '年齢確認中に予期せぬエラーが発生しました。' };
     }
 }
+
+export async function logoutAction() {
+    return { success: true, message: 'ログアウトしました' };
+}

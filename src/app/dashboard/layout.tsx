@@ -1,8 +1,11 @@
+'use client';
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { Bell, Clapperboard, Compass, Home, Send, User } from "lucide-react";
 import Link from "next/link";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const userProfile = {
     name: "愛 平和 (Ai Heiwa)",
@@ -48,6 +51,15 @@ const LeftSidebar = () => (
 );
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+    const router = useRouter();
+
+    useEffect(() => {
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        if (!isLoggedIn) {
+            router.replace('/');
+        }
+    }, [router]);
+
     return (
         <div className="bg-background text-foreground min-h-screen">
              <div className="container mx-auto grid grid-cols-1 md:grid-cols-[240px_1fr] lg:grid-cols-[240px_1fr_320px] gap-8 py-8">
