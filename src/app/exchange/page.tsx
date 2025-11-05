@@ -1,9 +1,13 @@
-import ExchangeForm from "@/components/exchange/exchange-form";
-import TransactionHistory from "@/components/exchange/transaction-history";
+'use client';
+
+import dynamic from 'next/dynamic';
 import { OnenessKingdomLogo } from "@/lib/icons";
 import Link from "next/link";
-import BuyOpForm from "@/components/exchange/buy-op-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const ExchangeForm = dynamic(() => import("@/components/exchange/exchange-form"), { ssr: false });
+const TransactionHistory = dynamic(() => import("@/components/exchange/transaction-history"), { ssr: false });
+const BuyOpForm = dynamic(() => import("@/components/exchange/buy-op-form"), { ssr: false });
 
 
 export default function ExchangePage() {

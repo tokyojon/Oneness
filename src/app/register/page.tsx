@@ -1,8 +1,12 @@
-import RegisterForm from "@/components/auth/register-form";
+'use client';
+
+import dynamic from 'next/dynamic';
 import { OnenessKingdomLogo } from "@/lib/icons";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 import Link from "next/link";
+
+const RegisterForm = dynamic(() => import("@/components/auth/register-form"), { ssr: false });
 
 export default function RegisterPage() {
     const registerImage = PlaceHolderImages.find(p => p.id === 'register-image');

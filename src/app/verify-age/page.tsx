@@ -1,8 +1,12 @@
-import AgeVerifier from "@/components/verify/age-verifier";
+'use client';
+
+import dynamic from 'next/dynamic';
 import { OnenessKingdomLogo } from "@/lib/icons";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 import Link from "next/link";
+
+const AgeVerifier = dynamic(() => import("@/components/verify/age-verifier"), { ssr: false });
 
 export default function VerifyAgePage() {
     const verifyImage = PlaceHolderImages.find(p => p.id === 'verify-image');

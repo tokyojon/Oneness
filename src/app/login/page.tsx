@@ -1,8 +1,12 @@
-import LoginForm from "@/components/auth/login-form";
+'use client';
+
+import dynamic from 'next/dynamic';
 import { OnenessKingdomLogo } from "@/lib/icons";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 import Link from "next/link";
+
+const LoginForm = dynamic(() => import("@/components/auth/login-form"), { ssr: false });
 
 export default function LoginPage() {
     const loginImage = PlaceHolderImages.find(p => p.id === 'login-image');
