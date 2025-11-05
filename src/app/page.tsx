@@ -110,6 +110,142 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="w-full py-16 md:py-24 bg-gradient-to-br from-amber-50 to-orange-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-headline font-bold mb-4">🪙 ワンネスポイント制度</h2>
+            <p className="text-muted-foreground max-w-3xl mx-auto text-lg">
+              愛・平和・調和・貢献を基準に、会員が提供・共有・成長を通してポイント（価値）を循環させる仕組みです。
+            </p>
+          </div>
+
+          <div className="max-w-6xl mx-auto space-y-8">
+            <Card className="shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-2xl font-headline">基本理念</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">💱 基本情報</h3>
+                    <ul className="space-y-2 text-muted-foreground">
+                      <li>• <strong>通貨名:</strong> ワンネスポイント（WP）</li>
+                      <li>• <strong>換算レート:</strong> 1 WP = 100円</li>
+                      <li>• <strong>会員登録:</strong> 無料</li>
+                      <li>• <strong>最終目標:</strong> 「王様の王様」= 真のワンネス達成者</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">✨ 7つの軸</h3>
+                    <div className="grid grid-cols-2 gap-2 text-muted-foreground">
+                      <div className="bg-amber-100 p-2 rounded">愛</div>
+                      <div className="bg-blue-100 p-2 rounded">知恵</div>
+                      <div className="bg-green-100 p-2 rounded">公正</div>
+                      <div className="bg-red-100 p-2 rounded">力</div>
+                      <div className="bg-purple-100 p-2 rounded">超能力</div>
+                      <div className="bg-pink-100 p-2 rounded">治療</div>
+                      <div className="bg-indigo-100 p-2 rounded col-span-2 text-center">審判</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-xl font-headline">🎯 基本活動ポイント</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <PointItem action="提供登録（AI審査通過）" points="+1 WP" />
+                    <PointItem action="紹介成功" points="+1 WP" />
+                    <PointItem action="会員同士が繋がる" points="+1 WP" />
+                    <PointItem action="寄付を行う" points="+1 WP" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-xl font-headline">❤️ 家族制度ポイント</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <PointItem action="夫・妻になる" points="+10 WP" />
+                    <PointItem action="夫婦になる" points="+200 WP" variant="highlight" />
+                    <PointItem action="子供になる" points="+10 WP" />
+                    <PointItem action="兄弟・姉妹になる" points="+10 WP" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-xl font-headline">🌟 コミュニティ制度</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <PointItem action="コミュニティ世話役" points="+10 WP" />
+                    <PointItem action="コミュニティ参加" points="+10 WP" />
+                    <PointItem action="コミュニティに寄付" points="+10 WP〜" />
+                    <PointItem action="コミュニティ招待" points="+1 WP" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-xl font-headline">🏆 社会貢献制度</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <PointItem action="教育者になる" points="+200 WP" variant="highlight" />
+                    <PointItem action="生産者になる" points="+200 WP" variant="highlight" />
+                    <PointItem action="仲介役" points="+200 WP" variant="highlight" />
+                    <PointItem action="平和維持セキュリティ役" points="+200 WP" variant="highlight" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="shadow-xl bg-gradient-to-br from-amber-100 to-yellow-100">
+              <CardHeader>
+                <CardTitle className="text-2xl font-headline">👑 称号制度</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  貢献度と累計ポイントにより称号を自動認定します。各7軸（愛・知恵・公正・力・超能力・治療・審判）に対して3段階の称号があります。
+                </p>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <TitleCard title="賢者" requirement="1,000 WP" description="各軸の賢者として認定" />
+                  <TitleCard title="君" requirement="10,000 WP" description="各軸の君として認定" />
+                  <TitleCard title="王様" requirement="100,000 WP" description="各軸の王様として認定" />
+                </div>
+                <div className="mt-6 p-4 bg-white rounded-lg border-2 border-amber-300">
+                  <p className="font-semibold text-center text-lg">
+                    🌟 最高称号: 王様の王様 - 1,000,000 WP 🌟
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-2xl font-headline">💱 仮想通貨交換ルール</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-muted-foreground">
+                  <li>• <strong>交換上限:</strong> 月1回、保有WPの最大33％まで</li>
+                  <li>• <strong>対象者:</strong> 7軸いずれかの称号者（賢者以上）</li>
+                  <li>• <strong>交換可能通貨:</strong> ビットコイン等（王国指定）</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       <section className="w-full py-16 md:py-24 bg-background">
         <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl md:text-4xl font-headline font-bold mb-4">世界を変える準備はできていますか？</h2>
@@ -148,5 +284,20 @@ const Step = ({ step, title, description }: { step: string; title: string; descr
     </div>
     <h3 className="text-xl font-headline font-semibold mb-2">{title}</h3>
     <p className="text-muted-foreground">{description}</p>
+  </div>
+);
+
+const PointItem = ({ action, points, variant }: { action: string; points: string; variant?: 'highlight' }) => (
+  <div className={`flex justify-between items-center p-3 rounded-lg ${variant === 'highlight' ? 'bg-amber-100 border-2 border-amber-300' : 'bg-secondary'}`}>
+    <span className="text-sm">{action}</span>
+    <span className={`font-semibold ${variant === 'highlight' ? 'text-amber-700' : 'text-primary'}`}>{points}</span>
+  </div>
+);
+
+const TitleCard = ({ title, requirement, description }: { title: string; requirement: string; description: string }) => (
+  <div className="bg-white p-4 rounded-lg shadow-md border-2 border-amber-200">
+    <h4 className="font-headline text-xl font-bold mb-2">{title}</h4>
+    <p className="text-primary font-semibold mb-1">{requirement}</p>
+    <p className="text-sm text-muted-foreground">{description}</p>
   </div>
 );
