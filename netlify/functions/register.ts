@@ -16,7 +16,7 @@ export default async (req: Request, context: Context) => {
 
   try {
     const body = await req.json();
-    const { name, email, password, dob, photoDataUri, documentDataUri, aiVerificationResult } = body;
+    const { name, email, password, dob } = body;
 
     if (!name || !email || !password || !dob) {
       return new Response(
@@ -42,17 +42,14 @@ export default async (req: Request, context: Context) => {
     const passwordHash = hashPassword(password);
 
     const result = await sql(
-      `INSERT INTO users (name, email, password_hash, dob, photo_data_uri, document_data_uri, ai_verification_result)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO users (name, email, password_hash, dob)
+       VALUES ($1, $2, $3, $4)
        RETURNING id, name, email, created_at`,
       [
         name,
         email,
         passwordHash,
         dob,
-        photoDataUri || null,
-        documentDataUri || null,
-        aiVerificationResult ? JSON.stringify(aiVerificationResult) : null,
       ]
     );
 

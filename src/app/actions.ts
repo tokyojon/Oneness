@@ -1,8 +1,6 @@
 'use server';
 
 import { z } from 'zod';
-import { aiEnhancedRegistration, AIEnhancedRegistrationOutput } from '@/ai/flows/ai-enhanced-registration';
-import { automatedAgeVerification } from '@/ai/flows/automated-age-verification';
 import { generateWelcomeEmail } from '@/ai/flows/welcome-email';
 
 const loginSchema = z.object({
@@ -38,37 +36,16 @@ const registrationSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   dob: z.string(),
-  photoDataUri: z.string(),
-  documentDataUri: z.string(),
 });
 
-export async function registerAction(values: z.infer<typeof registrationSchema>): Promise<{ success: boolean; message: string; aiResult?: AIEnhancedRegistrationOutput, redirect?: string }> {
+export async function registerAction(values: z.infer<typeof registrationSchema>): Promise<{ success: boolean; message: string; redirect?: string }> {
     try {
-        const age = new Date().getFullYear() - new Date(values.dob).getFullYear();
-
-        const aiResult = await aiEnhancedRegistration({
-            photoDataUri: values.photoDataUri,
-            documentDataUri: values.documentDataUri,
-            age: age
-        });
-
-        if (!aiResult.isLegitimate) {
-            return {
-                success: false,
-                message: '登録を確認できませんでした。もう一度試すか、サポートにお問い合わせください。',
-                aiResult,
-            };
-        }
-
         const response = await fetch('/api/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                ...values,
-                aiVerificationResult: aiResult,
-            }),
+            body: JSON.stringify(values),
         });
 
         const data = await response.json();
@@ -77,7 +54,6 @@ export async function registerAction(values: z.infer<typeof registrationSchema>)
             return {
                 success: false,
                 message: data.error || '登録に失敗しました',
-                aiResult,
             };
         }
 
@@ -86,7 +62,6 @@ export async function registerAction(values: z.infer<typeof registrationSchema>)
         return {
             success: true,
             message: '登録に成功しました！ワンネスキングダムへようこそ。',
-            aiResult,
             redirect: '/dashboard',
         };
 
@@ -99,22 +74,6 @@ export async function registerAction(values: z.infer<typeof registrationSchema>)
     }
 }
 
-const ageVerificationSchema = z.object({
-  documentDataUri: z.string(),
-});
-
-export async function verifyAgeAction(values: z.infer<typeof ageVerificationSchema>) {
-    try {
-        if (!process.env.GOOGLE_GENAI_API_KEY) {
-            return { success: false, message: 'AIキーが未設定のため年齢確認を実行できません。サーバーの環境変数 GOOGLE_GENAI_API_KEY を設定してください。' };
-        }
-        const result = await automatedAgeVerification(values);
-        return { success: true, data: result };
-    } catch (error) {
-        console.error('Age verification error:', error);
-        return { success: false, message: '年齢確認中に予期せぬエラーが発生しました。' };
-    }
-}
 
 export async function logoutAction() {
     return { success: true, message: 'ログアウトしました' };

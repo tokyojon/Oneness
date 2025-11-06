@@ -20,11 +20,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useState } from "react"
 import { registerAction } from "@/app/actions";
 import { LoadingSpinner } from "@/lib/icons";
-import { AlertCircle, CheckCircle } from "lucide-react"
-import { cn, fileToDataUri } from "@/lib/utils"
-import WebcamCapture from "./webcam-capture"
-import { AIEnhancedRegistrationOutput } from "@/ai/flows/ai-enhanced-registration";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { CheckCircle } from "lucide-react"
 import { Card, CardContent } from "../ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useRouter } from "next/navigation"
@@ -61,10 +57,6 @@ export default function RegisterForm() {
     const router = useRouter();
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
-    const [aiResult, setAiResult] = useState<AIEnhancedRegistrationOutput | null>(null);
-
-    const [photoDataUri, setPhotoDataUri] = useState<string | null>(null);
-    const [documentFile, setDocumentFile] = useState<File | null>(null);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -86,29 +78,15 @@ export default function RegisterForm() {
     };
     
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        if (!photoDataUri || !documentFile) {
-            toast({
-                variant: "destructive",
-                title: "情報が不足しています",
-                description: "認証のために写真と書類の両方を提供してください。",
-            });
-            return;
-        }
-
         setIsLoading(true);
-        setAiResult(null);
 
         try {
-            const documentDataUri = await fileToDataUri(documentFile);
-            
             const { day, month, year, ...restOfValues } = values;
             const dob = new Date(`${year}-${month}-${day}`).toISOString();
 
             const registrationData = {
                 ...restOfValues,
                 dob: dob,
-                photoDataUri,
-                documentDataUri
             };
 
             const result = await registerAction(registrationData);
@@ -118,15 +96,11 @@ export default function RegisterForm() {
                     title: "登録成功",
                     description: result.message,
                 });
-                // In a real app, a token would be stored, not just a flag.
                 localStorage.setItem('isLoggedIn', 'true');
                 if(result.redirect) {
                     router.push(result.redirect);
                 } else {
-                    setStep(3); // Go to success step
-                }
-                if (result.aiResult) {
-                    setAiResult(result.aiResult);
+                    setStep(3);
                 }
             } else {
                 toast({
@@ -134,15 +108,12 @@ export default function RegisterForm() {
                     title: "登録失敗",
                     description: result.message,
                 });
-                if(result.aiResult){
-                    setAiResult(result.aiResult);
-                }
             }
         } catch (error) {
             toast({
                 variant: "destructive",
                 title: "エラー",
-                description: "書類の処理中に予期せぬエラーが発生しました。",
+                description: "登録中に予期せぬエラーが発生しました。",
             });
         } finally {
             setIsLoading(false);
@@ -159,16 +130,6 @@ export default function RegisterForm() {
                           <CheckCircle className="w-12 h-12 text-green-500" />
                         </div>
                         <p className="text-muted-foreground">登録が完了しました。ご参加いただき、誠にありがとうございます。</p>
-                        {aiResult && (
-                             <Alert variant={aiResult.isLegitimate ? "default" : "destructive"}>
-                                <AlertCircle className="h-4 w-4" />
-                                <AlertTitle>{aiResult.isLegitimate ? "認証詳細" : "認証の問題"}</AlertTitle>
-                                <AlertDescription>
-                                    <p className="font-semibold">AI評価：</p>
-                                    <p>{aiResult.reason}</p>
-                                </AlertDescription>
-                            </Alert>
-                        )}
                         <Button onClick={() => router.push('/dashboard')}>ダッシュボードへ</Button>
                     </div>
                 </CardContent>
@@ -280,7 +241,7 @@ export default function RegisterForm() {
                             </FormDescription>
                         </FormItem>
                         <Button type="button" onClick={handleNextStep} className="w-full">
-                            次へ：確認
+                            次へ
                         </Button>
                     </>
                 )}
@@ -288,34 +249,15 @@ export default function RegisterForm() {
                 {step === 2 && (
                     <div className="space-y-6">
                         <div>
-                            <h3 className="text-lg font-medium font-headline">AI本人確認</h3>
-                            <p className="text-sm text-muted-foreground">詐欺防止のため、ライブ写真と身分証明書が必要です。</p>
+                            <h3 className="text-lg font-medium font-headline">登録確認</h3>
+                            <p className="text-sm text-muted-foreground">登録を完了するには、下のボタンをクリックしてください。</p>
                         </div>
-                        <FormItem>
-                            <FormLabel>1. ライブ写真</FormLabel>
-                            <WebcamCapture onCapture={setPhotoDataUri} />
-                        </FormItem>
-                        <FormItem>
-                            <FormLabel>2. 身分証明書</FormLabel>
-                            <FormControl>
-                                <Input type="file" accept="image/*" onChange={(e) => e.target.files && setDocumentFile(e.target.files[0])} />
-                            </FormControl>
-                            <FormDescription>運転免許証、パスポート、または国民IDカードの鮮明な写真をアップロードしてください。</FormDescription>
-                        </FormItem>
-                        
-                        {aiResult && !aiResult.isLegitimate && (
-                            <Alert variant="destructive">
-                                <AlertCircle className="h-4 w-4" />
-                                <AlertTitle>認証の問題</AlertTitle>
-                                <AlertDescription>{aiResult.reason}</AlertDescription>
-                            </Alert>
-                        )}
                         
                         <div className="flex gap-4">
                             <Button type="button" variant="outline" onClick={() => setStep(1)} className="w-full">
                                 戻る
                             </Button>
-                            <Button type="submit" className="w-full" disabled={isLoading || !photoDataUri || !documentFile}>
+                            <Button type="submit" className="w-full" disabled={isLoading}>
                                 {isLoading ? <LoadingSpinner /> : '登録を完了する'}
                             </Button>
                         </div>
