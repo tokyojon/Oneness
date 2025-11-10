@@ -78,11 +78,11 @@ export default function SettingsPage() {
                                 <h3 className="font-semibold mb-2">パスワードの変更</h3>
                                 <div className="space-y-2">
                                     <Label htmlFor="current-password">現在のパスワード</Label>
-                                    <Input id="current-password" type="password" />
+                                    <Input id="current-password" type="password" autoComplete="current-password" />
                                 </div>
                                 <div className="space-y-2 mt-2">
                                     <Label htmlFor="new-password">新しいパスワード</Label>
-                                    <Input id="new-password" type="password" />
+                                    <Input id="new-password" type="password" autoComplete="new-password" />
                                 </div>
                              </div>
                         </CardContent>

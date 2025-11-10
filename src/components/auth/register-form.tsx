@@ -140,7 +140,7 @@ export default function RegisterForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="Create a password" {...field} />
+                <Input type="password" placeholder="Create a password" autoComplete="new-password" {...field} />
               </FormControl>
               <FormDescription>
                 Must be at least 6 characters long.

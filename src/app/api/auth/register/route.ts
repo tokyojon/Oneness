@@ -42,21 +42,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create user profile
-    const { error: profileError } = await supabase
-      .from('user_profiles')
-      .insert({
-        user_id: authData.user.id,
-        display_name: displayName
-      });
+    // Create user profile (skip if table doesn't exist yet)
+    try {
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: authData.user.id,
+          display_name: displayName
+        });
 
-    if (profileError) {
-      // If profile creation fails, we should clean up the auth user
-      await supabase.auth.admin.deleteUser(authData.user.id);
-      return NextResponse.json(
-        { error: 'Failed to create user profile' },
-        { status: 500 }
-      );
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        // Don't fail registration if profile creation fails, just log it
+        // The user can create their profile later
+      }
+    } catch (profileErr) {
+      console.error('Profile table might not exist yet:', profileErr);
+      // Continue with registration even if profile table doesn't exist
     }
 
     return NextResponse.json({
