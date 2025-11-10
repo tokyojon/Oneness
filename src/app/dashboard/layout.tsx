@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { Bell, Clapperboard, Compass, Home, Send, User } from "lucide-react";
+import { Bell, Clapperboard, Compass, Home, Send, User, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -43,6 +43,7 @@ const LeftSidebar = () => (
             <SidebarLink href="/dashboard" icon={Home} label="ホーム" active />
             <SidebarLink href="/dashboard/discover" icon={Compass} label="発見" />
             <SidebarLink href="/dashboard/reels" icon={Clapperboard} label="リール" />
+            <SidebarLink href="/dashboard/marketplace" icon={ShoppingBag} label="マーケット" />
             <SidebarLink href="/exchange" icon={Send} label="OPを交換" />
             <SidebarLink href="/dashboard/notifications" icon={Bell} label="お知らせ" />
             <SidebarLink href="/dashboard/profile" icon={User} label="プロフィール" />
