@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,7 +32,7 @@ const formSchema = z.object({
   path: ["confirmPassword"],
 });
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -207,5 +207,23 @@ export default function ResetPasswordPage() {
         </Form>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="w-full min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto grid w-full max-w-md gap-6">
+          <div className="grid gap-2 text-center">
+            <OnenessKingdomLogo className="h-10 w-10 mx-auto mb-4" />
+            <LoadingSpinner className="h-8 w-8 mx-auto animate-spin" />
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
