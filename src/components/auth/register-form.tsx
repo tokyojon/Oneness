@@ -25,9 +25,9 @@ import { useRouter } from "next/navigation"
 import { login } from "@/lib/auth"
 
 const formSchema = z.object({
-  displayName: z.string().min(2, { message: "Display name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  displayName: z.string().min(2, { message: "表示名は最低2文字以上である必要があります。" }),
+  email: z.string().email({ message: "有効なメールアドレスを入力してください。" }),
+  password: z.string().min(6, { message: "パスワードは最低6文字以上である必要があります。" }),
 });
 
 export default function RegisterForm() {
@@ -61,7 +61,7 @@ export default function RegisterForm() {
 
       if (response.ok) {
         toast({
-          title: "Registration successful",
+          title: "登録が完了しました",
           description: data.message,
         });
         // Automatically log in the user after registration
@@ -76,15 +76,15 @@ export default function RegisterForm() {
       } else {
         toast({
           variant: "destructive",
-          title: "Registration failed",
-          description: data.error || 'Something went wrong',
+          title: "登録に失敗しました",
+          description: data.error || 'エラーが発生しました',
         });
       }
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "An unexpected error occurred during registration.",
+        title: "エラー",
+        description: "登録中に予期せぬエラーが発生しました。",
       });
     } finally {
       setIsLoading(false);
@@ -96,11 +96,11 @@ export default function RegisterForm() {
       <Card>
         <CardContent className="p-6">
           <div className="text-center space-y-4">
-            <h2 className="text-2xl font-headline font-semibold">Welcome to the Kingdom!</h2>
+            <h2 className="text-2xl font-headline font-semibold">王国へようこそ！</h2>
             <div className="flex justify-center">
               <CheckCircle className="w-12 h-12 text-green-500" />
             </div>
-            <p className="text-muted-foreground">Registration completed. Redirecting to login...</p>
+            <p className="text-muted-foreground">登録が完了しました。ダッシュボードにリダイレクト中...</p>
           </div>
         </CardContent>
       </Card>
@@ -115,9 +115,9 @@ export default function RegisterForm() {
           name="displayName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Display Name</FormLabel>
+              <FormLabel>表示名</FormLabel>
               <FormControl>
-                <Input placeholder="Enter your display name" {...field} />
+                <Input placeholder="表示名を入力してください" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -129,9 +129,9 @@ export default function RegisterForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>メールアドレス</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="Enter your email" {...field} />
+                <Input type="email" placeholder="メールアドレスを入力してください" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -143,12 +143,12 @@ export default function RegisterForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>パスワード</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="Create a password" autoComplete="new-password" {...field} />
+                <Input type="password" placeholder="パスワードを作成してください" autoComplete="new-password" {...field} />
               </FormControl>
               <FormDescription>
-                Must be at least 6 characters long.
+                最低6文字以上である必要があります。
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -159,10 +159,10 @@ export default function RegisterForm() {
           {isLoading ? (
             <>
               <LoadingSpinner className="mr-2 h-4 w-4 animate-spin" />
-              Creating account...
+              アカウント作成中...
             </>
           ) : (
-            "Create Account"
+            "アカウントを作成"
           )}
         </Button>
       </form>

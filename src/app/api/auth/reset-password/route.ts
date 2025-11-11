@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       // Get the site URL from environment or request headers
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 
                      request.headers.get('origin') || 
-                     'http://localhost:3000';
+                     'https://onenesskingdom.world';
       
       console.log('Sending password reset email to:', validatedEmail);
       console.log('Redirect URL:', `${siteUrl}/reset-password`);
