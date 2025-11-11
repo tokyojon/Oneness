@@ -12,6 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { logoutAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { logout } from '@/lib/auth';
 
 export default function Header() {
   const pathname = usePathname();
@@ -22,9 +23,12 @@ export default function Header() {
   const isDashboard = pathname.startsWith('/dashboard');
 
   const handleLogout = async () => {
+    // Clear client-side authentication data
+    logout();
+    
+    // Call server action for any server-side cleanup
     const result = await logoutAction();
     if (result.success) {
-      localStorage.removeItem('isLoggedIn');
       toast({
         title: 'ログアウト成功',
         description: result.message,

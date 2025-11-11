@@ -48,7 +48,12 @@ export default function ExchangePage() {
 
             try {
                 const token = localStorage.getItem('auth_token');
-                if (!token) return;
+                if (!token) {
+                    console.error('No auth token found');
+                    setTransactions([]);
+                    setTransactionsLoading(false);
+                    return;
+                }
 
                 const response = await fetch('/api/transactions', {
                     headers: {
@@ -59,25 +64,15 @@ export default function ExchangePage() {
 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Transactions data:', data);
                     setTransactions(data.transactions || []);
                 } else {
-                    console.error('Failed to fetch transactions');
-                    // Fallback to mock data if API fails
-                    setTransactions([
-                        { id: 'txn1', type: 'exchange' as const, date: new Date('2024-07-20'), op_amount: 500, currency: 'JPY', amount: 750, status: 'completed' as const },
-                        { id: 'buy1', type: 'purchase' as const, date: new Date('2024-08-19'), op_amount: 2000, currency: 'JPY', amount: 2000, status: 'completed' as const },
-                        { id: 'txn2', type: 'exchange' as const, date: new Date('2024-08-05'), op_amount: 1000, currency: 'USDT', amount: 10, status: 'approved' as const },
-                        { id: 'txn3', type: 'exchange' as const, date: new Date('2024-08-15'), op_amount: 2000, currency: 'BTC', amount: 0.0003, status: 'pending' as const },
-                        { id: 'txn4', type: 'exchange_rejection' as const, date: new Date('2024-08-18'), op_amount: 300, currency: 'JPY', amount: 450, status: 'rejected' as const },
-                    ]);
+                    console.error('Failed to fetch transactions:', response.status, response.statusText);
+                    setTransactions([]);
                 }
             } catch (error) {
                 console.error('Error fetching transactions:', error);
-                // Fallback to mock data
-                setTransactions([
-                    { id: 'txn1', type: 'exchange' as const, date: new Date('2024-07-20'), op_amount: 500, currency: 'JPY', amount: 750, status: 'completed' as const },
-                    { id: 'buy1', type: 'purchase' as const, date: new Date('2024-08-19'), op_amount: 2000, currency: 'JPY', amount: 2000, status: 'completed' as const },
-                ]);
+                setTransactions([]);
             } finally {
                 setTransactionsLoading(false);
             }

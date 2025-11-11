@@ -76,10 +76,8 @@ export async function registerAction(values: z.infer<typeof registrationSchema>)
 
 
 export async function logoutAction() {
-    // Clear all authentication-related items from localStorage
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
+    // Server-side logout action
+    // In a real app, you might want to invalidate the session on the server
+    // For now, we just return success as the client-side will handle localStorage cleanup
     return { success: true, message: 'ログアウトしました' };
 }
