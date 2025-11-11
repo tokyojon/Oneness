@@ -56,11 +56,28 @@ export default function DashboardPage() {
     const [stories, setStories] = useState<Story[]>([]);
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
     const [loading, setLoading] = useState(true);
+    const [userProfile, setUserProfile] = useState<any>(null);
 
     // Fetch live data
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
+                // Fetch user profile data
+                const token = localStorage.getItem('auth_token');
+                if (token) {
+                    const profileResponse = await fetch('/api/profile', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                    });
+
+                    if (profileResponse.ok) {
+                        const profileData = await profileResponse.json();
+                        setUserProfile(profileData.profile);
+                    }
+                }
+
                 // In a real implementation, these would be separate API calls
                 // For now, we'll use empty arrays and let the user create content
                 setPosts([]);
@@ -80,9 +97,9 @@ export default function DashboardPage() {
         const newPost: Post = {
             id: Date.now(),
             author: {
-                name: user?.profile?.display_name || 'ユーザー',
-                username: user?.email?.split('@')[0] || 'user',
-                avatarUrl: user?.profile?.avatar_url || "https://picsum.photos/seed/user1/100/100"
+                name: userProfile?.name || user?.profile?.display_name || 'ユーザー',
+                username: userProfile?.username || user?.email?.split('@')[0] || 'user',
+                avatarUrl: userProfile?.avatarUrl || user?.profile?.avatar_url || "https://picsum.photos/seed/user1/100/100"
             },
             content,
             likes: 0,
@@ -163,6 +180,37 @@ const CreatePostCard = ({ onNewPost }: { onNewPost: (content: string, mediaUrl?:
     const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
+    const [userProfile, setUserProfile] = useState<any>(null);
+
+    // Fetch fresh user profile data
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) return;
+
+                const response = await fetch('/api/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setUserProfile(data.profile);
+                }
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+            }
+        };
+
+        fetchUserProfile();
+    }, []);
+
+    // Use fresh profile data or fallback to localStorage data
+    const displayName = userProfile?.name || user?.profile?.display_name || 'ユーザー';
+    const avatarUrl = userProfile?.avatarUrl || user?.profile?.avatar_url || "https://picsum.photos/seed/user1/100/100";
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -221,12 +269,12 @@ const CreatePostCard = ({ onNewPost }: { onNewPost: (content: string, mediaUrl?:
                 <div className="flex items-start gap-3">
                     <Link href="/dashboard/profile">
                         <Avatar>
-                            <AvatarImage src={user?.profile?.avatar_url || "https://picsum.photos/seed/user1/100/100"} alt={user?.profile?.display_name || 'ユーザー'} />
-                            <AvatarFallback>{user?.profile?.display_name?.charAt(0) || 'U'}</AvatarFallback>
+                            <AvatarImage src={avatarUrl} alt={displayName} />
+                            <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
                         </Avatar>
                     </Link>
                     <Textarea 
-                        placeholder={`何を考えていますか、${user?.profile?.display_name || 'ユーザー'}さん？`} 
+                        placeholder={`何を考えていますか、${displayName}さん？`} 
                         className="flex-grow bg-muted border-none min-h-[60px]"
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
