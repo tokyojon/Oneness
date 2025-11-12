@@ -1,7 +1,6 @@
 'use server';
 
 import { z } from 'zod';
-import { generateWelcomeEmail } from '@/ai/flows/welcome-email';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -56,8 +55,6 @@ export async function registerAction(values: z.infer<typeof registrationSchema>)
                 message: data.error || '登録に失敗しました',
             };
         }
-
-        await generateWelcomeEmail({ name: values.name });
 
         return {
             success: true,
