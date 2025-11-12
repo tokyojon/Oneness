@@ -8,9 +8,12 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('GET /api/posts - Starting posts fetch...');
+    
     // Get the user from the session using Supabase auth
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('GET /api/posts - No authorization header');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -18,6 +21,7 @@ export async function GET(request: NextRequest) {
     }
 
     const token = authHeader.split(' ')[1];
+    console.log('GET /api/posts - Token found');
     
     // Create a Supabase client with the user's JWT token
     const userSupabase = createClient(
@@ -36,13 +40,17 @@ export async function GET(request: NextRequest) {
     const { data: { user }, error: authError } = await userSupabase.auth.getUser();
 
     if (authError || !user) {
+      console.log('GET /api/posts - Invalid token:', authError);
       return NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
       );
     }
 
+    console.log('GET /api/posts - User authenticated:', user.id);
+
     // Get posts with user information
+    console.log('GET /api/posts - Fetching posts from database...');
     const { data: posts, error: postsError } = await userSupabase
       .from('posts')
       .select(`
@@ -57,9 +65,10 @@ export async function GET(request: NextRequest) {
       .limit(20);
 
     if (postsError) {
-      console.error('Posts fetch error:', postsError);
+      console.error('GET /api/posts - Posts fetch error:', postsError);
       // Return empty array if posts table doesn't exist yet
       if (postsError.code === 'PGRST116') {
+        console.log('GET /api/posts - Posts table does not exist, returning empty array');
         return NextResponse.json({ posts: [] });
       }
       return NextResponse.json(
@@ -68,8 +77,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    console.log('GET /api/posts - Posts fetched:', posts?.length || 0, 'posts');
+
     // Get user's likes for these posts
     const postIds = posts?.map(post => post.id) || [];
+    console.log('GET /api/posts - Fetching user likes for posts:', postIds);
     const { data: userLikes, error: likesError } = await userSupabase
       .from('post_likes')
       .select('post_id')
@@ -77,8 +89,10 @@ export async function GET(request: NextRequest) {
       .in('post_id', postIds);
 
     const likedPostIds = new Set(userLikes?.map(like => like.post_id) || []);
+    console.log('GET /api/posts - User liked posts:', Array.from(likedPostIds));
 
     // Get user's bookmarks for these posts
+    console.log('GET /api/posts - Fetching user bookmarks for posts:', postIds);
     const { data: userBookmarks, error: bookmarksError } = await userSupabase
       .from('user_bookmarks')
       .select('post_id')
@@ -86,6 +100,7 @@ export async function GET(request: NextRequest) {
       .in('post_id', postIds);
 
     const bookmarkedPostIds = new Set(userBookmarks?.map(bookmark => bookmark.post_id) || []);
+    console.log('GET /api/posts - User bookmarked posts:', Array.from(bookmarkedPostIds));
 
     // Format posts for frontend
     const formattedPosts = posts?.map(post => ({
@@ -106,10 +121,12 @@ export async function GET(request: NextRequest) {
       }
     })) || [];
 
+    console.log('GET /api/posts - Formatted posts count:', formattedPosts.length);
+
     return NextResponse.json({ posts: formattedPosts });
 
   } catch (error) {
-    console.error('Posts API error:', error);
+    console.error('GET /api/posts - API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -119,9 +136,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('POST /api/posts - Starting post creation...');
+    
     // Get the user from the session using Supabase auth
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('POST /api/posts - No authorization header');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -129,6 +149,7 @@ export async function POST(request: NextRequest) {
     }
 
     const token = authHeader.split(' ')[1];
+    console.log('POST /api/posts - Token found');
     
     // Create a Supabase client with the user's JWT token
     const userSupabase = createClient(
@@ -147,16 +168,21 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await userSupabase.auth.getUser();
 
     if (authError || !user) {
+      console.log('POST /api/posts - Invalid token:', authError);
       return NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
       );
     }
 
+    console.log('POST /api/posts - User authenticated:', user.id);
+
     // Parse request body
     const { content, imageUrl, imageHint, videoUrl } = await request.json();
+    console.log('POST /api/posts - Request body:', { content, imageUrl, imageHint, videoUrl });
 
     if (!content && !imageUrl && !videoUrl) {
+      console.log('POST /api/posts - No content provided');
       return NextResponse.json(
         { error: 'Post content is required' },
         { status: 400 }
@@ -164,6 +190,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new post
+    console.log('POST /api/posts - Inserting post into database...');
     const { data: newPost, error: insertError } = await userSupabase
       .from('posts')
       .insert({
@@ -179,12 +206,14 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (insertError) {
-      console.error('Post creation error:', insertError);
+      console.error('POST /api/posts - Post creation error:', insertError);
       return NextResponse.json(
         { error: 'Failed to create post' },
         { status: 500 }
       );
     }
+
+    console.log('POST /api/posts - Post created successfully:', newPost);
 
     // Get user profile for response
     const { data: profile } = await userSupabase
@@ -192,6 +221,8 @@ export async function POST(request: NextRequest) {
       .select('display_name, avatar_url')
       .eq('user_id', user.id)
       .single();
+
+    console.log('POST /api/posts - User profile:', profile);
 
     // Format response
     const formattedPost = {
@@ -212,6 +243,8 @@ export async function POST(request: NextRequest) {
       }
     };
 
+    console.log('POST /api/posts - Formatted post:', formattedPost);
+
     return NextResponse.json({
       success: true,
       post: formattedPost,
@@ -219,7 +252,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Post creation API error:', error);
+    console.error('POST /api/posts - API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

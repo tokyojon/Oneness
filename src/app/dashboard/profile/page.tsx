@@ -44,12 +44,15 @@ export default function ProfilePage() {
     useEffect(() => {
         const fetchProfileData = async () => {
             try {
+                console.log('Profile page - Starting data fetch...');
                 const token = localStorage.getItem('auth_token');
                 if (!token) {
+                    console.log('Profile page - No auth token found');
                     setLoading(false);
                     return;
                 }
 
+                console.log('Profile page - Fetching profile data...');
                 const response = await fetch('/api/profile', {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -59,10 +62,14 @@ export default function ProfilePage() {
 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Profile page - Data received:', data);
                     setUserProfile(data.profile);
                     setUserPosts(data.posts || []);
+                    console.log('Profile page - Posts set:', data.posts?.length || 0, 'posts');
                 } else {
-                    console.error('Failed to fetch profile data');
+                    console.error('Profile page - Failed to fetch profile data:', response.status);
+                    const errorData = await response.json();
+                    console.error('Profile page - Error:', errorData);
                     // Fallback to basic user data
                     setUserProfile({
                         id: user?.id || '',
@@ -82,7 +89,7 @@ export default function ProfilePage() {
                     setUserPosts([]);
                 }
             } catch (error) {
-                console.error('Error fetching profile data:', error);
+                console.error('Profile page - Error fetching profile data:', error);
                 setLoading(false);
             } finally {
                 setLoading(false);

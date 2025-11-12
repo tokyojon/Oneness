@@ -23,17 +23,38 @@ export default function Header() {
   const isDashboard = pathname.startsWith('/dashboard');
 
   const handleLogout = async () => {
-    // Clear client-side authentication data
-    logout();
-    
-    // Call server action for any server-side cleanup
-    const result = await logoutAction();
-    if (result.success) {
+    try {
+      console.log('Starting logout process...');
+      // Clear client-side authentication data
+      logout();
+      console.log('Client-side logout completed');
+      
+      // Call server action for any server-side cleanup
+      const result = await logoutAction();
+      console.log('Server action result:', result);
+      
+      if (result.success) {
+        toast({
+          title: 'ログアウト成功',
+          description: result.message,
+        });
+        // Force a page refresh to update navbar state
+        router.push('/');
+        router.refresh();
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'ログアウトエラー',
+          description: 'ログアウトに失敗しました。',
+        });
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
       toast({
-        title: 'ログアウト成功',
-        description: result.message,
+        variant: 'destructive',
+        title: 'ログアウトエラー',
+        description: 'ログアウト中にエラーが発生しました。',
       });
-      router.push('/');
     }
   };
 

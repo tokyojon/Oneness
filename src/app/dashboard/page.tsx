@@ -64,36 +64,49 @@ export default function DashboardPage() {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
+                console.log('Fetching dashboard data...');
                 // Fetch user profile data
                 const token = localStorage.getItem('auth_token');
-                if (token) {
-                    const profileResponse = await fetch('/api/profile', {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
+                if (!token) {
+                    console.log('No auth token found');
+                    setLoading(false);
+                    return;
+                }
 
-                    if (profileResponse.ok) {
-                        const profileData = await profileResponse.json();
-                        setUserProfile(profileData.profile);
-                    }
+                console.log('Auth token found, fetching profile...');
+                const profileResponse = await fetch('/api/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
 
-                    // Fetch posts from API
-                    const postsResponse = await fetch('/api/posts', {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
+                if (profileResponse.ok) {
+                    const profileData = await profileResponse.json();
+                    console.log('Profile data fetched:', profileData);
+                    setUserProfile(profileData.profile);
+                } else {
+                    console.error('Profile fetch failed:', profileResponse.status);
+                }
 
-                    if (postsResponse.ok) {
-                        const postsData = await postsResponse.json();
-                        setPosts(postsData.posts || []);
-                    } else {
-                        console.error('Failed to fetch posts');
-                        setPosts([]);
-                    }
+                console.log('Fetching posts...');
+                // Fetch posts from API
+                const postsResponse = await fetch('/api/posts', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (postsResponse.ok) {
+                    const postsData = await postsResponse.json();
+                    console.log('Posts data fetched:', postsData);
+                    setPosts(postsData.posts || []);
+                } else {
+                    console.error('Posts fetch failed:', postsResponse.status);
+                    const errorData = await postsResponse.json();
+                    console.error('Posts error:', errorData);
+                    setPosts([]);
                 }
 
                 // Set empty arrays for stories and suggestions for now
@@ -111,6 +124,7 @@ export default function DashboardPage() {
 
     const handleNewPost = async (content: string, mediaUrl?: string, mediaType?: 'image' | 'video') => {
         try {
+            console.log('Creating new post:', { content, mediaUrl, mediaType });
             const token = localStorage.getItem('auth_token');
             if (!token) {
                 throw new Error('Not authenticated');
@@ -126,6 +140,7 @@ export default function DashboardPage() {
                 }
             }
 
+            console.log('Sending post data:', postData);
             const response = await fetch('/api/posts', {
                 method: 'POST',
                 headers: {
@@ -135,11 +150,14 @@ export default function DashboardPage() {
                 body: JSON.stringify(postData),
             });
 
+            console.log('Post response status:', response.status);
             if (response.ok) {
                 const data = await response.json();
+                console.log('Post created successfully:', data);
                 setPosts([data.post, ...posts]);
             } else {
                 const errorData = await response.json();
+                console.error('Post creation failed:', errorData);
                 throw new Error(errorData.error || 'Failed to create post');
             }
         } catch (error) {

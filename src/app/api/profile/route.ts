@@ -91,6 +91,7 @@ export async function GET(request: NextRequest) {
     const followingCount = 0; // Would come from user_following table
 
     // Get user's posts for profile display
+    console.log('GET /api/profile - Fetching user posts for profile...');
     const { data: userPosts, error: userPostsError } = await userSupabase
       .from('posts')
       .select('*')
@@ -99,8 +100,10 @@ export async function GET(request: NextRequest) {
       .limit(12);
 
     if (userPostsError && userPostsError.code !== 'PGRST116') {
-      console.error('User posts fetch error:', userPostsError);
+      console.error('GET /api/profile - User posts fetch error:', userPostsError);
     }
+
+    console.log('GET /api/profile - User posts fetched:', userPosts?.length || 0, 'posts');
 
     // Format posts for display
     const formattedPosts = userPosts?.map(post => ({
@@ -111,6 +114,8 @@ export async function GET(request: NextRequest) {
       comments: post.comments || 0,
       created_at: post.created_at
     })) || [];
+
+    console.log('GET /api/profile - Formatted posts for profile:', formattedPosts.length);
 
     return NextResponse.json({
       profile: {
