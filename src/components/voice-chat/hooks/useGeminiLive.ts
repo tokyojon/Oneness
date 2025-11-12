@@ -41,7 +41,7 @@ export function useGeminiLive() {
       setConnectionState(prev => ({ ...prev, error: null }));
       
       genAIRef.current = new GoogleGenerativeAI(apiKey);
-      modelRef.current = genAIRef.current.getGenerativeModel({ model: 'gemini-pro' });
+      modelRef.current = genAIRef.current.getGenerativeModel({ model: 'gemini-1.5-flash' });
       
       setConnectionState(prev => ({ ...prev, isConnected: true }));
       
