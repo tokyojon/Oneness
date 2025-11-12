@@ -1,7 +1,0 @@
-{
-  "name": "Gemini Live Avatar",
-  "description": "An interactive anime-style avatar powered by the Gemini 2.5 Native Audio (Live API). Engage in real-time conversations and see the dialogue transcribed on screen. Features controls for microphone, speaker, and text visibility.",
-  "requestFramePermissions": [
-    "microphone"
-  ]
-}
