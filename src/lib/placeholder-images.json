@@ -9,19 +9,19 @@
     {
       "id": "feature-1",
       "description": "A chalkboard with the text 'Give joy in the neighborhood'.",
-      "imageUrl": "https://images.unsplash.com/photo-1518928828822-9205b38580b2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjaGFsa2JvYXJkJTIwbWVzc2FnZXxlbnwwfHx8fDE3MjE4MzYzNjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "/1.png",
       "imageHint": "community message"
     },
     {
       "id": "feature-2",
       "description": "A network of interconnected people forming a global family.",
-      "imageUrl": "https://images.unsplash.com/photo-1454923634634-bd1614719a7b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxuZXR3b3JrJTIwcGVvcGxlfGVufDB8fHx8MTc2MjE1MDIxMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "/2.png",
       "imageHint": "network people"
     },
     {
       "id": "feature-3",
       "description": "An abstract image representing artificial intelligence with a helping hand.",
-      "imageUrl": "https://images.unsplash.com/photo-1589254066228-2ae1b1a436e1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhcnRpZmljaWFsJTIwaW50ZWxsaWdlbmNlJTIwaGFuZHxlbnwwfHx8fDE3MjE4MzY0NDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "/3.png",
       "imageHint": "AI helping"
     },
     {
