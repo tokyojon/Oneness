@@ -26,6 +26,7 @@ export default function Home() {
   const feature1Image = PlaceHolderImages.find(p => p.id === 'feature-1');
   const feature2Image = PlaceHolderImages.find(p => p.id === 'feature-2');
   const feature3Image = PlaceHolderImages.find(p => p.id === 'feature-3');
+  const feature4Image = PlaceHolderImages.find(p => p.id === 'feature-4');
 
   const tabVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
@@ -119,6 +120,16 @@ export default function Home() {
                         "• 不正行為の自動検出",
                         "• パーソナライズされた推薦",
                         "• コミュニティガイドラインの自動執行"
+                      ]}
+                    />
+                    <FeatureCard
+                      title="ポイントシステム"
+                      description="貢献が報われる透明な経済システム"
+                      image={feature4Image || feature1Image}
+                      details={[
+                        "• 行動がポイントに変換",
+                        "• チップや寄付に利用",
+                        "• コミュニティ内で交換可能"
                       ]}
                     />
                   </div>
