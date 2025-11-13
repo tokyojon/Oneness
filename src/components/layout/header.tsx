@@ -58,6 +58,13 @@ export default function Header() {
     }
   };
 
+  const handleSearch = (searchTerm: string) => {
+    if (searchTerm.trim()) {
+      // Navigate to search results page with query parameter
+      router.push(`/dashboard/search?q=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
+
   if (isDashboard || isLoggedIn) {
     return (
       <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-sm border-b">
@@ -68,26 +75,45 @@ export default function Header() {
           </Link>
           
           <div className="flex-1 max-w-md mx-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input placeholder="検索..." className="pl-10" />
+            <div className="relative flex gap-2">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+              <Input 
+                placeholder="検索..." 
+                className="pl-10 flex-1"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const target = e.target as HTMLInputElement;
+                    handleSearch(target.value);
+                  }
+                }}
+              />
+              <Button 
+                size="sm" 
+                className="px-3"
+                onClick={(e) => {
+                  const input = e.currentTarget.parentElement?.querySelector('input');
+                  if (input) handleSearch(input.value);
+                }}
+              >
+                Go
+              </Button>
             </div>
           </div>
 
           <nav className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="hidden sm:inline-flex" asChild>
+            <Button variant="ghost" size="icon" asChild>
               <Link href="/dashboard/wallet">
                 <Wallet className="h-6 w-6" />
                 <span className="sr-only">ウォレット</span>
               </Link>
             </Button>
-            <Button variant="ghost" size="icon" className="hidden sm:inline-flex" asChild>
+            <Button variant="ghost" size="icon" asChild>
               <Link href="/dashboard/notifications">
                 <MessageSquare className="h-6 w-6" />
                 <span className="sr-only">メッセージ</span>
               </Link>
             </Button>
-            <Button variant="ghost" size="icon" className="hidden sm:inline-flex" asChild>
+            <Button variant="ghost" size="icon" asChild>
               <Link href="/dashboard/notifications">
                 <Bell className="h-6 w-6" />
                 <span className="sr-only">お知らせ</span>

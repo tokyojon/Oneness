@@ -23,7 +23,20 @@ export async function GET(request: NextRequest) {
     const token = authHeader.split(' ')[1];
     console.log('GET /api/posts - Token found');
     
-    // Create a Supabase client with the user's JWT token
+    // Verify the user is authenticated by decoding the JWT
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      console.log('GET /api/posts - Invalid token:', authError);
+      return NextResponse.json(
+        { error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
+
+    console.log('GET /api/posts - User authenticated:', user.id);
+
+    // Create a Supabase client for database operations with user context
     const userSupabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -35,19 +48,6 @@ export async function GET(request: NextRequest) {
         },
       }
     );
-
-    // Verify the user is authenticated
-    const { data: { user }, error: authError } = await userSupabase.auth.getUser();
-
-    if (authError || !user) {
-      console.log('GET /api/posts - Invalid token:', authError);
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
-      );
-    }
-
-    console.log('GET /api/posts - User authenticated:', user.id);
 
     // Get posts with user information
     console.log('GET /api/posts - Fetching posts from database...');
@@ -151,21 +151,8 @@ export async function POST(request: NextRequest) {
     const token = authHeader.split(' ')[1];
     console.log('POST /api/posts - Token found');
     
-    // Create a Supabase client with the user's JWT token
-    const userSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      }
-    );
-
-    // Verify the user is authenticated
-    const { data: { user }, error: authError } = await userSupabase.auth.getUser();
+    // Verify the user is authenticated by decoding the JWT
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
       console.log('POST /api/posts - Invalid token:', authError);

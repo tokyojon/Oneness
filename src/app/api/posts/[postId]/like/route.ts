@@ -21,7 +21,17 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
 
     const token = authHeader.split(' ')[1];
     
-    // Create a Supabase client with the user's JWT token
+    // Verify the user is authenticated by decoding the JWT
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
+
+    // Create a Supabase client for database operations with user context
     const userSupabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -33,16 +43,6 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
         },
       }
     );
-
-    // Verify the user is authenticated
-    const { data: { user }, error: authError } = await userSupabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
-      );
-    }
 
     // Check if user already liked this post
     const { data: existingLike, error: likeCheckError } = await userSupabase

@@ -19,7 +19,17 @@ export async function GET(request: NextRequest) {
 
     const token = authHeader.split(' ')[1];
     
-    // Create a Supabase client with the user's JWT token
+    // Verify the user is authenticated by decoding the JWT
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
+
+    // Create a Supabase client for database operations with user context
     const userSupabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -31,16 +41,6 @@ export async function GET(request: NextRequest) {
         },
       }
     );
-
-    // Verify the user is authenticated
-    const { data: { user }, error: authError } = await userSupabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
-      );
-    }
 
     // Get user's wallet info and balance
     const { data: profile, error: profileError } = await userSupabase
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate total balance
-    const totalBalance = pointsData?.reduce((sum, entry) => sum + entry.amount, 0) || 0;
+    const totalBalance = pointsData?.reduce((sum: number, entry: any) => sum + entry.amount, 0) || 0;
 
     // Create wallet object
     const wallet = {

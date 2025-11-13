@@ -20,21 +20,8 @@ export async function GET(request: NextRequest) {
 
     const token = authHeader.split(' ')[1];
     
-    // Create a Supabase client with the user's JWT token
-    const userSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      }
-    );
-
-    // Verify the user is authenticated
-    const { data: { user }, error: authError } = await userSupabase.auth.getUser();
+    // Verify the user is authenticated by decoding the JWT
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError) {
       return NextResponse.json(
@@ -49,6 +36,19 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    // Create a Supabase client for database operations with user context
+    const userSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      }
+    );
 
     // Get user profile data
     const { data: profile, error: profileError } = await userSupabase
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate total balance
-    const totalBalance = pointsData?.reduce((sum, entry) => sum + entry.amount, 0) || 0;
+    const totalBalance = pointsData?.reduce((sum: number, entry: any) => sum + entry.amount, 0) || 0;
 
     // Get user's posts count
     const { data: postsData, error: postsError } = await userSupabase
@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
     console.log('GET /api/profile - User posts fetched:', userPosts?.length || 0, 'posts');
 
     // Format posts for display
-    const formattedPosts = userPosts?.map(post => ({
+    const formattedPosts = userPosts?.map((post: any) => ({
       id: post.id,
       imageUrl: post.image_url || `https://picsum.photos/seed/post${post.id}/500/500`,
       imageHint: post.image_hint || 'user post',
@@ -168,6 +168,17 @@ export async function PUT(request: NextRequest) {
 
     const token = authHeader.split(' ')[1];
     
+    // Verify the user is authenticated by decoding the JWT
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
+
+    // Create a Supabase client for database operations with user context
     const userSupabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -179,15 +190,6 @@ export async function PUT(request: NextRequest) {
         },
       }
     );
-
-    const { data: { user } } = await userSupabase.auth.getUser();
-    
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
-      );
-    }
 
     // Update or create profile
     const { data: profile, error } = await userSupabase
