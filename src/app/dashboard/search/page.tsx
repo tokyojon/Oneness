@@ -3,8 +3,18 @@
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SearchResults } from '@/components/search/search-results';
+import { Suspense } from 'react';
+import { LoadingState } from '@/components/common/loading-state';
 
 export default function SearchPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <SearchContent />
+    </Suspense>
+  );
+}
+
+function SearchContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
 
