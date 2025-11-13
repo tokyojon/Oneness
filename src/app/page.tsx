@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -29,26 +28,34 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <section className="relative w-full h-[60vh] md:h-[80vh] flex items-center justify-center text-center text-white">
+      {/* Hero Banner - Image only */}
+      <section className="relative w-full h-[50vh] md:h-[60vh]">
         {heroImage && (
-            <Image
-                src={heroImage.imageUrl}
-                alt={heroImage.description}
-                fill
-                className="object-cover"
-                priority
-                data-ai-hint={heroImage.imageHint}
-            />
+          <Image
+            src={heroImage.imageUrl}
+            alt={heroImage.description}
+            fill
+            className="object-cover"
+            priority
+            data-ai-hint={heroImage.imageHint}
+          />
         )}
-        <div className="absolute inset-0 bg-black/50" />
-        <div className="relative z-10 p-4 max-w-4xl mx-auto animate-fade-in-up">
+      </section>
+
+      {/* Hero Text Content - Now below the image */}
+      <section className="w-full bg-background py-12 md:py-16">
+        <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight mb-4">
             ワンネスキングダムへようこそ
           </h1>
-          <p className="text-lg md:text-2xl text-primary-foreground/90 mb-8">
+          <p className="text-lg md:text-2xl text-muted-foreground mb-8">
             貢献、つながり、愛、平和、そして調和に基づく新しいソーシャルモデル。
           </p>
-          <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 transition-transform duration-300 hover:scale-105">
+          <Button 
+            asChild 
+            size="lg" 
+            className="bg-primary text-primary-foreground hover:bg-primary/90 transition-transform duration-300 hover:scale-105"
+          >
             <Link href="/register">私たちの王国に参加する</Link>
           </Button>
         </div>

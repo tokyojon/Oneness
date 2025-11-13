@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,6 +17,8 @@ import ProtectedRoute from "@/components/auth/protected-route";
 import { useAuth } from "@/hooks/use-auth";
 import { TipButton } from "@/components/wallet/tip-button";
 import { useEffect } from "react";
+import LoadingSpinner from "@/components/common/loading-state";
+import { useRouter } from "next/navigation";
 
 interface Post {
     id: number;
@@ -51,7 +51,6 @@ interface Suggestion {
     avatarUrl: string;
 }
 
-// Main Component
 export default function DashboardPage() {
     const { user } = useAuth();
     const [posts, setPosts] = useState<Post[]>([]);
@@ -59,21 +58,21 @@ export default function DashboardPage() {
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
     const [loading, setLoading] = useState(true);
     const [userProfile, setUserProfile] = useState<any>(null);
+    const [error, setError] = useState<string | null>(null);
+    const { toast } = useToast();
+    const router = useRouter();
 
-    // Fetch live data
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                console.log('Fetching dashboard data...');
-                // Fetch user profile data
+                setError(null);
+                setLoading(true);
+                
                 const token = localStorage.getItem('auth_token');
                 if (!token) {
-                    console.log('No auth token found');
-                    setLoading(false);
-                    return;
+                    throw new Error('No auth token found');
                 }
 
-                console.log('Auth token found, fetching profile...');
                 const profileResponse = await fetch('/api/profile', {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -81,16 +80,25 @@ export default function DashboardPage() {
                     },
                 });
 
-                if (profileResponse.ok) {
-                    const profileData = await profileResponse.json();
-                    console.log('Profile data fetched:', profileData);
-                    setUserProfile(profileData.profile);
-                } else {
-                    console.error('Profile fetch failed:', profileResponse.status);
+                if (!profileResponse.ok) {
+                    if (profileResponse.status === 401) {
+                        if (typeof window !== 'undefined') {
+                            localStorage.removeItem('auth_token');
+                            router.push('/login');
+                        }
+                        toast({
+                            variant: 'destructive',
+                            title: 'セッションが切れました',
+                            description: '再度ログインしてください',
+                        });
+                        return;
+                    }
+                    throw new Error(`Profile fetch failed: ${profileResponse.status}`);
                 }
 
-                console.log('Fetching posts...');
-                // Fetch posts from API
+                const profileData = await profileResponse.json();
+                setUserProfile(profileData.profile);
+
                 const postsResponse = await fetch('/api/posts', {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -98,29 +106,42 @@ export default function DashboardPage() {
                     },
                 });
 
-                if (postsResponse.ok) {
-                    const postsData = await postsResponse.json();
-                    console.log('Posts data fetched:', postsData);
-                    setPosts(postsData.posts || []);
-                } else {
-                    console.error('Posts fetch failed:', postsResponse.status);
-                    const errorData = await postsResponse.json();
-                    console.error('Posts error:', errorData);
+                if (!postsResponse.ok) {
+                    if (postsResponse.status === 401) {
+                        if (typeof window !== 'undefined') {
+                            localStorage.removeItem('auth_token');
+                            router.push('/login');
+                        }
+                        return;
+                    }
+                    
+                    console.error('Posts API failed, using fallback');
                     setPosts([]);
+                } else {
+                    const postsData = await postsResponse.json();
+                    setPosts(postsData.posts || []);
                 }
 
-                // Set empty arrays for stories and suggestions for now
                 setStories([]);
                 setSuggestions([]);
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);
+                setError(error instanceof Error ? error.message : 'Unknown error');
+                
+                if (user) {
+                    setUserProfile({
+                        name: user.profile?.display_name || 'ユーザー',
+                        username: user.email?.split('@')[0] || 'user',
+                        avatarUrl: user.profile?.avatar_url || "https://picsum.photos/seed/user1/100/100",
+                    });
+                }
             } finally {
                 setLoading(false);
             }
         };
 
         fetchDashboardData();
-    }, [user]);
+    }, [user, router, toast]);
 
     const handleNewPost = async (content: string, mediaUrl?: string, mediaType?: 'image' | 'video') => {
         try {
@@ -162,7 +183,6 @@ export default function DashboardPage() {
             }
         } catch (error) {
             console.error('Error creating post:', error);
-            // Fallback to local state if API fails
             const newPost: Post = {
                 id: Date.now(),
                 author: {
@@ -194,8 +214,23 @@ export default function DashboardPage() {
             <ProtectedRoute>
                 <div className="flex items-center justify-center min-h-[400px]">
                     <div className="text-center space-y-4">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                        <LoadingSpinner className="h-8 w-8 animate-spin mx-auto" />
                         <p className="text-muted-foreground">読み込み中...</p>
+                    </div>
+                </div>
+            </ProtectedRoute>
+        );
+    }
+
+    if (error) {
+        return (
+            <ProtectedRoute>
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center space-y-4">
+                        <p className="text-destructive">{error}</p>
+                        <Button onClick={() => window.location.reload()}>
+                            再読み込み
+                        </Button>
                     </div>
                 </div>
             </ProtectedRoute>
@@ -221,7 +256,6 @@ export default function DashboardPage() {
     );
 }
 
-// Sub-components
 const Stories = ({ stories }: { stories: Story[] }) => (
     <Card>
         <CardContent className="p-4">
@@ -254,7 +288,6 @@ const CreatePostCard = ({ onNewPost }: { onNewPost: (content: string, mediaUrl?:
     const [userProfile, setUserProfile] = useState<any>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Fetch fresh user profile data
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
@@ -280,7 +313,6 @@ const CreatePostCard = ({ onNewPost }: { onNewPost: (content: string, mediaUrl?:
         fetchUserProfile();
     }, []);
 
-    // Use fresh profile data or fallback to localStorage data
     const displayName = userProfile?.name || user?.profile?.display_name || 'ユーザー';
     const avatarUrl = userProfile?.avatarUrl || user?.profile?.avatar_url || "https://picsum.photos/seed/user1/100/100";
 
@@ -556,7 +588,7 @@ const PostCard = ({ post }: { post: Post }) => {
                 const data = await response.json();
                 setComments([...comments, data.comment]);
                 setNewComment('');
-                post.comments = data.commentsCount; // Update parent post's comment count
+                post.comments = data.commentsCount; 
                 toast({
                     title: 'コメントを投稿しました',
                 });
@@ -608,7 +640,6 @@ const PostCard = ({ post }: { post: Post }) => {
                         description: '投稿リンクがクリップボードにコピーされました。',
                     });
                 } else {
-                    // Open share URL in new window
                     window.open(data.shareUrls[platform], '_blank', 'width=600,height=400');
                 }
                 
@@ -685,7 +716,6 @@ const PostCard = ({ post }: { post: Post }) => {
                         <MessageCircle className="mr-2" />コメント
                     </Button>
                     
-                    {/* Share Button with Dropdown */}
                     <div className="relative">
                         <Button 
                             variant="ghost" 
@@ -737,11 +767,9 @@ const PostCard = ({ post }: { post: Post }) => {
                     </Button>
                 </div>
                 
-                {/* Comments Section */}
                 {showComments && (
                     <div className="w-full border-t pt-4 mt-4">
                         <div className="space-y-4">
-                            {/* Comment Input */}
                             <div className="flex gap-2">
                                 <Input
                                     placeholder="コメントを追加..."
@@ -759,7 +787,6 @@ const PostCard = ({ post }: { post: Post }) => {
                                 </Button>
                             </div>
                             
-                            {/* Comments List */}
                             {commentsLoading ? (
                                 <div className="flex items-center justify-center py-4">
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
