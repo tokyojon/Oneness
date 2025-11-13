@@ -95,16 +95,6 @@ export default function Home() {
                 '• コミュニティガイドラインの自動執行',
               ]}
             />
-            <FeatureCard
-              title="ポイントシステム"
-              description="貢献が報われる透明な経済システム"
-              image={feature4Image || feature1Image}
-              details={[
-                '• 行動がポイントに変換',
-                '• チップや寄付に利用',
-                '• コミュニティ内で交換可能',
-              ]}
-            />
           </div>
 
           <div className="max-w-4xl mx-auto bg-muted/50 p-6 rounded-lg">
