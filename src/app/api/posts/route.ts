@@ -66,41 +66,48 @@ export async function GET(request: NextRequest) {
 
     if (postsError) {
       console.error('GET /api/posts - Posts fetch error:', postsError);
-      // Return empty array if posts table doesn't exist yet
-      if (postsError.code === 'PGRST116') {
-        console.log('GET /api/posts - Posts table does not exist, returning empty array');
-        return NextResponse.json({ posts: [] });
-      }
-      return NextResponse.json(
-        { error: 'Failed to fetch posts' },
-        { status: 500 }
-      );
+      // Return empty array for missing table or any other fetch issue
+      return NextResponse.json({ posts: [] });
     }
 
     console.log('GET /api/posts - Posts fetched:', posts?.length || 0, 'posts');
 
     // Get user's likes for these posts
     const postIds = posts?.map(post => post.id) || [];
-    console.log('GET /api/posts - Fetching user likes for posts:', postIds);
-    const { data: userLikes, error: likesError } = await userSupabase
-      .from('post_likes')
-      .select('post_id')
-      .eq('user_id', user.id)
-      .in('post_id', postIds);
+    let likedPostIds = new Set<number>();
+    if (postIds.length > 0) {
+      console.log('GET /api/posts - Fetching user likes for posts:', postIds);
+      const { data: userLikes, error: likesError } = await userSupabase
+        .from('post_likes')
+        .select('post_id')
+        .eq('user_id', user.id)
+        .in('post_id', postIds);
 
-    const likedPostIds = new Set(userLikes?.map(like => like.post_id) || []);
-    console.log('GET /api/posts - User liked posts:', Array.from(likedPostIds));
+      if (likesError) {
+        console.error('GET /api/posts - Likes fetch error:', likesError);
+      } else {
+        likedPostIds = new Set(userLikes?.map(like => like.post_id) || []);
+        console.log('GET /api/posts - User liked posts:', Array.from(likedPostIds));
+      }
+    }
 
     // Get user's bookmarks for these posts
-    console.log('GET /api/posts - Fetching user bookmarks for posts:', postIds);
-    const { data: userBookmarks, error: bookmarksError } = await userSupabase
-      .from('user_bookmarks')
-      .select('post_id')
-      .eq('user_id', user.id)
-      .in('post_id', postIds);
+    let bookmarkedPostIds = new Set<number>();
+    if (postIds.length > 0) {
+      console.log('GET /api/posts - Fetching user bookmarks for posts:', postIds);
+      const { data: userBookmarks, error: bookmarksError } = await userSupabase
+        .from('user_bookmarks')
+        .select('post_id')
+        .eq('user_id', user.id)
+        .in('post_id', postIds);
 
-    const bookmarkedPostIds = new Set(userBookmarks?.map(bookmark => bookmark.post_id) || []);
-    console.log('GET /api/posts - User bookmarked posts:', Array.from(bookmarkedPostIds));
+      if (bookmarksError) {
+        console.error('GET /api/posts - Bookmarks fetch error:', bookmarksError);
+      } else {
+        bookmarkedPostIds = new Set(userBookmarks?.map(bookmark => bookmark.post_id) || []);
+        console.log('GET /api/posts - User bookmarked posts:', Array.from(bookmarkedPostIds));
+      }
+    }
 
     // Format posts for frontend
     const formattedPosts = posts?.map(post => ({
