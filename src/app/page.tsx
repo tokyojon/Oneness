@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect } from 'react';
@@ -21,25 +20,17 @@ export default function Home() {
   }, [router]);
 
 
-  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-image');
-  const feature1Image = PlaceHolderImages.find(p => p.id === 'feature-1');
-  const feature2Image = PlaceHolderImages.find(p => p.id === 'feature-2');
-  const feature3Image = PlaceHolderImages.find(p => p.id === 'feature-3');
-
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Banner - Image only */}
       <section className="relative w-full h-[50vh] md:h-[60vh]">
-        {heroImage && (
-          <Image
-            src={heroImage.imageUrl}
-            alt={heroImage.description}
-            fill
-            className="object-cover"
-            priority
-            data-ai-hint={heroImage.imageHint}
-          />
-        )}
+        <Image
+          src="/hero-image.png"
+          alt="Hero image"
+          fill
+          className="object-cover"
+          priority
+        />
       </section>
 
       {/* Hero Text Content - Now below the image */}
@@ -73,17 +64,17 @@ export default function Home() {
             <FeatureCard
               title="貢献とつながり"
               description="あなたの愛、学び、貢献の行動は、私たちのコミュニティ内で価値として視覚化され、循環します。"
-              image={feature1Image}
+              image={{ id: 'feature-1', imageUrl: '/1.png', description: 'Community contribution illustration' }}
             />
             <FeatureCard
               title="ヒューマンネットワークの構築"
               description="フォロー、評価、推薦を通じて有意義な関係を築き、デジタルな家族の絆さえも形成します。"
-              image={feature2Image}
+              image={{ id: 'feature-2', imageUrl: '/2.png', description: 'Network of people illustration' }}
             />
             <FeatureCard
               title="AIを活用したコミュニティ"
               description="私たちのプラットフォームは、公正なマッチング、推薦、そして私たちの王国の安全と調和を確保するためにAIを使用しています。"
-              image={feature3Image}
+              image={{ id: 'feature-3', imageUrl: '/3.png', description: 'AI community illustration' }}
             />
           </div>
         </div>
@@ -268,12 +259,12 @@ export default function Home() {
   );
 }
 
-const FeatureCard = ({ title, description, image }: { title: string; description: string; image?: { imageUrl: string; description: string; imageHint: string } }) => (
+const FeatureCard = ({ title, description, image }: { title: string; description: string; image?: { id: string; imageUrl: string; description: string } }) => (
   <Card className="text-center bg-card shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:-translate-y-2">
     <CardHeader className="items-center">
       {image && (
         <div className="relative w-full h-40 mb-4 rounded-t-lg overflow-hidden">
-          <Image src={image.imageUrl} alt={image.description} layout="fill" objectFit="cover" data-ai-hint={image.imageHint} />
+          <Image src={image.imageUrl} alt={image.description} layout="fill" objectFit="cover" />
         </div>
       )}
       <CardTitle className="font-headline text-2xl">{title}</CardTitle>
