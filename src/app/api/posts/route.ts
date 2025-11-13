@@ -164,6 +164,18 @@ export async function POST(request: NextRequest) {
 
     console.log('POST /api/posts - User authenticated:', user.id);
 
+    const userSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      }
+    );
+
     // Parse request body
     const { content, imageUrl, imageHint, videoUrl } = await request.json();
     console.log('POST /api/posts - Request body:', { content, imageUrl, imageHint, videoUrl });
