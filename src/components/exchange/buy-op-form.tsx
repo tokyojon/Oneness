@@ -85,7 +85,9 @@ export default function BuyOpForm({ user }: BuyOpFormProps) {
         }
     }
     const opAmount = form.watch('op_amount') || 0;
-    const jpyAmount = opAmount * JPY_PER_OP;
+    const baseJpyAmount = opAmount * JPY_PER_OP;
+    const fee = baseJpyAmount * 0.05; // 5% fee added to purchase
+    const totalJpyAmount = baseJpyAmount + fee;
 
     return (
         <Card>
@@ -120,10 +122,18 @@ export default function BuyOpForm({ user }: BuyOpFormProps) {
                                 <span className="text-muted-foreground">現在のレート:</span>
                                 <span>1 OP = {JPY_PER_OP} JPY</span>
                             </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">基本金額:</span>
+                                <span>{baseJpyAmount.toLocaleString()} JPY</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">手数料 (5%):</span>
+                                <span>{fee.toLocaleString()} JPY</span>
+                            </div>
                              <div className="flex justify-between text-lg font-bold text-primary pt-2">
                                 <span>お支払い金額:</span>
                                 <span>
-                                    {jpyAmount.toLocaleString()} JPY
+                                    {totalJpyAmount.toLocaleString()} JPY
                                 </span>
                             </div>
                         </div>
