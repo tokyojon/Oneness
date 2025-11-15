@@ -51,8 +51,8 @@ export async function GET(request: NextRequest) {
       console.log('GET /api/posts - No authorization header, proceeding anonymously');
     }
 
-    // Get posts with user information using authenticated client when available
-    const postsClient = userSupabase ?? supabase;
+    // Get posts with user information using service supabase to show all posts
+    const postsClient = supabase;
     console.log('GET /api/posts - Fetching posts from database...');
     const { data: posts, error: postsError } = await postsClient
       .from('posts')
