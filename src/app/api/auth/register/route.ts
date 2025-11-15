@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
 
     // Create user profile and associated data
     try {
+      console.log('Register: Creating user profile for user ID:', authData.user.id);
       // Insert user profile
       const { error: profileError } = await supabase
         .from('user_profiles')
@@ -55,11 +56,13 @@ export async function POST(request: NextRequest) {
         });
 
       if (profileError) {
-        console.error('Profile creation error:', profileError);
+        console.error('Register: Profile creation error:', profileError);
         throw profileError;
       }
+      console.log('Register: Profile created successfully');
 
       // Initialize points ledger with welcome bonus
+      console.log('Register: Initializing points ledger');
       const { error: pointsError } = await supabase
         .from('points_ledger')
         .insert({
@@ -69,11 +72,14 @@ export async function POST(request: NextRequest) {
         });
 
       if (pointsError) {
-        console.error('Points initialization error:', pointsError);
+        console.error('Register: Points initialization error:', pointsError);
         // Don't fail registration for points error
+      } else {
+        console.log('Register: Points initialized');
       }
 
       // Initialize AI avatar state
+      console.log('Register: Initializing AI avatar state');
       const { error: avatarError } = await supabase
         .from('ai_avatar_state')
         .insert({
@@ -86,12 +92,14 @@ export async function POST(request: NextRequest) {
         });
 
       if (avatarError) {
-        console.error('Avatar state initialization error:', avatarError);
+        console.error('Register: Avatar state initialization error:', avatarError);
         // Don't fail registration for avatar error
+      } else {
+        console.log('Register: Avatar state initialized');
       }
 
     } catch (profileErr) {
-      console.error('User data creation error:', profileErr);
+      console.error('Register: User data creation error:', profileErr);
       return NextResponse.json(
         { error: 'Failed to create user profile' },
         { status: 500 }
