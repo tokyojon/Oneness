@@ -10,48 +10,51 @@ export async function GET(request: NextRequest) {
   try {
     console.log('GET /api/posts - Starting posts fetch...');
     
-    // Get the user from the session using Supabase auth
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('GET /api/posts - No authorization header');
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.split(' ')[1];
-    console.log('GET /api/posts - Token found');
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit') || '6');
+    const offset = parseInt(searchParams.get('offset') || '0');
     
-    // Verify the user is authenticated by decoding the JWT
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const authHeader = request.headers.get('authorization');
+    let user: any | null = null;
+    let token: string | null = null;
+    let userSupabase: ReturnType<typeof createClient> | null = null;
 
-    if (authError || !user) {
-      console.log('GET /api/posts - Invalid token:', authError);
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+      console.log('GET /api/posts - Token found');
+
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token);
+
+      if (authError || !authUser) {
+        console.log('GET /api/posts - Invalid token:', authError);
+        return NextResponse.json(
+          { error: 'Invalid token' },
+          { status: 401 }
+        );
+      }
+
+      user = authUser;
+      console.log('GET /api/posts - User authenticated:', user.id);
+
+      userSupabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        }
       );
+    } else {
+      console.log('GET /api/posts - No authorization header, proceeding anonymously');
     }
 
-    console.log('GET /api/posts - User authenticated:', user.id);
-
-    // Create a Supabase client for database operations with user context
-    const userSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      }
-    );
-
-    // Get posts with user information
+    // Get posts with user information using authenticated client when available
+    const postsClient = userSupabase ?? supabase;
     console.log('GET /api/posts - Fetching posts from database...');
-    const { data: posts, error: postsError } = await userSupabase
+    const { data: posts, error: postsError } = await postsClient
       .from('posts')
       .select(`
         *,
@@ -62,7 +65,7 @@ export async function GET(request: NextRequest) {
         )
       `)
       .order('created_at', { ascending: false })
-      .limit(20);
+      .range(offset, offset + limit - 1);
 
     if (postsError) {
       console.error('GET /api/posts - Posts fetch error:', postsError);
@@ -73,9 +76,9 @@ export async function GET(request: NextRequest) {
     console.log('GET /api/posts - Posts fetched:', posts?.length || 0, 'posts');
 
     // Get user's likes for these posts
-    const postIds = posts?.map(post => post.id) || [];
+    const postIds = posts?.map((post: any) => post.id) || [];
     let likedPostIds = new Set<number>();
-    if (postIds.length > 0) {
+    if (postIds.length > 0 && user && userSupabase) {
       console.log('GET /api/posts - Fetching user likes for posts:', postIds);
       const { data: userLikes, error: likesError } = await userSupabase
         .from('post_likes')
@@ -86,14 +89,14 @@ export async function GET(request: NextRequest) {
       if (likesError) {
         console.error('GET /api/posts - Likes fetch error:', likesError);
       } else {
-        likedPostIds = new Set(userLikes?.map(like => like.post_id) || []);
+        likedPostIds = new Set(userLikes?.map((like: any) => like.post_id) || []);
         console.log('GET /api/posts - User liked posts:', Array.from(likedPostIds));
       }
     }
 
     // Get user's bookmarks for these posts
     let bookmarkedPostIds = new Set<number>();
-    if (postIds.length > 0) {
+    if (postIds.length > 0 && user && userSupabase) {
       console.log('GET /api/posts - Fetching user bookmarks for posts:', postIds);
       const { data: userBookmarks, error: bookmarksError } = await userSupabase
         .from('user_bookmarks')
@@ -104,13 +107,13 @@ export async function GET(request: NextRequest) {
       if (bookmarksError) {
         console.error('GET /api/posts - Bookmarks fetch error:', bookmarksError);
       } else {
-        bookmarkedPostIds = new Set(userBookmarks?.map(bookmark => bookmark.post_id) || []);
+        bookmarkedPostIds = new Set(userBookmarks?.map((bookmark: any) => bookmark.post_id) || []);
         console.log('GET /api/posts - User bookmarked posts:', Array.from(bookmarkedPostIds));
       }
     }
 
     // Format posts for frontend
-    const formattedPosts = posts?.map(post => ({
+    const formattedPosts = posts?.map((post: any) => ({
       id: post.id,
       content: post.content,
       imageUrl: post.image_url,
