@@ -201,12 +201,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
     return (
         <div className="bg-background text-foreground min-h-screen">
-            <div className="container mx-auto grid grid-cols-1 md:grid-cols-[240px_1fr_320px] gap-8 py-8">
+            <div className="container mx-auto grid grid-cols-1 md:grid-cols-[240px_1fr] gap-8 py-8">
                 <LeftSidebar />
                 <main>
                     {children}
                 </main>
-                <RightSidebar />
             </div>
         </div>
     )
