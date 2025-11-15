@@ -29,7 +29,7 @@ interface MarketplaceAd {
   status: string;
   views: number;
   likes: number;
-  comments: number;
+  commentsCount: number;
   created_at: string;
   seller: {
     id: string;
