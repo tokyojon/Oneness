@@ -22,7 +22,9 @@ export async function POST(req: NextRequest) {
     }
 
     const amount = Math.round(op_amount);
-    const jpyAmount = amount * JPY_PER_OP;
+    const baseJpyAmount = amount * JPY_PER_OP;
+    const fee = Math.round(baseJpyAmount * 0.05); // 5% fee
+    const totalJpyAmount = baseJpyAmount + fee;
 
     // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
@@ -32,10 +34,10 @@ export async function POST(req: NextRequest) {
           price_data: {
             currency: 'jpy',
             product_data: {
-              name: `${amount} OP Purchase`,
-              description: `Purchase ${amount} Oneness Points`,
+              name: `${amount} OP Purchase (including 5% fee)`,
+              description: `Purchase ${amount} Oneness Points - Base: ¥${baseJpyAmount.toLocaleString()}, Fee: ¥${fee.toLocaleString()}`,
             },
-            unit_amount: jpyAmount,
+            unit_amount: totalJpyAmount,
           },
           quantity: 1,
         },
@@ -46,6 +48,8 @@ export async function POST(req: NextRequest) {
       metadata: {
         user_id: user_id,
         op_amount: amount.toString(),
+        base_amount: baseJpyAmount.toString(),
+        fee_amount: fee.toString(),
       },
     });
 
@@ -57,9 +61,15 @@ export async function POST(req: NextRequest) {
         type: 'purchase',
         amount: amount,
         currency: 'JPY',
-        jpy_amount: jpyAmount,
+        jpy_amount: totalJpyAmount,
         status: 'pending',
-        stripe_payment_intent_id: session.id, // Using session ID for tracking
+        stripe_payment_intent_id: session.id,
+        description: `Purchase ${amount} OP - Base: ¥${baseJpyAmount.toLocaleString()}, Fee: ¥${fee.toLocaleString()}`,
+        metadata: {
+          base_amount: baseJpyAmount,
+          fee_amount: fee,
+          total_amount: totalJpyAmount
+        },
         created_at: new Date().toISOString(),
       });
 
