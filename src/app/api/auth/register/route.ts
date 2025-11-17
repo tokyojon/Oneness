@@ -61,6 +61,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Prepare avatar storage if provided
+    let avatarUrlToSave: string | null = avatarData?.imageUrl || null;
+    const avatarConfigToSave = avatarData?.avatar || null;
+
+    if (avatarData?.imageUrl?.startsWith('data:')) {
+      const base64Match = avatarData.imageUrl.match(/^data:(.+);base64,(.+)$/);
+      if (base64Match) {
+        const [, mimeType, base64Data] = base64Match;
+        const buffer = Buffer.from(base64Data, 'base64');
+        const extension = mimeType.split('/')[1] || 'png';
+        const filePath = `avatars/${authData.user.id}-${Date.now()}.${extension}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('profile-assets')
+          .upload(filePath, buffer, {
+            contentType: mimeType,
+            cacheControl: '3600',
+            upsert: true,
+          });
+
+        if (uploadError) {
+          console.error('Register: Avatar upload error:', uploadError);
+          throw new Error('Failed to upload avatar image');
+        }
+
+        const { data: publicData } = supabase.storage
+          .from('profile-assets')
+          .getPublicUrl(filePath);
+
+        avatarUrlToSave = publicData.publicUrl;
+      } else {
+        console.warn('Register: Invalid avatar data URL format received');
+      }
+    }
+
     // Create user profile and associated data
     try {
       console.log('Register: Creating user profile for user ID:', authData.user.id);
@@ -80,8 +115,8 @@ export async function POST(request: NextRequest) {
         goals: profileData?.goals || [],
         values: profileData?.values || [],
         hobbies: profileData?.hobbies || [],
-        avatar_url: avatarData?.imageUrl || null,
-        avatar_config: avatarData?.avatar || null,
+        avatar_url: avatarUrlToSave,
+        avatar_config: avatarConfigToSave,
         rank: 'member'
       };
 

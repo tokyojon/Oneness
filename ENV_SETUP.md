@@ -38,9 +38,9 @@ NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key_here
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select existing one
 3. Enable the Google+ API
-4. Go to Credentials → Create OAuth 2.0 Client ID
+4. Go to Credentials → Create OAuth 2.0 Client ID. 
 5. Set authorized redirect URI: `https://your-project.supabase.co/auth/v1/callback`
-6. Copy the Client ID and Client Secret
+6. Copy the Client ID and Client Secret. 
 
 ### Apple OAuth
 1. Go to [Apple Developer](https://developer.apple.com/)

@@ -23,7 +23,7 @@ import { CheckCircle } from "lucide-react"
 import { Card, CardContent } from "../ui/card";
 import { useRouter } from "next/navigation"
 import { login } from "@/lib/auth"
-import KawaiiGenerator from "../KawaiiGenerator"
+import KawaiiGenerator, { GeneratedAvatarPayload } from "../KawaiiGenerator"
 import Profiler from "../Profiler"
 
 const formSchema = z.object({
@@ -38,7 +38,7 @@ export default function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [currentStep, setCurrentStep] = useState(0); // 0: Basic Info, 1: Avatar, 2: Profile, 3: Success
-  const [avatarData, setAvatarData] = useState<any>(null);
+  const [avatarData, setAvatarData] = useState<GeneratedAvatarPayload | null>(null);
   const [profileData, setProfileData] = useState<any>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -90,8 +90,8 @@ export default function RegisterForm() {
     handleBasicInfoSubmit(values);
   };
 
-  const handleAvatarGenerated = (avatar: any, imageUrl: string) => {
-    setAvatarData({ avatar, imageUrl });
+  const handleAvatarGenerated = (payload: GeneratedAvatarPayload) => {
+    setAvatarData(payload);
     setCurrentStep(2);
   };
 
@@ -265,7 +265,10 @@ export default function RegisterForm() {
         <KawaiiGenerator onAvatarGenerated={handleAvatarGenerated} />
 
         <div className="flex justify-center">
-          <Button onClick={() => setCurrentStep(0)} variant="outline">
+          <Button
+            onClick={() => setCurrentStep(0)}
+            className="bg-red-500 hover:bg-red-600 text-white"
+          >
             戻る
           </Button>
         </div>
