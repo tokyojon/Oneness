@@ -44,17 +44,36 @@ export function useGeminiLive() {
       genAIRef.current = new GoogleGenAI({ apiKey });
       
       const config = {
-        responseModalities: [Modality.AUDIO, Modality.TEXT],
-        systemInstruction: "あなたは役立つアシスタントで、親切な口調で答えてください。"
+        responseModalities: [Modality.TEXT],
+        responseContent: {
+          modalities: [Modality.TEXT],
+        },
+        systemInstruction: "あなたは役立つアシスタントで、親切な口調で答えてください。",
+        conversation: {
+          history: [],
+        },
       };
 
       sessionRef.current = await genAIRef.current.live.connect({
         model: "gemini-2.0-flash-exp",
-        config: config,
+        config,
         callbacks: {
           onopen: () => {
             console.log('Gemini Live session opened');
             setConnectionState(prev => ({ ...prev, isConnected: true }));
+            // Send initial start event to keep session alive
+            sessionRef.current?.sendClientContent({
+              turns: [
+                {
+                  role: 'user',
+                  parts: [
+                    {
+                      text: 'こんにちは。会話を始めましょう。',
+                    },
+                  ],
+                },
+              ],
+            });
           },
           onmessage: (message: any) => {
             console.log('Received message:', message);
