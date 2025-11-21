@@ -30,7 +30,8 @@ interface ExchangeFormProps {
     exchangeRates: {
         op_to_jpy: number;
         op_to_usdt: number;
-        op_to_btc: number;
+        op_to_jpyc: number;
+        op_to_tec: number;
     }
 }
 
@@ -46,7 +47,7 @@ export default function ExchangeForm({ user, exchangeRates }: ExchangeFormProps)
         op_amount: z.coerce.number().positive("申請額は正でなければなりません。")
             .max(user.op_balance * 0.95, "手数料を考慮すると、OP残高が不足しています。")
             .max(availableToRedeemThisMonth, `今月の換金上限（${Math.floor(availableToRedeemThisMonth)} OP）を超えています。`),
-        target_currency: z.enum(["JPY", "USDT", "BTC"], { required_error: "通貨を選択してください。" }),
+        target_currency: z.enum(["JPY", "USDT", "JPYC", "TEC"], { required_error: "通貨を選択してください。" }),
     });
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -64,13 +65,13 @@ export default function ExchangeForm({ user, exchangeRates }: ExchangeFormProps)
         form.setValue("op_amount", opAmount, { shouldValidate: true });
     };
 
-    const handleCurrencyChange = (currency: "JPY" | "USDT" | "BTC") => {
+    const handleCurrencyChange = (currency: "JPY" | "USDT" | "JPYC" | "TEC") => {
         const opAmount = form.getValues("op_amount") || 0;
         calculatePayout(opAmount, currency);
         form.setValue("target_currency", currency, { shouldValidate: true });
     };
 
-    const calculatePayout = (opAmount: number, currency: "JPY" | "USDT" | "BTC" | undefined) => {
+    const calculatePayout = (opAmount: number, currency: "JPY" | "USDT" | "JPYC" | "TEC" | undefined) => {
         if (!currency || !opAmount) {
             setPayoutAmount(0);
             return;
@@ -135,6 +136,7 @@ export default function ExchangeForm({ user, exchangeRates }: ExchangeFormProps)
     const fee = basePayoutAmount * 0.05; // 5% fee deducted from payout
     const finalPayoutAmount = basePayoutAmount - fee;
     const totalDeducted = opAmount; // Only the OP amount is deducted from balance
+    const payoutDecimalDigits = currency === 'JPY' ? 0 : 2;
 
     return (
         <Card>
@@ -182,7 +184,7 @@ export default function ExchangeForm({ user, exchangeRates }: ExchangeFormProps)
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>交換先通貨</FormLabel>
-                                        <Select onValueChange={(value: "JPY" | "USDT" | "BTC") => handleCurrencyChange(value)} defaultValue={field.value}>
+                                        <Select onValueChange={(value: "JPY" | "USDT" | "JPYC" | "TEC") => handleCurrencyChange(value)} defaultValue={field.value}>
                                             <FormControl>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="通貨を選択..." />
@@ -191,7 +193,8 @@ export default function ExchangeForm({ user, exchangeRates }: ExchangeFormProps)
                                             <SelectContent>
                                                 <SelectItem value="JPY">JPY (円)</SelectItem>
                                                 <SelectItem value="USDT">USDT (Tether)</SelectItem>
-                                                <SelectItem value="BTC">BTC (Bitcoin)</SelectItem>
+                                                <SelectItem value="JPYC">JPYC</SelectItem>
+                                                <SelectItem value="TEC">TEC</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -204,13 +207,13 @@ export default function ExchangeForm({ user, exchangeRates }: ExchangeFormProps)
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">換金予定額:</span>
                                 <span>{basePayoutAmount.toLocaleString(undefined, { 
-                                    minimumFractionDigits: currency === 'BTC' ? 8 : 2,
-                                    maximumFractionDigits: currency === 'BTC' ? 8 : 2,
+                                    minimumFractionDigits: payoutDecimalDigits,
+                                    maximumFractionDigits: payoutDecimalDigits,
                                 })} {currency}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">手数料 (5%):</span>
-                                <span>-{fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {currency}</span>
+                                <span>-{fee.toLocaleString(undefined, { minimumFractionDigits: payoutDecimalDigits, maximumFractionDigits: payoutDecimalDigits })} {currency}</span>
                             </div>
                             <div className="flex justify-between font-semibold">
                                 <span className="text-muted-foreground">差し引かれるOP総額:</span>
@@ -220,8 +223,8 @@ export default function ExchangeForm({ user, exchangeRates }: ExchangeFormProps)
                                 <span>受取予定額:</span>
                                 <span>
                                     {finalPayoutAmount.toLocaleString(undefined, { 
-                                        minimumFractionDigits: currency === 'BTC' ? 8 : 2,
-                                        maximumFractionDigits: currency === 'BTC' ? 8 : 2,
+                                        minimumFractionDigits: payoutDecimalDigits,
+                                        maximumFractionDigits: payoutDecimalDigits,
                                     })} {currency}
                                 </span>
                             </div>

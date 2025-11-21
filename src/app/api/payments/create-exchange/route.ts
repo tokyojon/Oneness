@@ -37,7 +37,8 @@ export async function POST(req: NextRequest) {
     const exchangeRates = {
       op_to_jpy: 100.0, // 1 OP = 100 JPY (inverse of purchase rate)
       op_to_usdt: 1.0,  // 1 OP = 1 USDT
-      op_to_btc: 0.000015 // 1 OP = 0.000015 BTC
+      op_to_jpyc: 1.0,  // 1 OP = 1 JPYC (placeholder rate)
+      op_to_tec: 1.0,   // 1 OP = 1 TEC (placeholder rate)
     };
 
     const rate = exchangeRates[`op_to_${target_currency.toLowerCase()}` as keyof typeof exchangeRates];

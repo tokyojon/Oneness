@@ -114,8 +114,8 @@ export default function TransactionHistory({ transactions, loading }: Transactio
                                 </TableCell>
                                 <TableCell className="text-right font-medium">
                                     {tx.amount.toLocaleString(undefined, {
-                                         minimumFractionDigits: tx.currency === 'BTC' ? 8 : (tx.currency === 'JPY' ? 0 : 2),
-                                         maximumFractionDigits: tx.currency === 'BTC' ? 8 : 2,
+                                         minimumFractionDigits: tx.currency === 'JPY' ? 0 : 2,
+                                         maximumFractionDigits: tx.currency === 'JPY' ? 0 : 2,
                                     })} {tx.currency}
                                 </TableCell>
                             </TableRow>

@@ -38,7 +38,8 @@ export default function ExchangePage() {
     const exchangeRates = {
         op_to_jpy: 100.0, // 1 OP = 100 JPY (matches purchase rate)
         op_to_usdt: 1.0,  // 1 OP = 1 USDT
-        op_to_btc: 0.000015 // 1 OP = 0.000015 BTC
+        op_to_jpyc: 1.0,  // 1 OP = 1 JPYC (placeholder rate)
+        op_to_tec: 1.0,   // 1 OP = 1 TEC (placeholder rate)
     }
 
     // Fetch user transactions
