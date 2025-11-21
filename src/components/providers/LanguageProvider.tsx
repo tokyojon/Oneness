@@ -15,29 +15,20 @@ const LanguageContext = createContext<LanguageContextValue | undefined>(undefine
 const STORAGE_KEY = 'oneness_language';
 
 const AVAILABLE_LANGUAGES: { code: LanguageCode; label: string }[] = [
-  { code: 'en', label: 'English' },
   { code: 'ja', label: '日本語' },
-  { code: 'ar', label: 'العربية' },
 ];
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<LanguageCode>('en');
+  const [language, setLanguageState] = useState<LanguageCode>('ja');
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY) as LanguageCode | null;
-    if (stored && AVAILABLE_LANGUAGES.some((lang) => lang.code === stored)) {
-      setLanguageState(stored);
-    }
-  }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, language);
-    document.documentElement.lang = language;
-    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+    window.localStorage.setItem(STORAGE_KEY, 'ja');
+    document.documentElement.lang = 'ja';
+    document.documentElement.dir = 'ltr';
   }, [language]);
 
   const setLanguage = (code: LanguageCode) => {
-    setLanguageState(code);
+    setLanguageState('ja');
   };
 
   const value = useMemo(
