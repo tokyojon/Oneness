@@ -25,6 +25,7 @@ import { useRouter } from "next/navigation"
 import { login } from "@/lib/auth"
 import KawaiiGenerator, { GeneratedAvatarPayload } from "../KawaiiGenerator"
 import Profiler from "../Profiler"
+import Link from "next/link"
 
 const formSchema = z.object({
   displayName: z.string().min(2, { message: "表示名は最低2文字以上である必要があります。" }),
@@ -257,8 +258,31 @@ export default function RegisterForm() {
     // Avatar Generation Step
     return (
       <div className="space-y-6">
-        <div className="text-center">
-          <h2 className="text-2xl font-headline font-semibold mb-2">アバターを作成しましょう</h2>
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-headline font-semibold">アバターを作成しましょう</h2>
+          <p className="text-muted-foreground text-sm">アバターを生成すると自動的に次のステップに進みます。</p>
+        </div>
+
+        <KawaiiGenerator onAvatarGenerated={handleAvatarGenerated} />
+
+        <p className="text-center text-sm text-muted-foreground">
+          生成ツールが表示されない場合は
+          {' '}
+          <Link
+            href="/kawaii-generator"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary underline"
+          >
+            こちら
+          </Link>
+          {' '}をクリックして別ウィンドウで開いてください。
+        </p>
+
+        <div className="flex justify-center">
+          <Button variant="outline" onClick={() => setCurrentStep(0)}>
+            戻る
+          </Button>
         </div>
       </div>
     );

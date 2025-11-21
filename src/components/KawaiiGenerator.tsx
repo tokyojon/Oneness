@@ -323,7 +323,7 @@ export default function KawaiiGenerator({ onAvatarGenerated, onSave, isSaving = 
     stopWebcam();
     setInputImage(null); // Clear the input image
 
-    const prompt = `Generate a full-length kawaii anime caricature of a random ${gender} person. It must have a large 'chibi' style head, and a very small body and legs. The character should be standing.`;
+    const prompt = `Generate an ultra cute and cuddly kawaii anime caricature of a random ${gender} character of your own creative choice. The design should feel soft, friendly, and huggable, with a large 'chibi' style head, tiny body and legs, standing in a cheerful pose.`;
 
     callGeminiAPI({ prompt, source: 'random' });
   };
@@ -518,7 +518,7 @@ export default function KawaiiGenerator({ onAvatarGenerated, onSave, isSaving = 
             disabled={isLoading}
             className="w-full py-4 bg-gray-600 text-white text-lg font-bold rounded-xl shadow-lg hover:bg-gray-700 transition-all disabled:bg-gray-300"
           >
-            ランダム生成
+            スキップしてかわいいキャラをおまかせ生成
           </button>
         </div>
 
