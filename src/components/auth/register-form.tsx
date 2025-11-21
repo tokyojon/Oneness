@@ -41,6 +41,8 @@ export default function RegisterForm() {
   const [currentStep, setCurrentStep] = useState(0); // 0: Basic Info, 1: Avatar, 2: Profile, 3: Success
   const [avatarData, setAvatarData] = useState<GeneratedAvatarPayload | null>(null);
   const [profileData, setProfileData] = useState<any>(null);
+  const [avatarGenerating, setAvatarGenerating] = useState(false);
+  const [avatarReady, setAvatarReady] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -93,7 +95,38 @@ export default function RegisterForm() {
 
   const handleAvatarGenerated = (payload: GeneratedAvatarPayload) => {
     setAvatarData(payload);
+    setAvatarReady(true);
+    setAvatarGenerating(false);
+  };
+
+  const handleGenerationStart = () => {
+    setAvatarGenerating(true);
+    setAvatarReady(false);
     setCurrentStep(2);
+    toast({
+      title: "アバター生成中...",
+      description: "数秒お待ちください。生成完了後に自動で戻ります。",
+    });
+  };
+
+  const handleGenerationComplete = () => {
+    setAvatarGenerating(false);
+    setAvatarReady(true);
+    setCurrentStep(1);
+    toast({
+      title: "アバターが生成されました",
+      description: "内容を確認して次のステップに進みましょう。",
+    });
+  };
+
+  const handleGenerationFailed = (message: string) => {
+    setAvatarGenerating(false);
+    setCurrentStep(1);
+    toast({
+      variant: "destructive",
+      title: "アバター生成に失敗しました",
+      description: message,
+    });
   };
 
   const handleProfileComplete = (profile: any) => {
@@ -184,130 +217,154 @@ export default function RegisterForm() {
     );
   }
   // Show different content based on current step
-  if (currentStep === 0) {
-    // Basic Info Step
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-headline font-semibold mb-2">王国への招待</h2>
-            <p className="text-muted-foreground">まずは基本情報を入力してください</p>
-          </div>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="displayName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>表示名</FormLabel>
-                    <FormControl>
-                      <Input placeholder="表示名を入力してください" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      コミュニティ内で表示される名前です
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>メールアドレス</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="メールアドレスを入力してください" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>パスワード</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="パスワードを作成してください" autoComplete="new-password" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      最低6文字以上である必要があります。
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Button type="submit" className="w-full">
-                次へ: アバター作成 ✨
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (currentStep === 1) {
-    // Avatar Generation Step
-    return (
-      <div className="space-y-6">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-headline font-semibold">アバターを作成しましょう</h2>
-          <p className="text-muted-foreground text-sm">アバターを生成すると自動的に次のステップに進みます。</p>
+  const basicInfoStep = (
+    <Card>
+      <CardContent className="p-6">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-headline font-semibold mb-2">王国への招待</h2>
+          <p className="text-muted-foreground">まずは基本情報を入力してください</p>
         </div>
 
-        <KawaiiGenerator onAvatarGenerated={handleAvatarGenerated} />
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="displayName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>表示名</FormLabel>
+                  <FormControl>
+                    <Input placeholder="表示名を入力してください" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    コミュニティ内で表示される名前です
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <p className="text-center text-sm text-muted-foreground">
-          生成ツールが表示されない場合は
-          {' '}
-          <Link
-            href="/kawaii-generator"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary underline"
-          >
-            こちら
-          </Link>
-          {' '}をクリックして別ウィンドウで開いてください。
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>メールアドレス</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="メールアドレスを入力してください" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>パスワード</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="パスワードを作成してください" autoComplete="new-password" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    最低6文字以上である必要があります。
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button type="submit" className="w-full">
+              次へ: アバター作成 ✨
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+
+  const avatarStep = (
+    <div className="space-y-6">
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl font-headline font-semibold">アバターを作成しましょう</h2>
+        <p className="text-muted-foreground text-sm">
+          {avatarGenerating
+            ? "現在アバターを生成中です。完了後にこのページが表示されます。"
+            : avatarReady
+              ? "生成されたアバターを確認して次のステップに進みましょう。"
+              : "アバターを生成すると自動的に次のステップに進みます。"}
         </p>
+      </div>
 
+      <KawaiiGenerator
+        onAvatarGenerated={handleAvatarGenerated}
+        onGenerationStart={handleGenerationStart}
+        onGenerationComplete={handleGenerationComplete}
+        onGenerationFailed={handleGenerationFailed}
+      />
+
+      {avatarReady && !avatarGenerating && (
         <div className="flex justify-center">
-          <Button variant="outline" onClick={() => setCurrentStep(0)}>
-            戻る
+          <Button onClick={() => setCurrentStep(2)} className="w-full sm:w-auto">
+            次へ: プロフィール入力へ進む
           </Button>
         </div>
+      )}
+
+      <p className="text-center text-sm text-muted-foreground">
+        生成ツールが表示されない場合は{' '}
+        <Link
+          href="/kawaii-generator"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary underline"
+        >
+          こちら
+        </Link>
+        {' '}をクリックして別ウィンドウで開いてください。
+      </p>
+
+      <div className="flex justify-center">
+        <Button variant="outline" onClick={() => setCurrentStep(0)} disabled={avatarGenerating}>
+          戻る
+        </Button>
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (currentStep === 2) {
-    // Profile Creation Step
-    return (
-      <div className="space-y-6">
-        <div className="text-center">
-          <h2 className="text-2xl font-headline font-semibold mb-2">プロフィールを完成させましょう</h2>
-          <p className="text-muted-foreground">あなたの興味や価値観を教えてください</p>
-        </div>
-
-        <Profiler onProfileComplete={handleProfileComplete} isSubmitting={isLoading} />
-
-        <div className="flex justify-center">
-          <Button onClick={() => setCurrentStep(1)} variant="outline" disabled={isLoading}>
-            戻る
-          </Button>
-        </div>
+  const profileStep = (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-headline font-semibold mb-2">プロフィールを完成させましょう</h2>
+        <p className="text-muted-foreground">
+          {avatarGenerating
+            ? "アバターを生成している間にプロフィールを入力できます。"
+            : "あなたの興味や価値観を教えてください"}
+        </p>
       </div>
-    );
-  }
 
-  // Default fallback
-  return null;
+      {avatarGenerating && (
+        <div className="rounded-lg border border-dashed border-primary/50 bg-primary/5 p-4 text-sm text-primary text-center">
+          アバター生成が完了すると自動的にアバター確認ページに戻ります。
+        </div>
+      )}
+
+      <Profiler onProfileComplete={handleProfileComplete} isSubmitting={isLoading} />
+
+      <div className="flex justify-center gap-4">
+        <Button onClick={() => setCurrentStep(1)} variant="outline" disabled={isLoading && !avatarGenerating}>
+          戻る
+        </Button>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <div className={currentStep === 0 ? "block" : "hidden"}>{basicInfoStep}</div>
+      <div className={currentStep === 1 ? "block" : "hidden"}>{avatarStep}</div>
+      <div className={currentStep === 2 ? "block" : "hidden"}>{profileStep}</div>
+    </>
+  );
 }

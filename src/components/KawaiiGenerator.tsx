@@ -18,6 +18,9 @@ interface KawaiiGeneratorProps {
   onAvatarGenerated?: (payload: GeneratedAvatarPayload) => void;
   onSave?: (data: { avatar: GeneratedAvatarPayload['avatarConfig']; imageUrl: string }) => void | Promise<void>;
   isSaving?: boolean;
+  onGenerationStart?: () => void;
+  onGenerationComplete?: () => void;
+  onGenerationFailed?: (message: string) => void;
 }
 
 interface GenerationDetails {
@@ -92,7 +95,7 @@ const DownloadIcon: React.FC = () => (
   </svg>
 );
 
-export default function KawaiiGenerator({ onAvatarGenerated, onSave, isSaving = false }: KawaiiGeneratorProps) {
+export default function KawaiiGenerator({ onAvatarGenerated, onSave, isSaving = false, onGenerationStart, onGenerationComplete, onGenerationFailed }: KawaiiGeneratorProps) {
   const [inputImage, setInputImage] = useState<string | null>(null); // Stores the user's image as data URL
   const [generatedImage, setGeneratedImage] = useState<string | null>(null); // Stores the AI's image as data URL
   const [isLoading, setIsLoading] = useState(false);
@@ -222,6 +225,7 @@ export default function KawaiiGenerator({ onAvatarGenerated, onSave, isSaving = 
     mimeType?: string | null;
     source: GenerationSource;
   }) => {
+    onGenerationStart?.();
     setIsLoading(true);
     setGeneratedImage(null);
     setLatestGeneration(null);
@@ -278,18 +282,25 @@ export default function KawaiiGenerator({ onAvatarGenerated, onSave, isSaving = 
           id: generateId(),
           payload,
         });
+        onGenerationComplete?.();
       } else {
         const textPart = result?.candidates?.[0]?.content?.parts?.find((p: { text?: string }) => p.text);
         if (textPart?.text) {
-          setError(`画像生成に失敗しました: ${textPart.text}`);
+          const message = `画像生成に失敗しました: ${textPart.text}`;
+          setError(message);
+          onGenerationFailed?.(message);
         } else {
-          setError('画像生成に失敗しました。画像データを受信できませんでした。');
+          const message = '画像生成に失敗しました。画像データを受信できませんでした。';
+          setError(message);
+          onGenerationFailed?.(message);
           console.error('Invalid API response:', result);
         }
       }
     } catch (err) {
       console.error(err);
-      setError(err instanceof Error ? err.message : '画像生成中に不明なエラーが発生しました。');
+      const message = err instanceof Error ? err.message : '画像生成中に不明なエラーが発生しました。';
+      setError(message);
+      onGenerationFailed?.(message);
     } finally {
       setIsLoading(false);
     }
