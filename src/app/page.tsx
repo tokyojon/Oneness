@@ -395,7 +395,7 @@ export default function Home() {
                 <ul className="space-y-2 text-muted-foreground">
                   <li>• <strong>交換上限:</strong> 月1回、保有OPの最大33％まで</li>
                   <li>• <strong>対象者:</strong> 7軸いずれかの称号者（賢者以上）</li>
-                  <li>• <strong>交換可能通貨:</strong> ビットコイン等（王国指定）</li>
+                  <li>• <strong>交換可能通貨:</strong> JPYC・TEC</li>
                 </ul>
               </div>
             </div>
