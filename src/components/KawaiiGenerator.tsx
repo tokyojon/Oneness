@@ -77,23 +77,6 @@ const ImagePlaceholderIcon: React.FC = () => (
   </svg>
 );
 
-// SVG Icon for Download button
-const DownloadIcon: React.FC = () => (
-  <svg
-    className="h-6 w-6 mr-2"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-    />
-  </svg>
-);
 
 export default function KawaiiGenerator({ onAvatarGenerated, onSave, isSaving = false, onGenerationStart, onGenerationComplete, onGenerationFailed }: KawaiiGeneratorProps) {
   const [inputImage, setInputImage] = useState<string | null>(null); // Stores the user's image as data URL
@@ -377,7 +360,7 @@ export default function KawaiiGenerator({ onAvatarGenerated, onSave, isSaving = 
 
   return (
     <div className="flex w-full justify-center py-12 font-sans bg-white min-h-screen">
-      <div className="w-full max-w-2xl p-6 md:p-10 bg-white rounded-2xl shadow-xl">
+      <div className="w-full max-w-4xl p-6 md:p-10 bg-white rounded-2xl shadow-xl">
 
         {/* --- Input Selection --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -429,7 +412,7 @@ export default function KawaiiGenerator({ onAvatarGenerated, onSave, isSaving = 
           {/* Input Image */}
           <div className="flex flex-col items-center">
             <h2 className="font-semibold text-lg text-gray-700 mb-2">あなたの写真</h2>
-            <div className="w-full h-64 flex items-center justify-center bg-gray-100 rounded-xl shadow-inner overflow-hidden">
+            <div className="w-full h-[512px] flex items-center justify-center bg-gray-100 rounded-xl shadow-inner overflow-hidden">
               {inputImage ? (
                 <img
                   src={inputImage}
@@ -445,7 +428,7 @@ export default function KawaiiGenerator({ onAvatarGenerated, onSave, isSaving = 
           {/* Generated Image */}
           <div className="flex flex-col items-center">
             <h2 className="font-semibold text-lg text-gray-700 mb-2">生成されたキャラクター</h2>
-            <div className="w-full h-64 flex items-center justify-center bg-gray-100 rounded-xl shadow-inner overflow-hidden">
+            <div className="w-full h-[512px] flex items-center justify-center bg-gray-100 rounded-xl shadow-inner overflow-hidden">
               {isLoading ? (
                 <LoadingSpinner />
               ) : generatedImage ? (
@@ -462,9 +445,8 @@ export default function KawaiiGenerator({ onAvatarGenerated, onSave, isSaving = 
         </div>
 
         {/* --- Download Button --- */}
-        {generatedImage && !isLoading && (
+        {generatedImage && !isLoading && onSave && (
           <div className="flex flex-col md:flex-row flex-wrap justify-center gap-4 mb-6">
-            {onSave && (
               <button
                 onClick={handleSaveAvatar}
                 disabled={!latestGeneration || isSaving}
@@ -472,15 +454,6 @@ export default function KawaiiGenerator({ onAvatarGenerated, onSave, isSaving = 
               >
                 {isSaving ? '保存中...' : 'アバターを保存'}
               </button>
-            )}
-            <a
-              href={generatedImage}
-              download="kawaii-caricature.png"
-              className="flex items-center justify-center w-full md:w-auto px-6 py-3 bg-green-500 text-white rounded-xl shadow-md hover:bg-green-600 transition-all font-semibold"
-            >
-              <DownloadIcon />
-              画像をダウンロード
-            </a>
           </div>
         )}
 

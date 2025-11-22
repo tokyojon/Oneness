@@ -12,11 +12,27 @@ export const useAuth = () => {
     // Check authentication status
     const checkAuth = async () => {
       try {
-        const authenticated = await isAuthenticated();
+        // Optimize: Check local storage first to avoid unnecessary API calls
+        // This prevents 401 errors in console for non-logged in users
         const currentUser = getCurrentUser();
+        
+        if (!currentUser) {
+          setIsLoggedIn(false);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
 
-        setIsLoggedIn(authenticated);
-        setUser(currentUser);
+        const authenticated = await isAuthenticated();
+
+        if (!authenticated) {
+          // If API check fails (e.g. session expired), clear local state
+          setIsLoggedIn(false);
+          setUser(null);
+        } else {
+          setIsLoggedIn(true);
+          setUser(currentUser);
+        }
       } catch (error) {
         console.error('Auth check failed:', error);
         setIsLoggedIn(false);
