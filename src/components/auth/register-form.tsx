@@ -27,6 +27,11 @@ import KawaiiGenerator, { GeneratedAvatarPayload } from "../KawaiiGenerator"
 import Profiler from "../Profiler"
 import Link from "next/link"
 
+type AvatarSubmissionPayload = {
+  imageUrl: string;
+  avatar: GeneratedAvatarPayload['avatarConfig'];
+};
+
 const formSchema = z.object({
   displayName: z.string().min(2, { message: "表示名は最低2文字以上である必要があります。" }),
   email: z.string().email({ message: "有効なメールアドレスを入力してください。" }),
@@ -39,7 +44,7 @@ export default function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [currentStep, setCurrentStep] = useState(0); // 0: Basic Info, 1: Avatar, 2: Profile, 3: Success
-  const [avatarData, setAvatarData] = useState<GeneratedAvatarPayload | null>(null);
+  const [avatarData, setAvatarData] = useState<AvatarSubmissionPayload | null>(null);
   const [profileData, setProfileData] = useState<any>(null);
   const [avatarGenerating, setAvatarGenerating] = useState(false);
   const [avatarReady, setAvatarReady] = useState(false);
@@ -94,7 +99,10 @@ export default function RegisterForm() {
   };
 
   const handleAvatarGenerated = (payload: GeneratedAvatarPayload) => {
-    setAvatarData(payload);
+    setAvatarData({
+      imageUrl: payload.imageDataUrl,
+      avatar: payload.avatarConfig,
+    });
     setAvatarReady(true);
     setAvatarGenerating(false);
   };
