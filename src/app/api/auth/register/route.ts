@@ -102,19 +102,24 @@ export async function POST(request: NextRequest) {
 
       // Ensure user exists in public.users table (needed for foreign key constraints)
       // This handles cases where triggers to copy auth.users to public.users might be missing or failed
+      console.log('Register: Attempting to insert user into public.users table:', authData.user.id);
       const { error: publicUserError } = await supabase
         .from('users')
-        .upsert({
+        .insert({
           id: authData.user.id,
           email: email,
           display_name: displayName,
-          created_at: new Date().toISOString(),
         });
 
       if (publicUserError) {
-        console.warn('Register: Warning inserting into public.users (might be handled by trigger):', publicUserError);
-        // We continue even if this fails, as it might be a permission issue or table might not exist,
-        // but if the FK constraint is real, the next step will fail anyway if this didn't work.
+        console.error('Register: FAILED to insert into public.users:', publicUserError);
+        // Return the specific error to the client for debugging
+        return NextResponse.json(
+          { error: 'Failed to create user record in public.users table', details: publicUserError },
+          { status: 500 }
+        );
+      } else {
+        console.log('Register: Successfully inserted user into public.users');
       }
 
       // Create user profile with all the collected data

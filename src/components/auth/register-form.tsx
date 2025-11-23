@@ -107,19 +107,23 @@ export default function RegisterForm() {
       const finalProfileData = currentProfileData || profileData;
 
       const payload = {
-        displayName: values.displayName,
         email: values.email,
         password: values.password,
+        display_name: values.displayName,
         profileData: finalProfileData || undefined,
+        kyc_status: "pending",
+        role: "user",
+        welcome_bonus: 100,
         avatarData: undefined // Explicitly undefined to satisfy schema
       };
 
       console.log('Register payload:', payload);
 
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch('https://edfixzjpvsqpebzehsqy.supabase.co/functions/v1/admin-register-user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`, // Add auth header for Edge Function
         },
         body: JSON.stringify(payload),
       });
