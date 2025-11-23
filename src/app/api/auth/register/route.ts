@@ -169,8 +169,12 @@ export async function POST(request: NextRequest) {
 
     } catch (profileErr) {
       console.error('Register: User data creation error:', profileErr);
+      // Return the specific error if it's available
+      const errorMessage = profileErr instanceof Error ? profileErr.message : 'Failed to create user profile';
+      const errorDetails = profileErr && typeof profileErr === 'object' ? JSON.stringify(profileErr) : String(profileErr);
+      
       return NextResponse.json(
-        { error: 'Failed to create user profile' },
+        { error: errorMessage, details: errorDetails },
         { status: 500 }
       );
     }
