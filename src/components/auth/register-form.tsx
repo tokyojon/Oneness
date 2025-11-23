@@ -18,19 +18,11 @@ import {
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { useState } from "react"
-import { LoadingSpinner } from "@/lib/icons";
 import { CheckCircle } from "lucide-react"
 import { Card, CardContent } from "../ui/card";
 import { useRouter } from "next/navigation"
 import { login } from "@/lib/auth"
-import KawaiiGenerator, { GeneratedAvatarPayload } from "../KawaiiGenerator"
 import Profiler from "../Profiler"
-import Link from "next/link"
-
-type AvatarSubmissionPayload = {
-  imageUrl: string;
-  avatar: GeneratedAvatarPayload['avatarConfig'];
-};
 
 const formSchema = z.object({
   displayName: z.string().min(2, { message: "表示名は最低2文字以上である必要があります。" }),
@@ -43,11 +35,8 @@ export default function RegisterForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0); // 0: Basic Info, 1: Avatar, 2: Profile, 3: Success
-  const [avatarData, setAvatarData] = useState<AvatarSubmissionPayload | null>(null);
+  const [currentStep, setCurrentStep] = useState(0); // 0: Basic Info, 1: Profile, 2: Success
   const [profileData, setProfileData] = useState<any>(null);
-  const [avatarGenerating, setAvatarGenerating] = useState(false);
-  const [avatarReady, setAvatarReady] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -90,51 +79,12 @@ export default function RegisterForm() {
   }
 
   const handleBasicInfoSubmit = (values: z.infer<typeof formSchema>) => {
-    // Store basic info and move to profile step (skipping avatar)
-    setCurrentStep(2);
+    // Store basic info and move to profile step
+    setCurrentStep(1);
   };
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     handleBasicInfoSubmit(values);
-  };
-
-  const handleAvatarGenerated = (payload: GeneratedAvatarPayload) => {
-    setAvatarData({
-      imageUrl: payload.imageDataUrl,
-      avatar: payload.avatarConfig,
-    });
-    setAvatarReady(true);
-    setAvatarGenerating(false);
-  };
-
-  const handleGenerationStart = () => {
-    setAvatarGenerating(true);
-    setAvatarReady(false);
-    setCurrentStep(2);
-    toast({
-      title: "アバター生成中...",
-      description: "数秒お待ちください。生成完了後に自動で戻ります。",
-    });
-  };
-
-  const handleGenerationComplete = () => {
-    setAvatarGenerating(false);
-    setAvatarReady(true);
-    setCurrentStep(1);
-    toast({
-      title: "アバターが生成されました",
-      description: "内容を確認して次のステップに進みましょう。",
-    });
-  };
-
-  const handleGenerationFailed = (message: string) => {
-    setAvatarGenerating(false);
-    setCurrentStep(1);
-    toast({
-      variant: "destructive",
-      title: "アバター生成に失敗しました",
-      description: message,
-    });
   };
 
   const handleProfileComplete = (profile: any) => {
@@ -152,21 +102,29 @@ export default function RegisterForm() {
       // Use provided profile data or fallback to state (state might be stale if just set)
       const finalProfileData = currentProfileData || profileData;
 
+      const payload = {
+        displayName: values.displayName,
+        email: values.email,
+        password: values.password,
+        profileData: finalProfileData || undefined,
+        avatarData: undefined // Explicitly undefined to satisfy schema
+      };
+
+      console.log('Register payload:', payload);
+
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          displayName: values.displayName,
-          email: values.email,
-          password: values.password,
-          profileData: finalProfileData || undefined, // Convert null to undefined to satisfy Zod optional()
-          avatarData: avatarData || undefined // Convert null to undefined to satisfy Zod optional()
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Registration failed:', data);
+      }
 
       if (response.ok) {
         toast({
@@ -295,76 +253,20 @@ export default function RegisterForm() {
     </Card>
   );
 
-  const avatarStep = (
-    <div className="space-y-6">
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-headline font-semibold">アバターを作成しましょう</h2>
-        <p className="text-muted-foreground text-sm">
-          {avatarGenerating
-            ? "現在アバターを生成中です。完了後にこのページが表示されます。"
-            : avatarReady
-              ? "生成されたアバターを確認して次のステップに進みましょう。"
-              : "アバターを生成すると自動的に次のステップに進みます。"}
-        </p>
-      </div>
-
-      <KawaiiGenerator
-        onAvatarGenerated={handleAvatarGenerated}
-        onGenerationStart={handleGenerationStart}
-        onGenerationComplete={handleGenerationComplete}
-        onGenerationFailed={handleGenerationFailed}
-      />
-
-      {avatarReady && !avatarGenerating && (
-        <div className="flex justify-center">
-          <Button onClick={() => setCurrentStep(2)} className="w-full sm:w-auto">
-            次へ: プロフィール入力へ進む
-          </Button>
-        </div>
-      )}
-
-      <p className="text-center text-sm text-muted-foreground">
-        生成ツールが表示されない場合は{' '}
-        <Link
-          href="/kawaii-generator"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary underline"
-        >
-          こちら
-        </Link>
-        {' '}をクリックして別ウィンドウで開いてください。
-      </p>
-
-      <div className="flex justify-center">
-        <Button variant="outline" onClick={() => setCurrentStep(0)} disabled={avatarGenerating}>
-          戻る
-        </Button>
-      </div>
-    </div>
-  );
 
   const profileStep = (
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-headline font-semibold mb-2">プロフィールを完成させましょう</h2>
         <p className="text-muted-foreground">
-          {avatarGenerating
-            ? "アバターを生成している間にプロフィールを入力できます。"
-            : "あなたの興味や価値観を教えてください"}
+          あなたの興味や価値観を教えてください
         </p>
       </div>
-
-      {avatarGenerating && (
-        <div className="rounded-lg border border-dashed border-primary/50 bg-primary/5 p-4 text-sm text-primary text-center">
-          アバター生成が完了すると自動的にアバター確認ページに戻ります。
-        </div>
-      )}
 
       <Profiler onProfileComplete={handleProfileComplete} isSubmitting={isLoading} />
 
       <div className="flex justify-center gap-4">
-        <Button onClick={() => setCurrentStep(1)} variant="outline" disabled={isLoading && !avatarGenerating}>
+        <Button onClick={() => setCurrentStep(0)} variant="outline" disabled={isLoading}>
           戻る
         </Button>
       </div>
@@ -374,8 +276,7 @@ export default function RegisterForm() {
   return (
     <>
       <div className={currentStep === 0 ? "block" : "hidden"}>{basicInfoStep}</div>
-      <div className={currentStep === 1 ? "block" : "hidden"}>{avatarStep}</div>
-      <div className={currentStep === 2 ? "block" : "hidden"}>{profileStep}</div>
+      <div className={currentStep === 1 ? "block" : "hidden"}>{profileStep}</div>
     </>
   );
 }
