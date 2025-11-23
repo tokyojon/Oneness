@@ -99,6 +99,24 @@ export async function POST(request: NextRequest) {
     // Create user profile and associated data
     try {
       console.log('Register: Creating user profile for user ID:', authData.user.id);
+
+      // Ensure user exists in public.users table (needed for foreign key constraints)
+      // This handles cases where triggers to copy auth.users to public.users might be missing or failed
+      const { error: publicUserError } = await supabase
+        .from('users')
+        .upsert({
+          id: authData.user.id,
+          email: email,
+          display_name: displayName,
+          created_at: new Date().toISOString(),
+        });
+
+      if (publicUserError) {
+        console.warn('Register: Warning inserting into public.users (might be handled by trigger):', publicUserError);
+        // We continue even if this fails, as it might be a permission issue or table might not exist,
+        // but if the FK constraint is real, the next step will fail anyway if this didn't work.
+      }
+
       // Create user profile with all the collected data
       console.log('Register: Creating user profile for user ID:', authData.user.id);
       const profileDataToInsert = {
