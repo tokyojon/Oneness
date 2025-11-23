@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { CheckCircle } from "lucide-react"
 import { Card, CardContent } from "../ui/card";
 import { useRouter } from "next/navigation"
@@ -26,7 +26,7 @@ import Profiler from "../Profiler"
 
 const formSchema = z.object({
   displayName: z.string().min(2, { message: "表示名は最低2文字以上である必要があります。" }),
-  email: z.string().email({ message: "有効なメールアドレスを入力してください。" }),
+  email: z.string().trim().toLowerCase().email({ message: "有効なメールアドレスを入力してください。" }),
   password: z.string().min(6, { message: "パスワードは最低6文字以上である必要があります。" }),
 });
 
@@ -37,6 +37,10 @@ export default function RegisterForm() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [currentStep, setCurrentStep] = useState(0); // 0: Basic Info, 1: Profile, 2: Success
   const [profileData, setProfileData] = useState<any>(null);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentStep]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

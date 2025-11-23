@@ -10,7 +10,7 @@ const supabase = createClient(
 
 const registerSchema = z.object({
   displayName: z.string().min(2).max(255),
-  email: z.string().email(),
+  email: z.string().trim().toLowerCase().email(),
   password: z.string().min(6),
   profileData: z.object({
     displayName: z.string().optional(),

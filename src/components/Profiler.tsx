@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -68,6 +68,10 @@ const Profiler: React.FC<ProfilerProps> = ({ onProfileComplete, isSubmitting = f
     favoriteQuote: '',
     hobbies: []
   });
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentStep]);
 
   const steps = [
     { title: '基本情報', icon: Users },
