@@ -140,14 +140,17 @@ export default function RegisterForm() {
   const handleProfileComplete = (profile: any) => {
     setProfileData(profile);
     // Now submit all the data
-    submitRegistration();
+    submitRegistration(profile);
   };
 
-  async function submitRegistration() {
+  async function submitRegistration(currentProfileData?: any) {
     setIsLoading(true);
 
     try {
       const values = form.getValues();
+      
+      // Use provided profile data or fallback to state (state might be stale if just set)
+      const finalProfileData = currentProfileData || profileData;
 
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -158,8 +161,8 @@ export default function RegisterForm() {
           displayName: values.displayName,
           email: values.email,
           password: values.password,
-          profileData,
-          avatarData
+          profileData: finalProfileData || undefined, // Convert null to undefined to satisfy Zod optional()
+          avatarData: avatarData || undefined // Convert null to undefined to satisfy Zod optional()
         }),
       });
 
@@ -284,7 +287,7 @@ export default function RegisterForm() {
             />
 
             <Button type="submit" className="w-full">
-              次へ: アバター作成 ✨
+              次へ: プロフィール入力へ ✨
             </Button>
           </form>
         </Form>
