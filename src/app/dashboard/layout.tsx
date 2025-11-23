@@ -10,6 +10,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { LoadingSpinner } from "@/lib/icons";
+import AvatarSetupModal from "@/components/dashboard/AvatarSetupModal";
 
 const SidebarLink = ({ href, icon: Icon, label, active = false }: { href: string, icon: React.ElementType, label: string, active?: boolean }) => (
     <Link href={href} className={cn(
@@ -216,6 +217,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     {children}
                 </main>
             </div>
+            <AvatarSetupModal />
         </div>
     )
 }

@@ -90,8 +90,8 @@ export default function RegisterForm() {
   }
 
   const handleBasicInfoSubmit = (values: z.infer<typeof formSchema>) => {
-    // Store basic info and move to avatar step
-    setCurrentStep(1);
+    // Store basic info and move to profile step (skipping avatar)
+    setCurrentStep(2);
   };
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
