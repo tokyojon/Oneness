@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from "crypto";
 import { createClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password).digest("hex");
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,31 +15,60 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing email or password" }, { status: 400 });
     }
 
-    // Get user from Supabase
-    const { data: user, error } = await supabase
+    // Use Supabase Auth for authentication
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError || !authData.user) {
+      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    }
+
+    // Get user profile data from users table
+    const { data: userProfile, error: profileError } = await supabase
       .from('users')
-      .select('id, name, email, password_hash, created_at')
-      .eq('email', email)
+      .select('id, display_name, email, created_at')
+      .eq('id', authData.user.id)
       .single();
 
-    if (error || !user) {
-      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    if (profileError || !userProfile) {
+      // If user profile doesn't exist, use auth data
+      return NextResponse.json({
+        success: true,
+        message: "Login successful",
+        user: {
+          id: authData.user.id,
+          name: authData.user.user_metadata?.display_name || authData.user.email?.split('@')[0],
+          email: authData.user.email,
+          createdAt: authData.user.created_at,
+        },
+      });
     }
 
-    const passwordHash = hashPassword(password);
-
-    if (user.password_hash !== passwordHash) {
-      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
-    }
+    // Set HTTP-only cookies for the session
+    const cookieStore = await cookies();
+    cookieStore.set('access_token', authData.session.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 3600 // 1 hour
+    });
+    cookieStore.set('refresh_token', authData.session.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 3600 // 30 days
+    });
 
     return NextResponse.json({
       success: true,
       message: "Login successful",
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        createdAt: user.created_at,
+        id: userProfile.id,
+        name: userProfile.display_name,
+        email: userProfile.email,
+        createdAt: userProfile.created_at,
       },
     });
   } catch (error) {
