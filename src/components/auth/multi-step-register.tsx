@@ -252,113 +252,112 @@ export default function MultiStepRegister() {
       exit={{ opacity: 0, x: -50 }}
       className="space-y-6"
     >
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-stone-800 mb-2">基本情報</h2>
-        <p className="text-stone-500 text-sm">アカウントの基本情報を入力してください</p>
-      </div>
-
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-bold text-stone-600">表示名</label>
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <User className="w-5 h-5 text-stone-400 group-focus-within:text-sky-500 transition-colors" />
-            </div>
-            <input 
-              type="text" 
-              name="displayName"
-              value={formData.displayName}
-              onChange={handleInputChange}
-              placeholder="例: ヒカル" 
-              className={`w-full pl-12 pr-4 py-4 bg-white rounded-xl border text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-sky-400/50 transition-all ${
-                errors.displayName 
-                  ? 'border-red-400 focus:border-red-400 focus:ring-red-400/50' 
-                  : 'border-stone-200 focus:border-sky-400'
-              }`}
-              required
-            />
-          </div>
-          {errors.displayName && (
-            <div className="flex items-center gap-1 text-red-500 text-sm">
-              <AlertCircle className="w-4 h-4" />
-              {errors.displayName}
-            </div>
-          )}
+      <form onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-stone-800 mb-2">基本情報</h2>
+          <p className="text-stone-500 text-sm">アカウントの基本情報を入力してください</p>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-bold text-stone-600">メールアドレス</label>
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Mail className="w-5 h-5 text-stone-400 group-focus-within:text-sky-500 transition-colors" />
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-stone-600">表示名</label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <User className="w-5 h-5 text-stone-400 group-focus-within:text-sky-500 transition-colors" />
+              </div>
+              <input 
+                type="text" 
+                name="displayName"
+                value={formData.displayName}
+                onChange={handleInputChange}
+                placeholder="例: ヒカル" 
+                className={`w-full pl-12 pr-4 py-4 bg-white rounded-xl border text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-sky-400/50 transition-all ${
+                  errors.displayName 
+                    ? 'border-red-400 focus:border-red-400 focus:ring-red-400/50' 
+                    : 'border-stone-200 focus:border-sky-400'
+                }`}
+                required
+              />
             </div>
-            <input 
-              type="email" 
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              placeholder="hello@example.com" 
-              className={`w-full pl-12 pr-4 py-4 bg-white rounded-xl border text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-sky-400/50 transition-all ${
-                errors.email 
-                  ? 'border-red-400 focus:border-red-400 focus:ring-red-400/50' 
-                  : 'border-stone-200 focus:border-sky-400'
-              }`}
-              required
-            />
+            {errors.displayName && (
+              <div className="flex items-center gap-1 text-red-500 text-sm">
+                <AlertCircle className="w-4 h-4" />
+                {errors.displayName}
+              </div>
+            )}
           </div>
-          {errors.email && (
-            <div className="flex items-center gap-1 text-red-500 text-sm">
-              <AlertCircle className="w-4 h-4" />
-              {errors.email}
+
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-stone-600">メールアドレス</label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Mail className="w-5 h-5 text-stone-400 group-focus-within:text-sky-500 transition-colors" />
+              </div>
+              <input 
+                type="email" 
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="hello@example.com" 
+                className={`w-full pl-12 pr-4 py-4 bg-white rounded-xl border text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-sky-400/50 transition-all ${
+                  errors.email 
+                    ? 'border-red-400 focus:border-red-400 focus:ring-red-400/50' 
+                    : 'border-stone-200 focus:border-sky-400'
+                }`}
+                required
+              />
             </div>
-          )}
+            {errors.email && (
+              <div className="flex items-center gap-1 text-red-500 text-sm">
+                <AlertCircle className="w-4 h-4" />
+                {errors.email}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-stone-600">パスワード</label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Lock className="w-5 h-5 text-stone-400 group-focus-within:text-sky-500 transition-colors" />
+              </div>
+              <input 
+                type="password" 
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="6文字以上" 
+                className={`w-full pl-12 pr-12 py-4 bg-white rounded-xl border text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-sky-400/50 transition-all ${
+                  errors.password 
+                    ? 'border-red-400 focus:border-red-400 focus:ring-red-400/50' 
+                    : 'border-stone-200 focus:border-sky-400'
+                }`}
+                required
+                minLength={6}
+              />
+              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                <Lock className="w-5 h-5 text-stone-300" />
+              </div>
+            </div>
+            {errors.password && (
+              <div className="flex items-center gap-1 text-red-500 text-sm">
+                <AlertCircle className="w-4 h-4" />
+                {errors.password}
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-bold text-stone-600">パスワード</label>
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Lock className="w-5 h-5 text-stone-400 group-focus-within:text-sky-500 transition-colors" />
-            </div>
-            <input 
-              type={showPassword ? "text" : "password"} 
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              placeholder="6文字以上" 
-              className={`w-full pl-12 pr-12 py-4 bg-white rounded-xl border text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-sky-400/50 transition-all ${
-                errors.password 
-                  ? 'border-red-400 focus:border-red-400 focus:ring-red-400/50' 
-                  : 'border-stone-200 focus:border-sky-400'
-              }`}
-              required
-              minLength={6}
-            />
-            <button 
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-4 flex items-center text-stone-400 hover:text-stone-600"
-            >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
-          </div>
-          {errors.password && (
-            <div className="flex items-center gap-1 text-red-500 text-sm">
-              <AlertCircle className="w-4 h-4" />
-              {errors.password}
-            </div>
-          )}
+        <div className="flex gap-3">
+          <button 
+            type="submit"
+            className="flex-1 bg-gradient-to-r from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-sky-200 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2"
+          >
+            次へ
+            <ChevronRight className="w-5 h-5" />
+          </button>
         </div>
-      </div>
-
-      <button 
-        onClick={handleNext}
-        disabled={!formData.displayName || !formData.email || formData.password.length < 6}
-        className="w-full bg-gradient-to-r from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 disabled:from-stone-300 disabled:to-stone-400 text-white font-bold py-4 rounded-xl shadow-lg shadow-sky-200 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 disabled:cursor-not-allowed"
-      >
-        次へ
-        <ChevronRight className="w-5 h-5" />
-      </button>
+      </form>
     </motion.div>
   );
 
