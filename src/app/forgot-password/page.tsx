@@ -33,6 +33,7 @@ function ForgotPasswordForm() {
     defaultValues: {
       email: '',
     },
+    mode: 'onBlur',
   });
 
   const onSubmit = async (data: ForgotPasswordFormData) => {

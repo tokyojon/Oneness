@@ -49,6 +49,7 @@ function ResetPasswordForm() {
       password: '',
       confirmPassword: '',
     },
+    mode: 'onBlur',
   });
 
   const onSubmit = async (data: ResetPasswordFormData) => {
