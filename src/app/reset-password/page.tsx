@@ -13,6 +13,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+} from "@/components/ui/form";
 import MobileNavigation from '@/components/layout/mobile-navigation';
 import { CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
