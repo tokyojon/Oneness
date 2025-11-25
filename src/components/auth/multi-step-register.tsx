@@ -448,73 +448,76 @@ export default function MultiStepRegister() {
       exit={{ opacity: 0, x: -50 }}
       className="space-y-6"
     >
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-stone-800 mb-2">確認</h2>
-        <p className="text-stone-500 text-sm">入力内容を確認してください</p>
-      </div>
-
-      <div className="bg-white/50 rounded-xl p-6 space-y-4">
-        <div>
-          <h3 className="text-sm font-bold text-stone-600 mb-2">基本情報</h3>
-          <div className="space-y-1">
-            <p className="text-stone-800"><span className="font-medium">表示名:</span> {formData.displayName}</p>
-            <p className="text-stone-800"><span className="font-medium">メール:</span> {formData.email}</p>
-          </div>
+      <form onSubmit={handleSubmit}>
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-stone-800 mb-2">確認</h2>
+          <p className="text-stone-500 text-sm">入力内容を確認してください</p>
         </div>
 
-        {formData.bio && (
+        <div className="bg-white/50 rounded-xl p-6 space-y-4">
           <div>
-            <h3 className="text-sm font-bold text-stone-600 mb-2">自己紹介</h3>
-            <p className="text-stone-800">{formData.bio}</p>
-          </div>
-        )}
-
-        {formData.interests.length > 0 && (
-          <div>
-            <h3 className="text-sm font-bold text-stone-600 mb-2">興味</h3>
-            <div className="flex flex-wrap gap-2">
-              {formData.interests.map((interest) => (
-                <span key={interest} className="px-2 py-1 bg-sky-100 text-sky-600 rounded-lg text-sm">
-                  {interest}
-                </span>
-              ))}
+            <h3 className="text-sm font-bold text-stone-600 mb-2">基本情報</h3>
+            <div className="space-y-1">
+              <p className="text-stone-800"><span className="font-medium">表示名:</span> {formData.displayName}</p>
+              <p className="text-stone-800"><span className="font-medium">メール:</span> {formData.email}</p>
             </div>
           </div>
-        )}
-      </div>
 
-      <div className="bg-sky-50 rounded-xl p-4">
-        <p className="text-sm text-sky-700">
-          <strong>注意:</strong> アバター設定は登録後にダッシュボードで行えます。
-        </p>
-      </div>
-
-      <div className="flex gap-3">
-        <button 
-          onClick={handleBack}
-          className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2"
-        >
-          <ChevronLeft className="w-5 h-5" />
-          戻る
-        </button>
-        <button 
-          onClick={handleSubmit}
-          disabled={isLoading}
-          className="flex-1 bg-gradient-to-r from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 disabled:from-stone-300 disabled:to-stone-400 text-white font-bold py-4 rounded-xl shadow-lg shadow-sky-200 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 disabled:cursor-not-allowed"
-        >
-          {isLoading ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              登録中...
-            </>
-          ) : (
-            <>
-              アカウントを作成
-              <Check className="w-5 h-5" />
-            </>
+          {formData.bio && (
+            <div>
+              <h3 className="text-sm font-bold text-stone-600 mb-2">自己紹介</h3>
+              <p className="text-stone-800">{formData.bio}</p>
+            </div>
           )}
-        </button>
-      </div>
+
+          {formData.interests.length > 0 && (
+            <div>
+              <h3 className="text-sm font-bold text-stone-600 mb-2">興味</h3>
+              <div className="flex flex-wrap gap-2">
+                {formData.interests.map((interest) => (
+                  <span key={interest} className="px-2 py-1 bg-sky-100 text-sky-600 rounded-lg text-sm">
+                    {interest}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-sky-50 rounded-xl p-4">
+          <p className="text-sm text-sky-700">
+            <strong>注意:</strong> アバター設定は登録後にダッシュボードで行えます。
+          </p>
+        </div>
+
+        <div className="flex gap-3">
+          <button 
+            type="button"
+            onClick={handleBack}
+            className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2"
+          >
+            <ChevronLeft className="w-5 h-5" />
+            戻る
+          </button>
+          <button 
+            type="submit"
+            disabled={isLoading}
+            className="flex-1 bg-gradient-to-r from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 disabled:from-stone-300 disabled:to-stone-400 text-white font-bold py-4 rounded-xl shadow-lg shadow-sky-200 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                登録中...
+              </>
+            ) : (
+              <>
+                アカウントを作成
+                <Check className="w-5 h-5" />
+              </>
+            )}
+          </button>
+        </div>
+      </form>
     </motion.div>
   );
 
