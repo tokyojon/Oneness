@@ -1,9 +1,11 @@
 'use client';
 
+import React, { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { useEffect, useState, Suspense } from "react";
 
 import { LoadingSpinner, OnenessKingdomLogo } from '@/lib/icons';
 import {
@@ -14,6 +16,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import MobileNavigation from '@/components/layout/mobile-navigation';
 import { CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
