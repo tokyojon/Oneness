@@ -61,6 +61,35 @@ export default function MultiStepRegister() {
     }, 100);
   };
 
+  const validateStep1WithValues = (displayName: string, email: string, password: string) => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!displayName?.trim()) {
+      newErrors.displayName = '表示名は必須です';
+    } else if (displayName.length < 2) {
+      newErrors.displayName = '表示名は2文字以上で入力してください';
+    } else if (displayName.length > 50) {
+      newErrors.displayName = '表示名は50文字以内で入力してください';
+    }
+    
+    if (!email?.trim()) {
+      newErrors.email = 'メールアドレスは必須です';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = '有効なメールアドレスを入力してください';
+    }
+    
+    if (!password) {
+      newErrors.password = 'パスワードは必須です';
+    } else if (password.length < 6) {
+      newErrors.password = 'パスワードは6文字以上で入力してください';
+    } else if (password.length > 128) {
+      newErrors.password = 'パスワードは128文字以内で入力してください';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {};
     
@@ -101,12 +130,32 @@ export default function MultiStepRegister() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
+  const handleNext = (e?: React.FormEvent) => {
     if (currentStep < totalSteps) {
       let isValid = false;
       
       if (currentStep === 1) {
-        isValid = validateStep1();
+        // Collect values from uncontrolled form inputs
+        if (e && e.target) {
+          const form = e.target as HTMLFormElement;
+          const formDataValues = new FormData(form);
+          const displayName = formDataValues.get('displayName') as string;
+          const email = formDataValues.get('email') as string;
+          const password = formDataValues.get('password') as string;
+          
+          // Update state with collected values
+          setFormData(prev => ({
+            ...prev,
+            displayName: displayName || '',
+            email: email || '',
+            password: password || ''
+          }));
+          
+          // Validate with collected values
+          isValid = validateStep1WithValues(displayName, email, password);
+        } else {
+          isValid = validateStep1();
+        }
       } else if (currentStep === 2) {
         isValid = validateStep2();
       } else {
@@ -258,7 +307,7 @@ export default function MultiStepRegister() {
 
   const Step1 = () => (
     <div className="space-y-6">
-      <form onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
+      <form onSubmit={(e) => { e.preventDefault(); handleNext(e); }}>
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-stone-800 mb-2">基本情報</h2>
           <p className="text-stone-500 text-sm">アカウントの基本情報を入力してください</p>
@@ -275,8 +324,7 @@ export default function MultiStepRegister() {
                 key="displayName"
                 type="text" 
                 name="displayName"
-                value={formData.displayName}
-                onChange={handleInputChange}
+                defaultValue={formData.displayName}
                 placeholder="例: ヒカル" 
                 className={`w-full pl-12 pr-4 py-4 bg-white rounded-xl border text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-sky-400/50 transition-all ${
                   errors.displayName 
@@ -305,8 +353,7 @@ export default function MultiStepRegister() {
                 key="email"
                 type="email" 
                 name="email"
-                value={formData.email}
-                onChange={handleInputChange}
+                defaultValue={formData.email}
                 placeholder="hello@example.com" 
                 className={`w-full pl-12 pr-4 py-4 bg-white rounded-xl border text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-sky-400/50 transition-all ${
                   errors.email 
@@ -335,8 +382,7 @@ export default function MultiStepRegister() {
                 key="password"
                 type="password" 
                 name="password"
-                value={formData.password}
-                onChange={handleInputChange}
+                defaultValue={formData.password}
                 placeholder="6文字以上" 
                 className={`w-full pl-12 pr-12 py-4 bg-white rounded-xl border text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-sky-400/50 transition-all ${
                   errors.password 
