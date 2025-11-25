@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Mail, Lock, Sparkles, Eye, EyeOff, ChevronLeft, ChevronRight, Check, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -34,20 +34,31 @@ export default function MultiStepRegister() {
 
   const totalSteps = 3;
 
+  const timeoutRef = useRef<NodeJS.Timeout>();
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
+    
+    // Clear existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
+    
+    // Debounce state update to prevent keyboard focus loss
+    timeoutRef.current = setTimeout(() => {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+      // Clear error when user starts typing
+      if (errors[name]) {
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[name];
+          return newErrors;
+        });
+      }
+    }, 100);
   };
 
   const validateStep1 = () => {
@@ -246,12 +257,7 @@ export default function MultiStepRegister() {
   );
 
   const Step1 = () => (
-    <motion.div
-      initial={{ opacity: 0, x: 50 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -50 }}
-      className="space-y-6"
-    >
+    <div className="space-y-6">
       <form onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-stone-800 mb-2">基本情報</h2>
@@ -266,6 +272,7 @@ export default function MultiStepRegister() {
                 <User className="w-5 h-5 text-stone-400 group-focus-within:text-sky-500 transition-colors" />
               </div>
               <input 
+                key="displayName"
                 type="text" 
                 name="displayName"
                 value={formData.displayName}
@@ -277,6 +284,7 @@ export default function MultiStepRegister() {
                     : 'border-stone-200 focus:border-sky-400'
                 }`}
                 required
+                autoComplete="name"
               />
             </div>
             {errors.displayName && (
@@ -294,6 +302,7 @@ export default function MultiStepRegister() {
                 <Mail className="w-5 h-5 text-stone-400 group-focus-within:text-sky-500 transition-colors" />
               </div>
               <input 
+                key="email"
                 type="email" 
                 name="email"
                 value={formData.email}
@@ -305,6 +314,7 @@ export default function MultiStepRegister() {
                     : 'border-stone-200 focus:border-sky-400'
                 }`}
                 required
+                autoComplete="email"
               />
             </div>
             {errors.email && (
@@ -322,6 +332,7 @@ export default function MultiStepRegister() {
                 <Lock className="w-5 h-5 text-stone-400 group-focus-within:text-sky-500 transition-colors" />
               </div>
               <input 
+                key="password"
                 type="password" 
                 name="password"
                 value={formData.password}
@@ -334,6 +345,7 @@ export default function MultiStepRegister() {
                 }`}
                 required
                 minLength={6}
+                autoComplete="new-password"
               />
               <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                 <Lock className="w-5 h-5 text-stone-300" />
@@ -358,7 +370,7 @@ export default function MultiStepRegister() {
           </button>
         </div>
       </form>
-    </motion.div>
+    </div>
   );
 
   const Step2 = () => (
