@@ -122,12 +122,14 @@ export default function MultiStepRegister() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🚀 Form submission started');
     setIsLoading(true);
     setErrors({});
 
     try {
       // Final validation before submission
       if (!validateStep1() || !validateStep2()) {
+        console.log('❌ Validation failed');
         toast({
           title: "入力エラー",
           description: "すべての必須項目を正しく入力してください",
@@ -136,6 +138,8 @@ export default function MultiStepRegister() {
         setIsLoading(false);
         return;
       }
+
+      console.log('✅ Validation passed');
 
       // Prepare data for Supabase edge function
       const submissionData = {
@@ -152,7 +156,7 @@ export default function MultiStepRegister() {
         avatarData: undefined
       };
 
-      console.log('Submitting registration data:', submissionData);
+      console.log('📤 Submitting registration data:', submissionData);
 
       const response = await fetch('https://edfixzjpvsqpebzehsqy.supabase.co/functions/v1/admin-register-user', {
         method: 'POST',
@@ -163,9 +167,12 @@ export default function MultiStepRegister() {
         body: JSON.stringify(submissionData),
       });
 
+      console.log('📥 Response status:', response.status);
       const responseData = await response.json();
+      console.log('📥 Response data:', responseData);
 
       if (response.ok) {
+        console.log('✅ Registration successful');
         toast({
           title: "登録成功！",
           description: "アカウントが正常に作成されました。ログインページに移動します。",
@@ -176,6 +183,7 @@ export default function MultiStepRegister() {
           router.push('/login?message=registration-success');
         }, 1500);
       } else {
+        console.log('❌ Registration failed');
         // Handle specific error cases
         let errorMessage = "登録に失敗しました。もう一度お試しください。";
         
@@ -200,7 +208,7 @@ export default function MultiStepRegister() {
         console.error('Registration failed:', responseData);
       }
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('❌ Registration error:', error);
       toast({
         title: "ネットワークエラー",
         description: "接続に失敗しました。インターネット接続を確認してください。",
@@ -502,6 +510,7 @@ export default function MultiStepRegister() {
           <button 
             type="submit"
             disabled={isLoading}
+            onClick={() => console.log('🔘 Submit button clicked')}
             className="flex-1 bg-gradient-to-r from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 disabled:from-stone-300 disabled:to-stone-400 text-white font-bold py-4 rounded-xl shadow-lg shadow-sky-200 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 disabled:cursor-not-allowed"
           >
             {isLoading ? (
