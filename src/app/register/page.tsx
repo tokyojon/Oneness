@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Lock, ArrowRight, Sparkles, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { User, Mail, Lock, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import MobileNavigation from '@/components/layout/mobile-navigation';
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -68,20 +69,15 @@ export default function SignupPage() {
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-sky-200 rounded-full blur-[120px] opacity-30 pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-80 h-80 bg-orange-100 rounded-full blur-[100px] opacity-40 pointer-events-none" />
 
-      {/* --- Header --- */}
-      <header className="relative z-10 px-6 pt-6 pb-4 flex items-center justify-between">
-        <button 
-          onClick={() => router.back()}
-          className="p-2 rounded-full hover:bg-black/5 text-stone-600 transition-colors"
-        >
-          <ArrowLeft size={24} />
-        </button>
-        <div className="text-sm font-bold text-stone-400 tracking-widest">STEP 1 / 3</div>
-        <div className="w-10" /> {/* Spacer for centering */}
-      </header>
+      {/* --- Unified Mobile Navigation --- */}
+      <MobileNavigation 
+        variant="auth" 
+        stepIndicator="アカウント作成"
+        showLogo={true}
+      />
 
       {/* --- Main Content --- */}
-      <main className="flex-1 px-6 flex flex-col justify-center relative z-10 pb-10">
+      <main className="flex-1 px-6 flex flex-col justify-center relative z-10 pb-10 pt-4">
         
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -91,7 +87,7 @@ export default function SignupPage() {
         >
           <div className="inline-block p-3 bg-white/40 backdrop-blur-md rounded-2xl mb-4 shadow-sm">
              <div className="w-10 h-10 bg-gradient-to-br from-sky-400 to-sky-600 rounded-xl flex items-center justify-center">
-               <Sparkles size={20} className="text-white" />
+               <Sparkles className="w-5 h-5 text-white" />
              </div>
           </div>
           <h1 className="text-3xl font-extrabold text-stone-800 mb-2">旅の始まり</h1>
@@ -107,11 +103,11 @@ export default function SignupPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             
             {/* Display Name Input */}
-            <div className="space-y-1.5">
+              <div className="space-y-1.5">
               <label className="text-xs font-bold text-stone-600 ml-1">表示名</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <User size={18} className="text-stone-400 group-focus-within:text-sky-500 transition-colors" />
+                  <User className="w-4.5 h-4.5 text-stone-400 group-focus-within:text-sky-500 transition-colors" />
                 </div>
                 <input 
                   type="text" 
@@ -127,11 +123,11 @@ export default function SignupPage() {
             </div>
 
             {/* Email Input */}
-            <div className="space-y-1.5">
+              <div className="space-y-1.5">
               <label className="text-xs font-bold text-stone-600 ml-1">メールアドレス</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail size={18} className="text-stone-400 group-focus-within:text-sky-500 transition-colors" />
+                  <Mail className="w-4.5 h-4.5 text-stone-400 group-focus-within:text-sky-500 transition-colors" />
                 </div>
                 <input 
                   type="email" 
@@ -146,11 +142,11 @@ export default function SignupPage() {
             </div>
 
             {/* Password Input */}
-            <div className="space-y-1.5">
+              <div className="space-y-1.5">
               <label className="text-xs font-bold text-stone-600 ml-1">パスワード</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock size={18} className="text-stone-400 group-focus-within:text-sky-500 transition-colors" />
+                  <Lock className="w-4.5 h-4.5 text-stone-400 group-focus-within:text-sky-500 transition-colors" />
                 </div>
                 <input 
                   type={showPassword ? "text" : "password"} 
@@ -167,7 +163,7 @@ export default function SignupPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-4 flex items-center text-stone-400 hover:text-stone-600"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
                 </button>
               </div>
             </div>
@@ -185,8 +181,8 @@ export default function SignupPage() {
                 </>
               ) : (
                 <>
-                  次へ: アバター作成
-                  <Sparkles size={18} className="text-sky-100 group-hover:rotate-12 transition-transform" />
+                  次へ
+                  <Sparkles className="w-4.5 h-4.5 text-sky-100 group-hover:rotate-12 transition-transform" />
                 </>
               )}
             </button>
