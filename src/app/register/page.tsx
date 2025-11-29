@@ -23,9 +23,23 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted', formData);
+    
+    // Basic validation
+    if (!formData.username || !formData.email || !formData.password) {
+      console.error('Missing required fields');
+      return;
+    }
+    
+    if (formData.password.length < 8) {
+      console.error('Password too short');
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
+      console.log('Sending request to record-registration');
       const response = await fetch('https://edfixzjpvsqpebzehsqy.supabase.co/functions/v1/record-registration', {
         method: 'POST',
         headers: {
@@ -45,7 +59,10 @@ export default function SignupPage() {
         }),
       });
 
+      console.log('Response status:', response.status);
+      
       if (response.ok) {
+        console.log('Registration successful');
         router.push('/login?message=registration-success');
       } else {
         const error = await response.json();
