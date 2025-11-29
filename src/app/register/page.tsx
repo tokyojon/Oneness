@@ -1,15 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { User, Mail, Lock, ArrowRight, Sparkles, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function SignupPage() {
-  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    displayName: '',
+    username: '',
     email: '',
     password: ''
   });
@@ -29,7 +26,7 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://edfixzjpvsqpebzehsqy.supabase.co/functions/v1/admin-register-user', {
+      const response = await fetch('https://edfixzjpvsqpebzehsqy.supabase.co/functions/v1/record-registration', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -37,13 +34,14 @@ export default function SignupPage() {
         },
         body: JSON.stringify({
           email: formData.email,
-          password: formData.password,
-          display_name: formData.displayName,
-          profileData: undefined,
-          kyc_status: "pending",
-          role: "user",
-          welcome_bonus: 100,
-          avatarData: undefined
+          display_name: formData.username,
+          metadata: {
+            password: formData.password,
+            kyc_status: "pending",
+            role: "user",
+            welcome_bonus: 100
+          },
+          source: "web"
         }),
       });
 
@@ -61,155 +59,109 @@ export default function SignupPage() {
   };
   
   return (
-    <div className="min-h-screen bg-[#F2EBE0] font-sans text-stone-800 relative overflow-hidden flex flex-col">
-      
-      {/* --- Background Ambience --- */}
-      {/* Soft glowing orbs to create the 'Kingdom' atmosphere */}
-      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-sky-200 rounded-full blur-[120px] opacity-30 pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-80 h-80 bg-orange-100 rounded-full blur-[100px] opacity-40 pointer-events-none" />
-
-      {/* --- Header --- */}
-      <header className="relative z-10 px-6 pt-6 pb-4 flex items-center justify-between">
-        <button 
-          onClick={() => router.back()}
-          className="p-2 rounded-full hover:bg-black/5 text-stone-600 transition-colors"
-        >
-          <ArrowLeft size={24} />
-        </button>
-        <div className="text-sm font-bold text-stone-400 tracking-widest">STEP 1 / 3</div>
-        <div className="w-10" /> {/* Spacer for centering */}
-      </header>
-
-      {/* --- Main Content --- */}
-      <main className="flex-1 px-6 flex flex-col justify-center relative z-10 pb-10">
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-6 text-center"
-        >
-          <div className="inline-block p-3 bg-white/40 backdrop-blur-md rounded-2xl mb-4 shadow-sm">
-             <div className="w-10 h-10 bg-gradient-to-br from-sky-400 to-sky-600 rounded-xl flex items-center justify-center">
-               <Sparkles size={20} className="text-white" />
-             </div>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans">
+      <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+        <div className="flex h-full grow flex-col">
+          {/* Main Content */}
+          <div className="flex flex-1 justify-center py-5 sm:px-6 lg:px-8 pt-24">
+            <div className="flex flex-col w-full max-w-md flex-1">
+              <main className="flex-grow pt-8">
+                <div className="px-4 sm:px-6">
+                  <h1 className="text-slate-900 dark:text-slate-100 tracking-tight text-[32px] font-bold leading-tight text-center pb-3">ようこそ、新しい世界へ</h1>
+                </div>
+                
+                <div className="flex justify-center mt-6">
+                  <div className="flex w-full gap-3 flex-wrap px-4 py-3 max-w-sm justify-center">
+                    <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm font-bold leading-normal tracking-[0.015em] grow gap-2 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21.8 12.2c0-.7-.1-1.5-.2-2.2H12v4.1h5.5c-.2 1.4-.9 2.5-2.1 3.3v2.7h3.5c2-1.9 3.2-4.6 3.2-7.9Z" fill="#4285F4"></path>
+                        <path d="M12 22c2.7 0 5-1 6.6-2.6l-3.5-2.7c-.9.6-2.1 1-3.2 1-2.4 0-4.5-1.6-5.2-3.8H3.2v2.8C5 20.1 8.3 22 12 22Z" fill="#34A853"></path>
+                        <path d="M6.8 14.3c-.2-.6-.3-1.2-.3-1.8s.1-1.2.3-1.8V8.1H3.2C2.4 9.7 2 11.2 2 12.5s.4 2.8 1.2 4.4l3.6-2.6Z" fill="#FBBC05"></path>
+                        <path d="M12 6.8c1.5 0 2.8.5 3.8 1.5l3.1-3.1C17 .8 14.7 0 12 0 8.3 0 5 1.9 3.2 4.7l3.6 2.8c.7-2.2 2.8-3.7 5.2-3.7Z" fill="#EA4335"></path>
+                      </svg>
+                      <span className="truncate">Googleで登録</span>
+                    </button>
+                  </div>
+                </div>
+                
+                <p className="text-slate-600 dark:text-slate-400 text-sm font-normal leading-normal pb-3 pt-1 px-4 text-center">または</p>
+                
+                <div className="flex justify-center">
+                  <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4 px-4 py-3 max-w-sm">
+                    <label className="flex flex-col min-w-40 flex-1">
+                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">ユーザー名</p>
+                      <input 
+                        type="text" 
+                        name="username"
+                        value={formData.username}
+                        onChange={handleInputChange}
+                        placeholder="あなたのユーザー名" 
+                        className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-green-600/50 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-green-600 h-14 placeholder:text-slate-500 dark:placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal transition-colors"
+                        required
+                      />
+                    </label>
+                    
+                    <label className="flex flex-col min-w-40 flex-1">
+                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">メールアドレス</p>
+                      <input 
+                        type="email" 
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="you@example.com" 
+                        className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-green-600/50 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-green-600 h-14 placeholder:text-slate-500 dark:placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal transition-colors"
+                        required
+                      />
+                    </label>
+                    
+                    <label className="flex flex-col min-w-40 flex-1">
+                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">パスワード</p>
+                      <input 
+                        type="password" 
+                        name="password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        placeholder="8文字以上" 
+                        className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-green-600/50 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-green-600 h-14 placeholder:text-slate-500 dark:placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal transition-colors"
+                        required
+                        minLength={8}
+                      />
+                    </label>
+                    
+                    <button 
+                      type="submit"
+                      disabled={isLoading}
+                      className="flex mt-2 min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-full h-14 px-4 bg-green-600 text-white text-base font-bold leading-normal tracking-[0.015em] transition-transform hover:scale-[1.02] disabled:opacity-50"
+                    >
+                      <span className="truncate">
+                        {isLoading ? '登録中...' : 'メールアドレスで登録'}
+                      </span>
+                    </button>
+                  </form>
+                </div>
+              </main>
+              
+              <div className="px-4 py-8 text-center">
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4"> 
+                  登録することにより、<a className="font-medium text-green-600/80 hover:text-green-600" href="#">利用規約</a>と<a className="font-medium text-green-600/80 hover:text-green-600" href="#">プライバシーポリシー</a>に同意したことになります。 
+                </p>
+                <p className="text-sm text-slate-600 dark:text-slate-400"> 
+                  すでにアカウントをお持ちですか？ <Link href="/login" className="font-bold text-green-600 hover:underline">ログイン</Link> 
+                </p>
+              </div>
+            </div>
           </div>
-          <h1 className="text-3xl font-extrabold text-stone-800 mb-2">旅の始まり</h1>
-          <p className="text-stone-500 text-sm">アカウントを作成して、調和への第一歩を踏み出しましょう。</p>
-        </motion.div>
-
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="bg-white/60 backdrop-blur-xl border border-white/60 p-8 rounded-[2rem] shadow-2xl shadow-sky-100/50"
-        >
-          <form onSubmit={handleSubmit} className="space-y-5">
-            
-            {/* Display Name Input */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-stone-600 ml-1">表示名</label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <User size={18} className="text-stone-400 group-focus-within:text-sky-500 transition-colors" />
-                </div>
-                <input 
-                  type="text" 
-                  name="displayName"
-                  value={formData.displayName}
-                  onChange={handleInputChange}
-                  placeholder="例: ヒカル" 
-                  className="w-full pl-11 pr-4 py-4 bg-white rounded-xl border border-stone-200 text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-sky-400/50 focus:border-sky-400 transition-all shadow-sm"
-                  required
-                />
-              </div>
-              <p className="text-[10px] text-stone-400 text-right">コミュニティ内で表示される名前です</p>
-            </div>
-
-            {/* Email Input */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-stone-600 ml-1">メールアドレス</label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail size={18} className="text-stone-400 group-focus-within:text-sky-500 transition-colors" />
-                </div>
-                <input 
-                  type="email" 
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="hello@example.com" 
-                  className="w-full pl-11 pr-4 py-4 bg-white rounded-xl border border-stone-200 text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-sky-400/50 focus:border-sky-400 transition-all shadow-sm"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Password Input */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-stone-600 ml-1">パスワード</label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock size={18} className="text-stone-400 group-focus-within:text-sky-500 transition-colors" />
-                </div>
-                <input 
-                  type={showPassword ? "text" : "password"} 
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  placeholder="6文字以上" 
-                  className="w-full pl-11 pr-12 py-4 bg-white rounded-xl border border-stone-200 text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-sky-400/50 focus:border-sky-400 transition-all shadow-sm"
-                  required
-                  minLength={6}
-                />
-                <button 
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-stone-400 hover:text-stone-600"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
-            {/* Action Button */}
-            <button 
-              type="submit"
-              disabled={isLoading}
-              className="w-full mt-4 bg-gradient-to-r from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 disabled:from-stone-300 disabled:to-stone-400 text-white font-bold py-4 rounded-xl shadow-lg shadow-sky-200 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 group"
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  処理中...
-                </>
-              ) : (
-                <>
-                  次へ: アバター作成
-                  <Sparkles size={18} className="text-sky-100 group-hover:rotate-12 transition-transform" />
-                </>
-              )}
-            </button>
-
-          </form>
-        </motion.div>
-
-        {/* --- Footer --- */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="text-center mt-8"
-        >
-          <p className="text-sm text-stone-500">
-            すでにアカウントをお持ちですか？{' '}
-            <Link href="/login" className="text-sky-600 font-bold hover:underline">
-              こちらでログイン
-            </Link>
-          </p>
-        </motion.div>
-
-      </main>
+          
+          {/* Footer */}
+          <footer className="flex w-full shrink-0 flex-col items-center justify-center gap-2 border-t border-slate-200 dark:border-slate-700 px-4 py-6 sm:flex-row md:px-6">
+            <p className="text-sm text-slate-600 dark:text-slate-400">© 2024 Oneness Kingdom. All rights reserved.</p>
+            <nav className="flex gap-4 sm:ml-auto sm:gap-6">
+              <a className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100" href="#">利用規約</a>
+              <a className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100" href="#">プライバシーポリシー</a>
+            </nav>
+          </footer>
+        </div>
+      </div>
     </div>
   );
 }
