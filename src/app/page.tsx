@@ -1,478 +1,308 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { 
-  User, Heart, Globe, Shield, Zap, ArrowRight, 
-  Sparkles, Menu, X, ChevronRight, PlayCircle, Star 
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 import Link from 'next/link';
-import MobileNavigation from '@/components/layout/mobile-navigation';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-// --- Reusable Animation Components ---
-
-const FadeInUp = ({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) => {
-  const prefersReducedMotion = typeof window !== 'undefined' 
-    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
-    : false;
-    
-  return (
-    <motion.div
-      initial={prefersReducedMotion ? {} : { opacity: 0, y: 40 }}
-      whileInView={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: prefersReducedMotion ? 0 : 0.8, delay: prefersReducedMotion ? 0 : delay, ease: [0.22, 1, 0.36, 1] }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-};
-
-const StaggerContainer = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => {
-  const prefersReducedMotion = typeof window !== 'undefined' 
-    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
-    : false;
-    
-  return (
-    <motion.div
-      initial={prefersReducedMotion ? {} : "hidden"}
-      whileInView={prefersReducedMotion ? {} : "visible"}
-      viewport={{ once: true, margin: "-100px" }}
-      variants={prefersReducedMotion ? {} : {
-        hidden: { opacity: 0 },
-        visible: {
-          opacity: 1,
-          transition: { staggerChildren: 0.2 }
-        }
-      }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-};
-
-const StaggerItem = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => {
-  const prefersReducedMotion = typeof window !== 'undefined' 
-    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
-    : false;
-    
-  return (
-    <motion.div
-      variants={prefersReducedMotion ? {} : {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
-      }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-};
-
-// --- UI Components ---
-
-const GlassCard = ({ children, className = "", hoverEffect = true }: { children: React.ReactNode, className?: string, hoverEffect?: boolean }) => (
-  <div className={`
-    bg-white/60 backdrop-blur-xl border border-white/50 
-    rounded-3xl shadow-xl shadow-stone-200/40 p-6 sm:p-8
-    transition-all duration-500
-    ${hoverEffect ? 'hover:-translate-y-2 hover:shadow-2xl hover:shadow-sky-100' : ''}
-    ${className}
-  `}>
-    {children}
-  </div>
-);
-
-const FeatureIcon = ({ icon: Icon }: { icon: any }) => (
-  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-tr from-sky-100 to-white rounded-2xl flex items-center justify-center mb-4 sm:mb-6 shadow-inner text-sky-500 ring-1 ring-sky-100">
-    <Icon className="w-6 h-6 sm:w-8 sm:h-8" strokeWidth={1.5} />
-  </div>
-);
-
-const SectionTitle = ({ subtitle, title }: { subtitle: string, title: string }) => (
-  <div className="mb-12 sm:mb-16 text-center max-w-2xl mx-auto">
-    <motion.span 
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      className="text-sky-500 font-bold tracking-[0.2em] text-sm uppercase block mb-3"
-    >
-      {subtitle}
-    </motion.span>
-    <motion.h2 
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-stone-800 leading-tight"
-    >
-      {title}
-    </motion.h2>
-    <motion.div 
-      initial={{ width: 0 }}
-      whileInView={{ width: 80 }}
-      transition={{ delay: 0.3, duration: 0.8 }}
-      className="h-1 bg-sky-400 mx-auto mt-6 rounded-full"
-    />
-  </div>
-);
-
-// --- Main Page Component ---
-
-export default function OnenessDesktop() {
-  const { scrollY } = useScroll();
+export default function Home() {
   const router = useRouter();
-  
-  // Parallax background transforms
-  const y1 = useTransform(scrollY, [0, 1000], [0, 300]);
-  const y2 = useTransform(scrollY, [0, 1000], [0, -200]);
+  const [openSection, setOpenSection] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check authentication status
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     if (isLoggedIn) {
       router.replace('/dashboard');
     }
   }, [router]);
 
+  const toggleSection = (section: string) => {
+    setOpenSection(openSection === section ? null : section);
+  };
+
   return (
-    <div className="min-h-screen bg-[#F5F0E6] font-sans text-stone-800 overflow-x-hidden selection:bg-sky-200 selection:text-sky-900">
-      
-      {/* --- Ambient Background --- */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <motion.div style={{ y: y1 }} className="absolute top-0 right-[-10%] w-[400px] sm:w-[600px] md:w-[800px] h-[400px] sm:h-[600px] md:h-[800px] bg-sky-200/30 rounded-full blur-[80px] sm:blur-[100px] md:blur-[120px]" />
-        <motion.div style={{ y: y2 }} className="absolute top-[40%] left-[-10%] w-[300px] sm:w-[450px] md:w-[600px] h-[300px] sm:h-[450px] md:h-[600px] bg-orange-100/40 rounded-full blur-[60px] sm:blur-[80px] md:blur-[100px]" />
-        <div className="absolute bottom-0 right-0 w-[250px] sm:w-[375px] md:w-[500px] h-[250px] sm:h-[375px] md:h-[500px] bg-sky-100/30 rounded-full blur-[50px] sm:blur-[65px] md:blur-[80px]" />
-      </div>
-
-      {/* --- Unified Mobile Navigation --- */}
-      <MobileNavigation variant="main" />
-
-      {/* --- Hero Section --- */}
-      <section className="relative z-10 pt-24 sm:pt-32 md:pt-40 lg:pt-48 pb-12 sm:pb-16 lg:pb-24 xl:pb-32 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          
-          {/* Hero Content */}
-          <div className="space-y-6 sm:space-y-8">
-            <FadeInUp>
-              <div className="inline-flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 rounded-full bg-white/50 border border-white/60 backdrop-blur-sm text-sky-600 font-bold text-xs uppercase tracking-wider shadow-sm mb-4 sm:mb-6">
-                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> 
-                Welcome to the Future
-              </div>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-stone-800 leading-[1.1] tracking-tight mb-4 sm:mb-6">
-                ワンネス<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-teal-400">
-                  キングダム
-                </span>へ
-                <br />ようこそ
-              </h1>
-              <p className="text-base sm:text-lg text-stone-600 leading-relaxed max-w-lg">
-                愛と貢献が循環する、新しいデジタル国家。<br />
-                AIとブロックチェーン技術が織りなす、<br />
-                かつてない透明性と調和の世界へ。
-              </p>
-            </FadeInUp>
-
-            <FadeInUp delay={0.2} className="flex flex-col sm:flex-row gap-4">
-              <Link href="/register">
-                <button className="bg-gradient-to-r from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 text-white px-6 py-4 sm:px-8 rounded-2xl font-bold text-base sm:text-lg shadow-lg shadow-sky-200 hover:shadow-sky-300 transition-all transform hover:-translate-y-1 w-full sm:w-auto">
-                  王国に参加する
-                </button>
-              </Link>
-              <button className="bg-white hover:bg-stone-50 text-stone-700 px-6 py-4 sm:px-8 rounded-2xl font-bold text-base sm:text-lg shadow-md hover:shadow-lg border border-stone-100 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2 w-full sm:w-auto">
-                <PlayCircle size={20} className="text-sky-400" />
-                ビジョンを見る
-              </button>
-            </FadeInUp>
-
-            <FadeInUp delay={0.4} className="pt-6 sm:pt-8 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 lg:gap-8 border-t border-stone-200/50">
-              <div className="flex items-center gap-3">
-                <p className="text-2xl sm:text-3xl font-bold text-stone-800">10k+</p>
-                <p className="text-stone-500 text-xs uppercase tracking-wider">Citizens</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <p className="text-2xl sm:text-3xl font-bold text-stone-800">50k+</p>
-                <p className="text-stone-500 text-xs uppercase tracking-wider">Connections</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <p className="text-2xl sm:text-3xl font-bold text-stone-800">∞ </p>
-                <p className="text-stone-500 text-xs uppercase tracking-wider">Possibilities</p>
-              </div>
-            </FadeInUp>
-          </div>
-
-          {/* Hero Visual */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9, rotate: -2 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className="relative"
+    <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased pt-16">
+      {/* Hero Section */}
+      <section className="relative h-[80vh] md:h-screen flex items-center justify-center text-center overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full bg-cover bg-center z-0" 
+             style={{ 
+               backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAQfxzIK5BKSB1LfXRWxCdyNt3CnQ4fuhSuE3qMlUGVeJIRMSEeOsYLzyRMzo7XFRDA7uFwHsFhjAPF1Lo0eEB3JsTf3mQsfxB82F6M3-HgFk7KgQ3RIdXRDNQ-bnOaCuHfijYpC1pV0e6xkHEo4-0S2L_xjvprZ8neqi3QkZBrGWdl3kMpA5clU1fOJh9pannAyjuaglwQiKyff_p5YRKuV7P4ZrMDpa8SktuyZEFsVomFKYpZoluHgCBzNBH0HqeqAlCdiHb80EM')" 
+             }} />
+        <div className="hero-gradient absolute bottom-0 left-0 w-full h-1/2 z-10"></div>
+        <div className="relative z-20 px-4 pt-16 md:pt-24">
+          <h2 className="text-4xl md:text-6xl font-bold text-white mb-4" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+            ワンネスキングダムへようこそ
+          </h2>
+          <p className="text-lg md:text-xl text-white max-w-3xl mx-auto" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
+            私たちの王国に参加する
+          </p>
+          <Button 
+            className="mt-8 px-8 py-3 font-bold rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all transform bg-warm-primary text-white"
+            asChild
           >
-             <div className="absolute inset-0 bg-gradient-to-tr from-sky-400/20 to-orange-200/20 rounded-[2rem] sm:rounded-[3rem] blur-xl transform translate-x-2 sm:translate-x-4 translate-y-2 sm:translate-y-4" />
-             <div className="relative rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-2xl border-[4px] sm:border-[6px] border-white/40">
-                {/* Hero Image */}
-                <img 
-                  src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&h=800&fit=crop&crop=center&auto=format&q=80" 
-                  alt="Oneness Kingdom Utopia" 
-                  className="w-full h-auto object-cover hover:scale-105 transition-transform duration-[2s]"
-                  loading="lazy"
-                />
-                
-                {/* Floating Glass Badge */}
-                <motion.div 
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                  className="absolute bottom-4 sm:bottom-8 left-4 sm:left-8 bg-white/80 backdrop-blur-md p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-lg flex items-center gap-2 sm:gap-3 max-w-[200px] sm:max-w-xs"
-                >
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                    <Heart className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-stone-500 font-bold uppercase">Latest Activity</p>
-                    <p className="text-xs sm:text-sm font-bold text-stone-800">Hiro contributed 50 OP to Peace Project</p>
-                  </div>
-                </motion.div>
-             </div>
-          </motion.div>
+            <Link href="/register">今すぐ参加する</Link>
+          </Button>
         </div>
       </section>
 
-      {/* --- Features Grid --- */}
-      <section className="relative z-10 py-12 sm:py-16 lg:py-24 xl:py-32 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <SectionTitle subtitle="Features" title="ワンネスキングダムの特徴" />
-
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-            <StaggerItem>
-              <GlassCard className="h-full">
-                <FeatureIcon icon={Heart} />
-                <h3 className="text-xl sm:text-2xl font-bold text-stone-800 mb-4">貢献とつながり</h3>
-                <p className="text-stone-600 leading-relaxed mb-6 text-sm sm:text-base">
-                  あなたの愛、学び、貢献の行動は、コミュニティ内で価値として視覚化され、循環します。
-                </p>
-                <ul className="space-y-3">
-                  {['行動がポイントに変換', '貢献の可視化', '持続可能な循環'].map(item => (
-                    <li key={item} className="flex items-center text-sm text-stone-500">
-                      <div className="w-1.5 h-1.5 bg-sky-400 rounded-full mr-3" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </GlassCard>
-            </StaggerItem>
-
-            <StaggerItem>
-              <GlassCard className="h-full relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-sky-100 rounded-bl-[80px] sm:rounded-bl-[100px] -mr-8 -mt-8 sm:-mr-10 sm:-mt-10 transition-transform group-hover:scale-110" />
-                <FeatureIcon icon={Globe} />
-                <h3 className="text-xl sm:text-2xl font-bold text-stone-800 mb-4">ヒューマン<br/>ネットワーク</h3>
-                <p className="text-stone-600 leading-relaxed mb-6 text-sm sm:text-base">
-                  フォロー、評価、推薦を通じて有意義な関係を築き、デジタルな家族の絆さえも形成します。
-                </p>
-                <ul className="space-y-3">
-                  {['AI支援マッチング', '信頼スコア推薦', 'グローバルな絆'].map(item => (
-                    <li key={item} className="flex items-center text-sm text-stone-500">
-                      <div className="w-1.5 h-1.5 bg-sky-400 rounded-full mr-3" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </GlassCard>
-            </StaggerItem>
-
-            <StaggerItem>
-              <GlassCard className="h-full">
-                <FeatureIcon icon={Shield} />
-                <h3 className="text-xl sm:text-2xl font-bold text-stone-800 mb-4">AIを活用した<br/>コミュニティ</h3>
-                <p className="text-stone-600 leading-relaxed mb-6 text-sm sm:text-base">
-                  私たちのプラットフォームは、公正なマッチング、推薦、そして安全のためにAIを使用しています。
-                </p>
-                <ul className="space-y-3">
-                  {['不正行為の自動検出', 'パーソナライズ推薦', 'ガイドライン執行'].map(item => (
-                    <li key={item} className="flex items-center text-sm text-stone-500">
-                      <div className="w-1.5 h-1.5 bg-sky-400 rounded-full mr-3" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </GlassCard>
-            </StaggerItem>
-          </StaggerContainer>
-        </div>
-      </section>
-
-      {/* --- Economy Section (Dark Theme Transition) --- */}
-      <section className="relative z-10 py-12 sm:py-16 lg:py-24 xl:py-32 bg-stone-900 text-white overflow-hidden px-4 sm:px-6">
-        {/* Background Gradients */}
-        <div className="absolute top-0 left-1/4 w-[300px] sm:w-[400px] md:w-[500px] h-[300px] sm:h-[400px] md:h-[500px] bg-sky-900/40 rounded-full blur-[80px] sm:blur-[100px] md:blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 w-[350px] sm:w-[450px] md:w-[600px] h-[350px] sm:h-[450px] md:h-[600px] bg-indigo-900/40 rounded-full blur-[80px] sm:blur-[100px] md:blur-[120px]" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            
-            <FadeInUp>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-stone-800 border border-stone-700 text-yellow-400 font-bold text-xs uppercase tracking-wider mb-6">
-                <Zap size={14} fill="currentColor" /> Economy
+      {/* Features Section */}
+      <section className="py-16 md:py-24" id="features">
+        <div className="container mx-auto px-6 md:px-12">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">私たちの世界：特徴と価値観</h2>
+            <p className="text-lg text-text-light/80 dark:text-text-dark/80 max-w-3xl mx-auto">
+              Oneness Kingdomは、ユニークな特徴と核となる価値観に基づいて構築されています。
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="p-8 bg-card-light dark:bg-card-dark rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-start text-left">
+              <div className="flex-shrink-0 flex items-center justify-center w-16 h-16 rounded-full mb-6 bg-warm-primary/20">
+                <span className="material-icons-outlined text-warm-primary" style={{ fontSize: '48px' }}>volunteer_activism</span>
               </div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-6">
-                OP制度：<br/>価値の新しい形
-              </h2>
-              <p className="text-stone-300 text-base sm:text-lg leading-relaxed mb-8 sm:mb-10 max-w-md">
-                愛・平和・調和・貢献を基準に、会員が提供・共有・成長を通してポイント（価値）を循環させる仕組みです。
+              <h3 className="text-xl font-semibold mb-3 text-text-light dark:text-text-dark">恵みの経済</h3>
+              <p className="text-base text-text-light/80 dark:text-text-dark/80 leading-relaxed">
+                「恵みの経済」が機能する、繁栄と分かち合いの風景。
               </p>
-
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                   <span className="text-stone-400 text-sm sm:text-base">通貨名</span>
-                   <span className="text-lg sm:text-xl font-bold font-mono">OP (One Point)</span>
-                </div>
-                <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                   <span className="text-stone-400 text-sm sm:text-base">換算レート</span>
-                   <span className="text-lg sm:text-xl font-bold font-mono text-sky-400">1 OP = 100円</span>
-                </div>
-                <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                   <span className="text-stone-400 text-sm sm:text-base">会員登録</span>
-                   <span className="text-lg sm:text-xl font-bold font-mono text-green-400">Free / 無料</span>
-                </div>
-              </div>
-            </FadeInUp>
-
-            <div className="relative">
-              {/* Decorative Card Stack */}
-              <motion.div 
-                initial={{ rotate: 6, opacity: 0 }}
-                whileInView={{ rotate: 6, opacity: 0.5 }}
-                transition={{ duration: 1 }}
-                className="absolute inset-0 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-2xl sm:rounded-3xl transform translate-x-2 sm:translate-x-4 translate-y-2 sm:translate-y-4"
-              />
-              <GlassCard className="relative bg-stone-800/90 border-stone-700 shadow-2xl hover:translate-y-0">
-                <div className="flex justify-between items-start mb-8 sm:mb-10">
-                   <div>
-                     <p className="text-stone-400 text-sm font-bold uppercase tracking-wider">Total Balance</p>
-                     <p className="text-4xl sm:text-5xl font-mono font-bold text-white mt-2">1,250 <span className="text-base sm:text-lg text-yellow-400">OP</span></p>
-                   </div>
-                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-500/20 rounded-full flex items-center justify-center text-yellow-400">
-                     <Zap className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" />
-                   </div>
-                </div>
-
-                <div className="space-y-3 sm:space-y-4">
-                  <h4 className="font-bold text-stone-300 text-sm uppercase tracking-wide mb-2">Activities</h4>
-                  {[
-                    { label: '提供登録 (AI審査通過)', val: '+1 OP' },
-                    { label: '紹介成功', val: '+1 OP' },
-                    { label: 'コミュニティ貢献', val: '+5 OP' },
-                  ].map((item, i) => (
-                    <div key={i} className="flex justify-between items-center py-2 sm:py-3 border-b border-stone-700 last:border-0">
-                      <span className="text-xs sm:text-sm text-stone-300">{item.label}</span>
-                      <span className="font-mono font-bold text-sky-400 text-sm sm:text-base">{item.val}</span>
-                    </div>
-                  ))}
-                </div>
-                
-                <button className="w-full mt-6 sm:mt-8 bg-white text-stone-900 font-bold py-3 rounded-xl hover:bg-stone-200 transition-colors text-sm sm:text-base">
-                  ウォレットを見る
-                </button>
-              </GlassCard>
             </div>
-
+            <div className="p-8 bg-card-light dark:bg-card-dark rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-start text-left">
+              <div className="flex-shrink-0 flex items-center justify-center w-16 h-16 rounded-full mb-6 bg-warm-primary/20">
+                <span className="material-icons-outlined text-warm-primary" style={{ fontSize: '48px' }}>school</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-text-light dark:text-text-dark">学びの環境</h3>
+              <p className="text-base text-text-light/80 dark:text-text-dark/80 leading-relaxed">
+                「教育と自己実現」を促進する学習環境。
+              </p>
+            </div>
+            <div className="p-8 bg-card-light dark:bg-card-dark rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-start text-left">
+              <div className="flex-shrink-0 flex items-center justify-center w-16 h-16 rounded-full mb-6 bg-warm-primary/20">
+                <span className="material-icons-outlined text-warm-primary" style={{ fontSize: '48px' }}>celebration</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-text-light dark:text-text-dark">多文化共生</h3>
+              <p className="text-base text-text-light/80 dark:text-text-dark/80 leading-relaxed">
+                活気に満ちた「多文化共生と祝祭」の瞬間。
+              </p>
+            </div>
+            <div className="p-8 bg-card-light dark:bg-card-dark rounded-lg shadow-sm border border-transparent flex flex-col items-start text-left bg-warm-primary/5">
+              <div className="flex-shrink-0 flex items-center justify-center w-16 h-16 rounded-full mb-6 bg-warm-primary/20">
+                <span className="material-icons-outlined text-warm-primary" style={{ fontSize: '48px' }}>hub</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-warm-primary">ワンネス</h3>
+              <p className="text-base text-text-light/80 dark:text-text-dark/80 leading-relaxed">
+                私たちは、すべてが相互に関連していると信じています。私たちの行動は、コミュニティと地球全体に影響を与えます。
+              </p>
+            </div>
+            <div className="p-8 bg-card-light dark:bg-card-dark rounded-lg shadow-sm border border-transparent flex flex-col items-start text-left bg-warm-primary/5">
+              <div className="flex-shrink-0 flex items-center justify-center w-16 h-16 rounded-full mb-6 bg-warm-primary/20">
+                <span className="material-icons-outlined text-warm-primary" style={{ fontSize: '48px' }}>verified_user</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-warm-primary">主権</h3>
+              <p className="text-base text-text-light/80 dark:text-text-dark/80 leading-relaxed">
+                個人のエンパワーメントと自己責任を尊重します。各メンバーは、自分の現実と私たちの共有世界の共同創造者です。
+              </p>
+            </div>
+            <div className="p-8 bg-card-light dark:bg-card-dark rounded-lg shadow-sm border border-transparent flex flex-col items-start text-left bg-warm-primary/5">
+              <div className="flex-shrink-0 flex items-center justify-center w-16 h-16 rounded-full mb-6 bg-warm-primary/20">
+                <span className="material-icons-outlined text-warm-primary" style={{ fontSize: '48px' }}>handshake</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-warm-primary">リスペクト</h3>
+              <p className="text-base text-text-light/80 dark:text-text-dark/80 leading-relaxed">
+                私たちは、すべての声が重要である、敬意を持った対話の文化を育みます。
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* --- How to Start (Horizontal Process) --- */}
-      <section className="relative z-10 py-12 sm:py-16 lg:py-24 xl:py-32 px-4 sm:px-6">
-         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-           <SectionTitle subtitle="Start Journey" title="ワンネスキングダムの始め方" />
-
-           <div className="relative mt-16 sm:mt-20">
-             {/* Connecting Line */}
-             <div className="absolute top-1/2 left-0 w-full h-1 bg-gradient-to-r from-stone-200 via-sky-200 to-stone-200 -translate-y-1/2 hidden md:block" />
-
-             <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 relative z-10">
-                {[
-                  { id: 1, title: 'アカウント登録', desc: 'メールアドレスで簡単登録。プロフィールを設定して初期ポイントを受け取りましょう。' },
-                  { id: 2, title: 'AIによる認証', desc: '高度なAI強化認証プロセスで、あなたの身元と安全を保護します。' },
-                  { id: 3, title: 'コミュニティ参加', desc: '貢献し、つながり、王国の成長に参加しましょう。' }
-                ].map((step, i) => (
-                  <StaggerItem key={step.id}>
-                    <div className="text-center group cursor-default">
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto bg-white rounded-full shadow-lg border-4 border-white flex items-center justify-center text-xl sm:text-2xl font-bold text-sky-500 mb-4 sm:mb-6 relative z-10 transition-transform group-hover:scale-110 group-hover:border-sky-100">
-                        {step.id}
-                      </div>
-                      <div className="bg-white/40 backdrop-blur-sm p-4 sm:p-6 rounded-2xl border border-white/60 hover:bg-white/80 transition-colors">
-                        <h4 className="text-lg sm:text-xl font-bold text-stone-800 mb-3">{step.title}</h4>
-                        <p className="text-stone-500 text-sm leading-relaxed">{step.desc}</p>
-                      </div>
-                    </div>
-                  </StaggerItem>
-                ))}
-             </StaggerContainer>
-           </div>
-           
-           <div className="mt-12 sm:mt-16 text-center">
-             <Link href="/register">
-               <button className="bg-stone-800 text-white px-8 py-4 sm:px-10 sm:py-4 rounded-full font-bold shadow-2xl hover:shadow-stone-500/30 transition-all hover:-translate-y-1 inline-flex items-center gap-2 text-base sm:text-lg">
-                 今すぐ始める
-                 <ArrowRight size={18} />
-               </button>
-             </Link>
-           </div>
-         </div>
-      </section>
-
-      {/* --- Footer --- */}
-      <footer className="bg-white border-t border-stone-100 pt-12 sm:pt-16 lg:pt-20 pb-6 sm:pb-8 lg:pb-10 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12 mb-8 sm:mb-12 lg:mb-16">
-          <div className="col-span-1 md:col-span-1">
-             <div className="flex items-center gap-2 mb-4 sm:mb-6">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-sky-500 rounded-lg flex items-center justify-center text-white">
-                  <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                </div>
-                <span className="font-bold text-base sm:text-lg">Oneness</span>
-             </div>
-             <p className="text-stone-500 text-xs sm:text-sm leading-relaxed">
-               テクノロジーとスピリチュアリティの融合を信じるグローバルチームによって設立されました。
-             </p>
+      {/* Journey Section */}
+      <section className="py-16 md:py-24 bg-warm-primary/5" id="journey">
+        <div className="container mx-auto px-6 md:px-12">
+          <div className="text-center max-w-4xl mx-auto mb-16 md:mb-20">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">私たちの使命</h2>
+            <p className="text-lg md:text-xl text-text-light/90 dark:text-text-dark/90 leading-relaxed">
+              新しいパラダイムの共同創造者として、個人が主権を持ち、繁栄する世界を育むこと。私たちは、意識的なテクノロジー、恵みの経済、そして深い相互のつながりを通じて、これを達成します。
+            </p>
           </div>
-          
-          <div>
-            <h4 className="font-bold text-stone-800 mb-4 sm:mb-6 text-sm sm:text-base">プラットフォーム</h4>
-            <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-stone-500">
-              <li><a href="#" className="hover:text-sky-500 transition-colors">ホーム</a></li>
-              <li><a href="#" className="hover:text-sky-500 transition-colors">特徴</a></li>
-              <li><a href="#" className="hover:text-sky-500 transition-colors">OP制度</a></li>
-              <li><a href="#" className="hover:text-sky-500 transition-colors">ロードマップ</a></li>
-            </ul>
+          <div className="text-center mb-16">
+            <h3 className="text-2xl md:text-3xl font-semibold mb-4 text-warm-primary">あなたの旅を始めましょう</h3>
+            <p className="text-md text-text-light/80 dark:text-text-dark/80 max-w-2xl mx-auto">
+              簡単な3つのステップで、Oneness Kingdomのメンバーになりましょう。
+            </p>
           </div>
-
-          <div>
-            <h4 className="font-bold text-stone-800 mb-4 sm:mb-6 text-sm sm:text-base">リソース</h4>
-            <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-stone-500">
-              <li><a href="#" className="hover:text-sky-500 transition-colors">ヘルプセンター</a></li>
-              <li><a href="#" className="hover:text-sky-500 transition-colors">コミュニティガイドライン</a></li>
-              <li><a href="#" className="hover:text-sky-500 transition-colors">プライバシーポリシー</a></li>
-            </ul>
+          <div className="relative grid grid-cols-1 md:grid-cols-3 gap-8 items-start max-w-6xl mx-auto">
+            <div className="absolute top-8 left-0 w-full h-px" style={{ backgroundColor: '#D4A37320' }} hidden={true}></div>
+            <div className="relative flex flex-col items-center text-center p-6">
+              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-background-light dark:bg-background-dark text-2xl font-bold mb-6 shadow z-10 border-4 border-background-light dark:border-background-dark">
+                <span className="material-icons-outlined text-terracotta" style={{ fontSize: '80px' }}>edit_note</span>
+              </div>
+              <div className="flex items-center justify-center w-10 h-10 rounded-full text-white text-lg font-bold mb-4 -mt-10 relative z-20 bg-terracotta">1</div>
+              <h4 className="text-xl font-semibold mb-2">アカウントを登録</h4>
+              <p className="text-text-light/80 dark:text-text-dark/80">数分でプロフィールを作成し、あなたのユニークな旅を始めましょう。</p>
+            </div>
+            <div className="relative flex flex-col items-center text-center p-6">
+              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-background-light dark:bg-background-dark text-2xl font-bold mb-6 shadow z-10 border-4 border-background-light dark:border-background-dark">
+                <span className="material-icons-outlined text-olive" style={{ fontSize: '80px' }}>document_scanner</span>
+              </div>
+              <div className="flex items-center justify-center w-10 h-10 rounded-full text-white text-lg font-bold mb-4 -mt-10 relative z-20 bg-olive">2</div>
+              <h4 className="text-xl font-semibold mb-2">AIによる認証</h4>
+              <p className="text-text-light/80 dark:text-text-dark/80">私たちの多様なプロジェクト、サークル、そしてメンバーを発見してください。</p>
+            </div>
+            <div className="relative flex flex-col items-center text-center p-6">
+              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-background-light dark:bg-background-dark text-2xl font-bold mb-6 shadow z-10 border-4 border-background-light dark:border-background-dark">
+                <span className="material-icons-outlined text-warm-primary" style={{ fontSize: '80px' }}>groups</span>
+              </div>
+              <div className="flex items-center justify-center w-10 h-10 rounded-full text-white text-lg font-bold mb-4 -mt-10 relative z-20 bg-warm-primary">3</div>
+              <h4 className="text-xl font-semibold mb-2">コミュニティに参加</h4>
+              <p className="text-text-light/80 dark:text-text-dark/80">ディスカッションに参加し、イベントに参加し、あなたの才能を貢献してください。</p>
+            </div>
           </div>
-
-          <div>
-             <h4 className="font-bold text-stone-800 mb-4 sm:mb-6 text-sm sm:text-base">ニュースレター</h4>
-             <div className="flex gap-2">
-               <input type="email" placeholder="Email address" className="bg-stone-100 px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm w-full focus:outline-none focus:ring-2 focus:ring-sky-200" />
-               <button className="bg-stone-800 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-bold">送信</button>
-             </div>
+          <div className="text-center mt-20">
+            <Button 
+              className="px-10 py-4 font-bold text-lg rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all transform bg-warm-primary text-white"
+              asChild
+            >
+              <Link href="/register">今すぐ登録</Link>
+            </Button>
           </div>
         </div>
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 border-t border-stone-100 pt-4 sm:pt-6 lg:pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-stone-400">
-           <p>© 2024 Oneness Kingdom. All rights reserved.</p>
-           <div className="flex gap-4 sm:gap-6 mt-4 md:mt-0">
-             <span className="cursor-pointer hover:text-sky-500 transition-colors">Twitter</span>
-             <span className="cursor-pointer hover:text-sky-500 transition-colors">Discord</span>
-             <span className="cursor-pointer hover:text-sky-500 transition-colors">Instagram</span>
-           </div>
+      </section>
+
+      {/* OP System Section */}
+      <section className="py-16 md:py-24 bg-warm-primary/10" id="op-system">
+        <div className="container mx-auto px-6 md:px-12 max-w-5xl">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">OP System</h2>
+            <p className="text-lg text-text-light/80 dark:text-text-dark/80">
+              私たちのプラットフォームは、協力と個人の成長を促進するために設計された独自のオペレーティングシステムで動作しています。それは、私たちのコミュニティのバックボーンであり、私たちの価値観が行動に移される場所です。
+            </p>
+          </div>
+          <div className="space-y-4">
+            {[
+              { id: 'basic', title: '基本情報', content: 'Oneness Point (OP) は、Oneness Kingdom 内の貢献と活動を評価するためのポイントシステムです。' },
+              { 
+                id: 'axes', 
+                title: '7つの軸', 
+                content: [
+                  '経済：貢献と活動に応じたOPの獲得と利用',
+                  '教育：学びと成長を通じたOPの獲得',
+                  '健康：心身の健康活動への参加によるOPの獲得',
+                  '環境：地球環境への貢献活動によるOPの獲得',
+                  '社会：コミュニティへの貢献と協力によるOPの獲得',
+                  '文化：芸術、創造活動、イベントへの参加によるOPの獲得',
+                  '精神性：自己探求と精神的成長への貢献によるOPの獲得'
+                ]
+              },
+              {
+                id: 'activity',
+                title: '基本活動ポイント',
+                content: [
+                  'ログイン：1日1回、10 OP',
+                  '記事投稿：1投稿あたり、50 OP',
+                  'コメント：1コメントあたり、5 OP',
+                  'いいね：1いいねあたり、1 OP'
+                ]
+              },
+              {
+                id: 'family',
+                title: '家族制度ポイント',
+                content: [
+                  '家族への貢献活動：内容に応じて変動',
+                  '家族イベントへの参加：イベントごとに設定'
+                ]
+              },
+              {
+                id: 'community',
+                title: 'コミュニティ制度',
+                content: [
+                  'プロジェクトへの参加・貢献：貢献度に応じて変動',
+                  'イベントの主催・参加：イベントごとに設定'
+                ]
+              },
+              {
+                id: 'social',
+                title: '社会貢献制度',
+                content: [
+                  'ボランティア活動：内容に応じて変動',
+                  '寄付活動：寄付額に応じてOPを付与'
+                ]
+              },
+              {
+                id: 'title',
+                title: '称号制度',
+                content: '特定の条件をクリアすることで称号が付与され、ボーナスOPが獲得できます。例：キングダムビルダー、マスターヒーラー、アースキーパーなど'
+              },
+              {
+                id: 'crypto',
+                title: '仮想通貨交換ルール',
+                content: [
+                  'OPは、特定の条件下でOneness Kingdomが発行する仮想通貨と交換可能です。',
+                  '交換レートは、コミュニティの成長と経済状況に応じて変動します。',
+                  '詳細は後日発表されます。'
+                ]
+              }
+            ].map((section) => (
+              <div key={section.id} className="bg-card-light dark:bg-card-dark rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <button
+                  onClick={() => toggleSection(section.id)}
+                  className="flex justify-between items-center p-6 cursor-pointer w-full text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <h3 className="text-xl font-bold text-warm-primary">{section.title}</h3>
+                  <span 
+                    className="material-icons-outlined transition-transform duration-200"
+                    style={{ 
+                      color: '#D4A373',
+                      transform: openSection === section.id ? 'rotate(45deg)' : 'rotate(0deg)'
+                    }}
+                  >
+                    add
+                  </span>
+                </button>
+                {openSection === section.id && (
+                  <div className="p-6 pt-0 text-text-light/80 dark:text-text-dark/80">
+                    {Array.isArray(section.content) ? (
+                      <ul className="list-disc pl-5 space-y-2">
+                        {section.content.map((item, index) => (
+                          <li key={index}>{item}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>{section.content}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-gray-800">
+        <div className="container mx-auto px-6 md:px-12">
+          <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left">
+            <div className="mb-4 md:mb-0">
+              <h3 className="text-xl font-bold text-warm-primary">Oneness Kingdom</h3>
+              <p className="text-text-light/60 dark:text-text-dark/60 mt-1">A new paradigm for a thriving world.</p>
+            </div>
+            <div className="flex space-x-6">
+              <a className="text-text-light/80 dark:text-text-dark/80 hover:text-primary transition-colors" href="#">Privacy Policy</a>
+              <a className="text-text-light/80 dark:text-text-dark/80 hover:text-primary transition-colors" href="#">Terms & Conditions</a>
+            </div>
+          </div>
+          <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700 text-center text-text-light/60 dark:text-text-dark/60">
+            <p>© 2024 Oneness Kingdom. All rights reserved.</p>
+          </div>
         </div>
       </footer>
+
+      <style jsx>{`
+        .hero-gradient {
+          background: linear-gradient(to top, rgba(254, 251, 246, 1) 0%, rgba(254, 251, 246, 0) 100%);
+        }
+        .dark .hero-gradient {
+          background: linear-gradient(to top, rgba(28, 28, 28, 1) 0%, rgba(28, 28, 28, 0) 100%);
+        }
+      `}</style>
     </div>
   );
 }

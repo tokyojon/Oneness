@@ -72,6 +72,16 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        // Custom colors from HTML landing page
+        'background-light': '#FEFBF6',
+        'background-dark': '#1C1C1C',
+        'text-light': '#333333',
+        'text-dark': '#E0E0E0',
+        'card-light': '#FFFFFF',
+        'card-dark': '#2D2D2D',
+        'terracotta': '#E07A5F',
+        'olive': '#84A98C',
+        'warm-primary': '#D4A373',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -105,11 +115,16 @@ export default {
             transform: 'translateY(0)',
           },
         },
+        pulseShadow: {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(212, 163, 115, 0.4)' },
+          '50%': { boxShadow: '0 0 0 10px rgba(212, 163, 115, 0)' }
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
+        pulseShadow: 'pulseShadow 2.5s infinite'
       },
     },
   },
