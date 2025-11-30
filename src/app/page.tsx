@@ -22,7 +22,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased pt-16">
+    <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased">
       {/* Hero Section */}
       <section className="relative h-[80vh] md:h-screen flex items-center justify-center text-center overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full bg-cover bg-center z-0" 

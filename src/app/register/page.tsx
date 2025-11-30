@@ -40,19 +40,19 @@ export default function SignupPage() {
     const password = formData.password;
 
     if (!name || !email || !password) {
-      setMessage('Please fill all fields.');
+      setMessage('すべての項目を入力してください。');
       setIsError(true);
       return;
     }
 
     if (name.length < 2) {
-      setMessage('Name must be at least 2 characters.');
+      setMessage('お名前は2文字以上で入力してください。');
       setIsError(true);
       return;
     }
 
     if (password.length < 6) {
-      setMessage('Password must be at least 6 characters.');
+      setMessage('パスワードは6文字以上で入力してください。');
       setIsError(true);
       return;
     }
@@ -71,7 +71,7 @@ export default function SignupPage() {
 
       if (signError) {
         console.error('Sign up error:', signError);
-        setMessage('Sign up error: ' + signError.message);
+        setMessage('登録エラー: ' + signError.message);
         setIsError(true);
         return;
       }
@@ -83,7 +83,7 @@ export default function SignupPage() {
       const session = signData?.session;
 
       if (!user) {
-        setMessage('Registration received. Check your email to confirm the account.');
+        setMessage('登録を受け付けました。メールアドレスの確認をお願いします。');
         setIsError(false);
         return;
       }
@@ -92,7 +92,7 @@ export default function SignupPage() {
       const token = session?.access_token || (await supabase.auth.getSession()).data.session?.access_token;
 
       if (!token) {
-        setMessage('Registered, but could not get auth token to create profile. Please sign in after email confirmation.');
+        setMessage('登録されましたが、プロフィール作成用の認証トークンを取得できませんでした。メール確認後にサインインしてください。');
         setIsError(false);
         return;
       }
@@ -112,13 +112,13 @@ export default function SignupPage() {
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         console.error('Profile creation failed:', err);
-        setMessage('Registered, but profile creation failed: ' + (err.error || res.statusText));
+        setMessage('登録されましたが、プロフィール作成に失敗しました: ' + (err.error || res.statusText));
         setIsError(true);
         return;
       }
 
       console.log('Profile created successfully');
-      setMessage('Registered and profile created. You are signed in.');
+      setMessage('登録とプロフィール作成が完了しました。サインインしています。');
       setIsError(false);
       
       // Redirect to dashboard after successful registration
@@ -128,7 +128,7 @@ export default function SignupPage() {
       
     } catch (err) {
       console.error('Unexpected error:', err);
-      setMessage('Unexpected error occurred');
+      setMessage('予期せぬエラーが発生しました');
       setIsError(true);
     } finally {
       setIsLoading(false);
@@ -166,13 +166,13 @@ export default function SignupPage() {
                 <div className="flex justify-center">
                   <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4 px-4 py-3 max-w-sm">
                     <label className="flex flex-col min-w-40 flex-1">
-                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">Name</p>
+                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">お名前</p>
                       <input 
                         type="text" 
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        placeholder="Your full name" 
+                        placeholder="お名前を入力してください" 
                         className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-green-600/50 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-green-600 h-14 placeholder:text-slate-500 dark:placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal transition-colors"
                         required
                         minLength={2}
@@ -180,7 +180,7 @@ export default function SignupPage() {
                     </label>
                     
                     <label className="flex flex-col min-w-40 flex-1">
-                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">Email</p>
+                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">メールアドレス</p>
                       <input 
                         type="email" 
                         name="email"
@@ -193,13 +193,13 @@ export default function SignupPage() {
                     </label>
                     
                     <label className="flex flex-col min-w-40 flex-1">
-                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">Password</p>
+                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">パスワード</p>
                       <input 
                         type="password" 
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        placeholder="6+ characters" 
+                        placeholder="6文字以上" 
                         className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-green-600/50 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-green-600 h-14 placeholder:text-slate-500 dark:placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal transition-colors"
                         required
                         minLength={6}
@@ -212,7 +212,7 @@ export default function SignupPage() {
                       className="flex mt-2 min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-full h-14 px-4 bg-blue-600 text-white text-base font-bold leading-normal tracking-[0.015em] transition-transform hover:scale-[1.02] disabled:opacity-50"
                     >
                       <span className="truncate">
-                        {isLoading ? 'Registering...' : 'Register'}
+                        {isLoading ? '登録中...' : '登録する'}
                       </span>
                     </button>
                   </form>
