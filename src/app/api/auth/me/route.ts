@@ -10,14 +10,32 @@ const supabase = createClient(
 export async function GET(request: NextRequest) {
   try {
     console.log('Auth me: Starting...');
-    const cookieStore = await cookies();
     
-    // Log all available cookies for debugging
-    const allCookies = cookieStore.getAll();
-    console.log('Auth me: All cookies:', allCookies.map(c => ({ name: c.name, value: c.value?.substring(0, 20) + '...' })));
+    // Try both cookie reading methods for Next.js 15 compatibility
+    let accessToken: string | undefined, refreshToken: string | undefined;
     
-    const accessToken = cookieStore.get('access_token')?.value;
-    const refreshToken = cookieStore.get('refresh_token')?.value;
+    try {
+      const cookieStore = await cookies();
+      accessToken = cookieStore.get('access_token')?.value;
+      refreshToken = cookieStore.get('refresh_token')?.value;
+      console.log('Auth me: Using cookies() API');
+    } catch (cookieError) {
+      console.log('Auth me: cookies() failed, trying request.headers.cookie:', cookieError);
+      // Fallback to parsing from request headers
+      const cookieHeader = request.headers.get('cookie');
+      if (cookieHeader) {
+        const cookies: Record<string, string> = {};
+        cookieHeader.split(';').forEach(cookie => {
+          const [name, value] = cookie.trim().split('=');
+          if (name && value) {
+            cookies[name] = value;
+          }
+        });
+        accessToken = cookies['access_token'];
+        refreshToken = cookies['refresh_token'];
+        console.log('Auth me: Parsed from headers');
+      }
+    }
     
     console.log('Auth me: Token check:', { 
       hasAccessToken: !!accessToken, 
@@ -38,10 +56,6 @@ export async function GET(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-        },
         global: {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -71,13 +85,15 @@ export async function GET(request: NextRequest) {
         cookieStore.set('access_token', refreshData.session.access_token, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
+          sameSite: 'lax',
+          path: '/',
           maxAge: 3600
         });
         cookieStore.set('refresh_token', refreshData.session.refresh_token, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
+          sameSite: 'lax',
+          path: '/',
           maxAge: 30 * 24 * 3600
         });
 

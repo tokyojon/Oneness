@@ -41,22 +41,21 @@ export async function POST(request: NextRequest) {
 
     const cookieStore = await cookies();
 
-    // Set httpOnly cookies server-side
-    console.log('Auth callback: Setting cookies...');
+    // Set httpOnly cookies with more compatible settings
     cookieStore.set('access_token', access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 3600,
-      path: '/'
+      sameSite: 'lax', 
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, 
     });
-
+    
     cookieStore.set('refresh_token', refresh_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 30 * 24 * 3600,
-      path: '/'
+      sameSite: 'lax', 
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30, 
     });
 
     console.log('Auth callback: Cookies set successfully');
