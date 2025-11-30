@@ -71,16 +71,35 @@ export default function LoginPage() {
         login(signInData.user);
       }
       
-      // Set auth tokens in cookies for the API endpoints
+      // Set auth tokens via API callback (server-side cookies)
       if (signInData.session) {
-        document.cookie = `access_token=${signInData.session.access_token}; path=/; max-age=3600; secure=${process.env.NODE_ENV === 'production'}; samesite=strict`;
-        document.cookie = `refresh_token=${signInData.session.refresh_token}; path=/; max-age=${30 * 24 * 3600}; secure=${process.env.NODE_ENV === 'production'}; samesite=strict`;
+        try {
+          const response = await fetch('/api/auth/callback', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              access_token: signInData.session.access_token,
+              refresh_token: signInData.session.refresh_token,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to set auth cookies');
+          }
+        } catch (error) {
+          console.error('Auth callback error:', error);
+          setMessage('認証クッキーの設定に失敗しました');
+          setIsError(true);
+          return;
+        }
       }
       
-      // Redirect to dashboard after successful login
+      // Redirect to dashboard after successful login and cookie setup
       setTimeout(() => {
         router.push('/dashboard');
-      }, 1000);
+      }, 500);
       
     } catch (err) {
       console.error('Unexpected error:', err);
