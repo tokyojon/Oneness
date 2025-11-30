@@ -8,20 +8,19 @@ const authRoutes = ['/login', '/register'];
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Check if the request has access token cookie
-  const accessToken = request.cookies.get('access_token');
-
-  const isAuthenticated = !!accessToken;
-  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+  // For now, we'll disable the middleware authentication check
+  // since Supabase uses localStorage for auth tokens, not cookies
+  // The dashboard components handle authentication with ProtectedRoute
+  
+  // Only redirect authenticated users from auth routes to dashboard
+  const authRoutes = ['/login', '/register'];
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
+  
+  // Simple check for session in URL (for OAuth redirects)
+  const hasSessionInUrl = request.nextUrl.searchParams.has('access_token') || 
+                         request.nextUrl.searchParams.has('refresh_token');
 
-  // If accessing protected route without authentication, redirect to login
-  if (isProtectedRoute && !isAuthenticated) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  // If accessing auth routes while authenticated, redirect to dashboard
-  if (isAuthRoute && isAuthenticated) {
+  if (isAuthRoute && hasSessionInUrl) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
