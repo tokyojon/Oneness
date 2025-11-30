@@ -9,11 +9,24 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('Auth me: Starting...');
     const cookieStore = await cookies();
+    
+    // Log all available cookies for debugging
+    const allCookies = cookieStore.getAll();
+    console.log('Auth me: All cookies:', allCookies.map(c => ({ name: c.name, value: c.value?.substring(0, 20) + '...' })));
+    
     const accessToken = cookieStore.get('access_token')?.value;
     const refreshToken = cookieStore.get('refresh_token')?.value;
+    
+    console.log('Auth me: Token check:', { 
+      hasAccessToken: !!accessToken, 
+      hasRefreshToken: !!refreshToken,
+      accessTokenLength: accessToken?.length || 0
+    });
 
     if (!accessToken) {
+      console.log('Auth me: No access token found');
       return NextResponse.json(
         { error: 'No access token' },
         { status: 401 }
