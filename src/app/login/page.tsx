@@ -80,6 +80,7 @@ export default function LoginPage() {
             headers: {
               'Content-Type': 'application/json',
             },
+            credentials: 'include',
             body: JSON.stringify({
               access_token: signInData.session.access_token,
               refresh_token: signInData.session.refresh_token,
