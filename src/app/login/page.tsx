@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
+import { login } from '@/lib/auth';
 
 const SUPABASE_URL = 'https://edfixzjpvsqpebzehsqy.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkZml4empwdnNxcGViemVoc3F5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3NDA3NDgsImV4cCI6MjA3ODMxNjc0OH0.ozxPhLQHHwwFOL3IWFr_ZlTOVUkXYD_K8lBKSNajAw4';
@@ -64,6 +65,11 @@ export default function LoginPage() {
       console.log('Sign in successful:', signInData);
       setMessage('ログインに成功しました！');
       setIsError(false);
+      
+      // Set user data in localStorage for the auth system
+      if (signInData.user) {
+        login(signInData.user);
+      }
       
       // Redirect to dashboard after successful login
       setTimeout(() => {
