@@ -1,50 +1,219 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import { OnenessKingdomLogo } from "@/lib/icons";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
-import Image from "next/image";
-import Link from "next/link";
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { createClient } from '@supabase/supabase-js';
 
-const LoginForm = dynamic(() => import("@/components/auth/login-form"), { ssr: false });
+const SUPABASE_URL = 'https://edfixzjpvsqpebzehsqy.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkZml4empwdnNxcGViemVoc3F5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3NDA3NDgsImV4cCI6MjA3ODMxNjc0OH0.ozxPhLQHHwwFOL3IWFr_ZlTOVUkXYD_K8lBKSNajAw4';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function LoginPage() {
-    const loginImage = PlaceHolderImages.find(p => p.id === 'login-image');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [isError, setIsError] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
-    return (
-        <div className="w-full min-h-[calc(100vh-4rem)] lg:grid lg:grid-cols-2">
-            <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-                <div className="mx-auto grid w-[350px] gap-6">
-                    <div className="grid gap-2 text-center">
-                        <Link href="/" className="flex justify-center items-center gap-2 mb-4">
-                            <OnenessKingdomLogo className="h-10 w-10" />
-                        </Link>
-                        <h1 className="text-3xl font-bold font-headline">おかえりなさい</h1>
-                        <p className="text-balance text-muted-foreground">
-                            アカウントにアクセスするには資格情報を入力してください
-                        </p>
-                    </div>
-                    <LoginForm />
-                    <div className="mt-4 text-center text-sm">
-                        アカウントをお持ちでないですか？{" "}
-                        <Link href="/register" className="underline hover:text-primary">
-                            こちらで登録
-                        </Link>
-                    </div>
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMessage('');
+    setIsError(false);
+
+    const email = formData.email.trim();
+    const password = formData.password;
+
+    if (!email || !password) {
+      setMessage('Please fill all fields.');
+      setIsError(true);
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      console.log('Attempting to sign in user...');
+      
+      // Sign in user
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        console.error('Sign in error:', signInError);
+        setMessage('Sign in error: ' + signInError.message);
+        setIsError(true);
+        return;
+      }
+
+      console.log('Sign in successful:', signInData);
+      setMessage('Sign in successful!');
+      setIsError(false);
+      
+      // Redirect to dashboard after successful login
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 1000);
+      
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      setMessage('Unexpected error occurred');
+      setIsError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+      
+      if (error) {
+        console.error('Google login error:', error);
+        setMessage('Google login error: ' + error.message);
+        setIsError(true);
+      }
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      setMessage('Unexpected error occurred');
+      setIsError(true);
+    }
+  };
+
+    
+  return (
+    <div className="min-h-screen bg-[#f8f7f6] dark:bg-[#221810] text-[#181411] dark:text-gray-200 font-sans">
+      <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+        <div className="flex h-full grow flex-col">
+          {/* Main Content */}
+          <main className="flex flex-1 justify-center py-10 sm:py-20 px-4">
+            <div className="flex flex-col w-full max-w-md items-center gap-8">
+              <div className="flex flex-col items-center gap-4 text-center">
+                <div className="w-8 h-8 text-[#ec6d13]">
+                  <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M44 4H30.6666V17.3334H17.3334V30.6666H4V44H44V4Z" fill="currentColor"></path>
+                  </svg>
                 </div>
-            </div>
-            <div className="hidden bg-muted lg:block relative">
-                {loginImage && (
-                    <Image
-                        src={loginImage.imageUrl}
-                        alt={loginImage.description}
-                        layout="fill"
-                        objectFit="cover"
-                        data-ai-hint={loginImage.imageHint}
+                <h1 className="text-4xl font-black leading-tight tracking-[-0.033em]">ログイン</h1>
+              </div>
+              
+              <div className="w-full flex flex-col gap-4">
+                <label className="flex flex-col w-full">
+                  <p className="text-base font-medium leading-normal pb-2">メールアドレスまたはユーザー名</p>
+                  <input 
+                    type="text" 
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="Enter your email or username" 
+                    className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#181411] focus:outline-0 focus:ring-2 focus:ring-[#ec6d13]/50 border border-[#e6e0db] dark:border-gray-700 bg-white dark:bg-[#221810] dark:text-gray-200 h-14 placeholder:text-[#897261] p-[15px] text-base font-normal leading-normal"
+                    required
+                  />
+                </label>
+                
+                <label className="flex flex-col w-full">
+                  <p className="text-base font-medium leading-normal pb-2">パスワード</p>
+                  <div className="flex w-full flex-1 items-stretch rounded-xl">
+                    <input 
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      placeholder="Enter your password" 
+                      className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#181411] focus:outline-0 focus:ring-2 focus:ring-[#ec6d13]/50 border border-[#e6e0db] dark:border-gray-700 bg-white dark:bg-[#221810] dark:text-gray-200 h-14 placeholder:text-[#897261] p-[15px] rounded-r-none border-r-0 pr-2 text-base font-normal leading-normal"
+                      required
                     />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-[#897261] dark:text-gray-400 flex border border-[#e6e0db] dark:border-gray-700 bg-white dark:bg-[#221810] items-center justify-center pr-[15px] rounded-r-xl border-l-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      <span className="material-symbols-outlined">
+                        {showPassword ? 'visibility_off' : 'visibility'}
+                      </span>
+                    </button>
+                  </div>
+                </label>
+              </div>
+              
+              <div className="w-full flex flex-col items-center gap-4">
+                <button 
+                  onClick={handleSubmit}
+                  disabled={isLoading}
+                  className="flex w-full min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-4 bg-[#ec6d13] text-white text-base font-bold leading-normal tracking-[0.015em] disabled:opacity-50"
+                >
+                  <span className="truncate">
+                    {isLoading ? 'ログイン中...' : 'ログイン'}
+                  </span>
+                </button>
+                <a className="text-sm font-medium text-[#ec6d13] hover:underline" href="#">パスワードをお忘れですか？</a>
+              </div>
+              
+              <div className="flex w-full items-center gap-4">
+                <hr className="flex-grow border-t border-[#e6e0db] dark:border-gray-700"/>
+                <span className="text-sm text-[#897261] dark:text-gray-400">または</span>
+                <hr className="flex-grow border-t border-[#e6e0db] dark:border-gray-700"/>
+              </div>
+              
+              <div className="w-full flex flex-col gap-4">
+                <button 
+                  onClick={handleGoogleLogin}
+                  className="flex w-full min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-xl h-14 px-4 bg-white dark:bg-gray-800 border border-[#e6e0db] dark:border-gray-700 text-[#181411] dark:text-gray-200 text-base font-bold leading-normal"
+                >
+                  <img alt="Google logo" className="h-6 w-6" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAg-aXh64jogBJKQpvMMibhkyMT3q4q1XmVRrFfeaEkStu_Cxp-OUAUKazAwkI5KxNyXLBsowLmiqw4H2VE_LFNeBdd88plMYFht0j5g4qPyMlkv2HwAdO8swy_PLMFjuXh89GZaV7z2n8ADUkmEuhpTsRpvQEejd40Yv4vkbL5IcVD3F1N9keePDlAC-lQ4bBvyG7HOYc7aK50HLC8ZQXqQWHUb2IArV-SSoiIBghwxhR-RHArUubqMkz4129Wf8KNZ7QFuiuu2Ws"/>
+                  <span className="truncate">Continue with Google</span>
+                </button>
+              </div>
+              
+              {/* Message Display */}
+              {message && (
+                <div className={`px-4 py-3 mt-4 text-center ${isError ? 'text-red-600' : 'text-green-600'}`}>
+                  {message}
+                </div>
+              )}
+              
+              <p className="text-sm text-center">
+                <span className="text-[#897261] dark:text-gray-400">アカウントをお持ちでないですか？</span>
+                <Link href="/register" className="font-bold text-[#ec6d13] hover:underline"> アカウントを作成</Link>
+              </p>
             </div>
+          </main>
+          
+          {/* Footer */}
+          <footer className="w-full mt-auto">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 border-t border-[#f4f2f0] dark:border-gray-800">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <p className="text-sm text-[#897261] dark:text-gray-400">© 2024 Oneness Kingdom. All rights reserved.</p>
+                <div className="flex items-center gap-6 text-sm font-medium">
+                  <a className="hover:text-[#ec6d13]" href="#">About</a>
+                  <a className="hover:text-[#ec6d13]" href="#">Terms of Service</a>
+                  <a className="hover:text-[#ec6d13]" href="#">Privacy Policy</a>
+                </div>
+              </div>
+            </div>
+          </footer>
         </div>
-    );
+      </div>
+    </div>
+  );
 }
