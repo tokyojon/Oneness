@@ -9,30 +9,16 @@ import { useRouter } from 'next/navigation';
 
 import { login } from "@/lib/auth";
 
-interface AvatarSetupModalProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  onComplete?: () => void;
-}
-
-export default function AvatarSetupModal({ 
-  isOpen: controlledIsOpen, 
-  onClose, 
-  onComplete 
-}: AvatarSetupModalProps = {}) {
+export default function AvatarSetupModal() {
   const { user } = useAuth();
-  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
-  // Use controlled state if provided, otherwise use internal state
-  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
-  const handleClose = onClose || (() => setInternalIsOpen(false));
-
   useEffect(() => {
-    // Only run automatic detection if not controlled externally
-    if (controlledIsOpen === undefined && user) {
+    // Check if user is logged in and has no avatar
+    if (user) {
       // We assume if avatar_url is null or missing, they need to set one up.
       // We also check if it's not the placeholder we might use in UI fallback
       const hasAvatar = !!user.profile?.avatar_url;
@@ -40,12 +26,12 @@ export default function AvatarSetupModal({
       if (!hasAvatar) {
         // Small delay to ensure we don't pop up immediately if data is loading or conflicting
         const timer = setTimeout(() => {
-          setInternalIsOpen(true);
+          setIsOpen(true);
         }, 1000);
         return () => clearTimeout(timer);
       }
     }
-  }, [user, controlledIsOpen]);
+  }, [user]);
 
   const resizeImage = (dataUrl: string, maxWidth: number): Promise<Blob> => {
     return new Promise((resolve) => {
@@ -119,17 +105,11 @@ export default function AvatarSetupModal({
           } 
         };
         login(updatedUser);
-      }
-      
-      // Call completion callback if provided
-      if (onComplete) {
-        onComplete();
-      } else {
-        // Default behavior: reload page
+        // Force a reload to update all components
         window.location.reload();
       }
       
-      handleClose();
+      setIsOpen(false);
       
     } catch (error) {
       console.error('Error saving avatar:', error);
@@ -144,7 +124,7 @@ export default function AvatarSetupModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center text-pink-600">
