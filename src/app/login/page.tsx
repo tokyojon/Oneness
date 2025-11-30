@@ -106,8 +106,9 @@ export default function LoginPage() {
       
       // Redirect to dashboard after successful login and cookie setup
       setTimeout(() => {
+        console.log('Login: Redirecting to dashboard...');
         router.push('/dashboard');
-      }, 500);
+      }, 1500);
       
     } catch (err) {
       console.error('Unexpected error:', err);
