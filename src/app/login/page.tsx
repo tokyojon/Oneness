@@ -6,10 +6,10 @@ import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import { login } from '@/lib/auth';
 
-const SUPABASE_URL = 'https://edfixzjpvsqpebzehsqy.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkZml4empwdnNxcGViemVoc3F5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3NDA3NDgsImV4cCI6MjA3ODMxNjc0OH0.ozxPhLQHHwwFOL3IWFr_ZlTOVUkXYD_K8lBKSNajAw4';
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -69,6 +69,12 @@ export default function LoginPage() {
       // Set user data in localStorage for the auth system
       if (signInData.user) {
         login(signInData.user);
+      }
+      
+      // Set auth tokens in cookies for the API endpoints
+      if (signInData.session) {
+        document.cookie = `access_token=${signInData.session.access_token}; path=/; max-age=3600; secure=${process.env.NODE_ENV === 'production'}; samesite=strict`;
+        document.cookie = `refresh_token=${signInData.session.refresh_token}; path=/; max-age=${30 * 24 * 3600}; secure=${process.env.NODE_ENV === 'production'}; samesite=strict`;
       }
       
       // Redirect to dashboard after successful login
