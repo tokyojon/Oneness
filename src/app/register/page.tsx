@@ -3,14 +3,23 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = 'https://edfixzjpvsqpebzehsqy.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkZml4empwdnNxcGViemVoc3F5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3NDA3NDgsImV4cCI6MjA3ODMxNjc0OH0.ozxPhLQHHwwFOL3IWFr_ZlTOVUkXYD_K8lBKSNajAw4';
+const EDGE_FUNCTION_URL = 'https://edfixzjpvsqpebzehsqy.functions.supabase.co/create-user-profile';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
-    username: '',
+    name: '',
     email: '',
     password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [isError, setIsError] = useState(false);
   const router = useRouter();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,53 +32,104 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted', formData);
-    
-    // Basic validation
-    if (!formData.username || !formData.email || !formData.password) {
-      console.error('Missing required fields');
+    setMessage('');
+    setIsError(false);
+
+    const name = formData.name.trim();
+    const email = formData.email.trim();
+    const password = formData.password;
+
+    if (!name || !email || !password) {
+      setMessage('Please fill all fields.');
+      setIsError(true);
       return;
     }
-    
-    if (formData.password.length < 8) {
-      console.error('Password too short');
+
+    if (name.length < 2) {
+      setMessage('Name must be at least 2 characters.');
+      setIsError(true);
       return;
     }
-    
+
+    if (password.length < 6) {
+      setMessage('Password must be at least 6 characters.');
+      setIsError(true);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      console.log('Sending request to record-registration');
-      const response = await fetch('https://edfixzjpvsqpebzehsqy.supabase.co/functions/v1/record-registration', {
+      console.log('Attempting to sign up user...');
+      
+      // Sign up user
+      const { data: signData, error: signError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: name } }
+      });
+
+      if (signError) {
+        console.error('Sign up error:', signError);
+        setMessage('Sign up error: ' + signError.message);
+        setIsError(true);
+        return;
+      }
+
+      console.log('Sign up successful:', signData);
+
+      // If email confirmation required, signData.user may be null
+      const user = signData?.user;
+      const session = signData?.session;
+
+      if (!user) {
+        setMessage('Registration received. Check your email to confirm the account.');
+        setIsError(false);
+        return;
+      }
+
+      // Obtain the user's access token (JWT)
+      const token = session?.access_token || (await supabase.auth.getSession()).data.session?.access_token;
+
+      if (!token) {
+        setMessage('Registered, but could not get auth token to create profile. Please sign in after email confirmation.');
+        setIsError(false);
+        return;
+      }
+
+      console.log('Calling edge function to create profile...');
+      
+      // Call Edge Function to create profile using user's JWT
+      const res = await fetch(EDGE_FUNCTION_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+          'Authorization': 'Bearer ' + token
         },
-        body: JSON.stringify({
-          email: formData.email,
-          display_name: formData.username,
-          metadata: {
-            password: formData.password,
-            kyc_status: "pending",
-            role: "user",
-            welcome_bonus: 100
-          },
-          source: "web"
-        }),
+        body: JSON.stringify({ user_id: user.id, display_name: name })
       });
 
-      console.log('Response status:', response.status);
-      
-      if (response.ok) {
-        console.log('Registration successful');
-        router.push('/login?message=registration-success');
-      } else {
-        const error = await response.json();
-        console.error('Registration failed:', error);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        console.error('Profile creation failed:', err);
+        setMessage('Registered, but profile creation failed: ' + (err.error || res.statusText));
+        setIsError(true);
+        return;
       }
-    } catch (error) {
-      console.error('Registration error:', error);
+
+      console.log('Profile created successfully');
+      setMessage('Registered and profile created. You are signed in.');
+      setIsError(false);
+      
+      // Redirect to dashboard after successful registration
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 2000);
+      
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      setMessage('Unexpected error occurred');
+      setIsError(true);
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +144,7 @@ export default function SignupPage() {
             <div className="flex flex-col w-full max-w-md flex-1">
               <main className="flex-grow pt-8">
                 <div className="px-4 sm:px-6">
-                  <h1 className="text-slate-900 dark:text-slate-100 tracking-tight text-[32px] font-bold leading-tight text-center pb-3">ようこそ、新しい世界へ</h1>
+                  <h1 className="text-slate-900 dark:text-slate-100 tracking-tight text-[32px] font-bold leading-tight text-center pb-3">Create account</h1>
                 </div>
                 
                 <div className="flex justify-center mt-6">
@@ -106,20 +166,21 @@ export default function SignupPage() {
                 <div className="flex justify-center">
                   <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4 px-4 py-3 max-w-sm">
                     <label className="flex flex-col min-w-40 flex-1">
-                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">ユーザー名</p>
+                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">Name</p>
                       <input 
                         type="text" 
-                        name="username"
-                        value={formData.username}
+                        name="name"
+                        value={formData.name}
                         onChange={handleInputChange}
-                        placeholder="あなたのユーザー名" 
+                        placeholder="Your full name" 
                         className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-green-600/50 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-green-600 h-14 placeholder:text-slate-500 dark:placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal transition-colors"
                         required
+                        minLength={2}
                       />
                     </label>
                     
                     <label className="flex flex-col min-w-40 flex-1">
-                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">メールアドレス</p>
+                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">Email</p>
                       <input 
                         type="email" 
                         name="email"
@@ -132,38 +193,45 @@ export default function SignupPage() {
                     </label>
                     
                     <label className="flex flex-col min-w-40 flex-1">
-                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">パスワード</p>
+                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">Password</p>
                       <input 
                         type="password" 
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        placeholder="8文字以上" 
+                        placeholder="6+ characters" 
                         className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-green-600/50 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-green-600 h-14 placeholder:text-slate-500 dark:placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal transition-colors"
                         required
-                        minLength={8}
+                        minLength={6}
                       />
                     </label>
                     
                     <button 
                       type="submit"
                       disabled={isLoading}
-                      className="flex mt-2 min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-full h-14 px-4 bg-green-600 text-white text-base font-bold leading-normal tracking-[0.015em] transition-transform hover:scale-[1.02] disabled:opacity-50"
+                      className="flex mt-2 min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-full h-14 px-4 bg-blue-600 text-white text-base font-bold leading-normal tracking-[0.015em] transition-transform hover:scale-[1.02] disabled:opacity-50"
                     >
                       <span className="truncate">
-                        {isLoading ? '登録中...' : 'メールアドレスで登録'}
+                        {isLoading ? 'Registering...' : 'Register'}
                       </span>
                     </button>
                   </form>
                 </div>
+                
+                {/* Message Display */}
+                {message && (
+                  <div className={`px-4 py-3 mt-4 text-center ${isError ? 'text-red-600' : 'text-green-600'}`}>
+                    {message}
+                  </div>
+                )}
               </main>
               
               <div className="px-4 py-8 text-center">
                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-4"> 
-                  登録することにより、<a className="font-medium text-green-600/80 hover:text-green-600" href="#">利用規約</a>と<a className="font-medium text-green-600/80 hover:text-green-600" href="#">プライバシーポリシー</a>に同意したことになります。 
+                  By registering, you agree to our <a className="font-medium text-blue-600/80 hover:text-blue-600" href="#">Terms of Service</a> and <a className="font-medium text-blue-600/80 hover:text-blue-600" href="#">Privacy Policy</a>. 
                 </p>
                 <p className="text-sm text-slate-600 dark:text-slate-400"> 
-                  すでにアカウントをお持ちですか？ <Link href="/login" className="font-bold text-green-600 hover:underline">ログイン</Link> 
+                  Already have an account? <Link href="/login" className="font-bold text-blue-600 hover:underline">Sign in</Link> 
                 </p>
               </div>
             </div>
@@ -173,8 +241,8 @@ export default function SignupPage() {
           <footer className="flex w-full shrink-0 flex-col items-center justify-center gap-2 border-t border-slate-200 dark:border-slate-700 px-4 py-6 sm:flex-row md:px-6">
             <p className="text-sm text-slate-600 dark:text-slate-400">© 2024 Oneness Kingdom. All rights reserved.</p>
             <nav className="flex gap-4 sm:ml-auto sm:gap-6">
-              <a className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100" href="#">利用規約</a>
-              <a className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100" href="#">プライバシーポリシー</a>
+              <a className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100" href="#">Terms of Service</a>
+              <a className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100" href="#">Privacy Policy</a>
             </nav>
           </footer>
         </div>

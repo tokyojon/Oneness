@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Register</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Roboto, "Segoe UI", Arial; padding: 2rem; max-width: 480px; margin: auto; }
+    form { display: grid; gap: 0.75rem; }
+    input { padding: 0.6rem; font-size: 1rem; border: 1px solid #ddd; border-radius: 6px; }
+    button { padding: 0.65rem; font-size: 1rem; border-radius: 6px; border: none; background: #0b69ff; color: white; cursor: pointer; }
+    .msg { margin-top: 1rem; color: #333; }
+    .error { color: #b00020; }
+  </style>
+</head>
+<body>
+  <h1>Create account</h1>
+  <form id="registerForm">
+    <label>
+      Name
+      <input id="name" name="name" type="text" required minlength="2" />
+    </label>
+    <label>
+      Email
+      <input id="email" name="email" type="email" required />
+    </label>
+    <label>
+      Password
+      <input id="password" name="password" type="password" required minlength="6" />
+    </label>
+    <button type="submit">Register</button>
+  </form>
+
+  <div class="msg" id="message" role="status" aria-live="polite"></div>
+
+  <script type="module">
+    // Replace with your project values
+    const SUPABASE_URL = 'https://edfixzjpvsqpebzehsqy.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkZml4empwdnNxcGViemVoc3F5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3NDA3NDgsImV4cCI6MjA3ODMxNjc0OH0.ozxPhLQHHwwFOL3IWFr_ZlTOVUkXYD_K8lBKSNajAw4';
+    const EDGE_FUNCTION_URL = 'https://edfixzjpvsqpebzehsqy.functions.supabase.co/create-user-profile'; // replace with deployed function URL
+
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const form = document.getElementById('registerForm');
+    const msg = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = '';
+      msg.classList.remove('error');
+
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!name || !email || !password) {
+        msg.textContent = 'Please fill all fields.';
+        msg.classList.add('error');
+        return;
+      }
+
+      try {
+        // Sign up user
+        const { data: signData, error: signError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: name } } // optional
+        });
+
+        if (signError) {
+          msg.textContent = 'Sign up error: ' + signError.message;
+          msg.classList.add('error');
+          return;
+        }
+
+        // If email confirmation required, signData.user may be null
+        const user = signData?.user;
+        const session = signData?.session;
+
+        if (!user) {
+          msg.textContent = 'Registration received. Check your email to confirm the account.';
+          return;
+        }
+
+        // Obtain the user's access token (JWT). Prefer session.access_token if available, otherwise request current session.
+        const token = session?.access_token || (await supabase.auth.getSession()).data.session?.access_token;
+
+        if (!token) {
+          msg.textContent = 'Registered, but could not get auth token to create profile. Please sign in after email confirmation.';
+          return;
+        }
+
+        // Call Edge Function to create profile using user's JWT
+        const res = await fetch(EDGE_FUNCTION_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ user_id: user.id, display_name: name })
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          msg.textContent = 'Registered, but profile creation failed: ' + (err.error || res.statusText);
+          msg.classList.add('error');
+          return;
+        }
+
+        msg.textContent = 'Registered and profile created. You are signed in.';
+      } catch (err) {
+        console.error(err);
+        msg.textContent = 'Unexpected error';
+        msg.classList.add('error');
+      }
+    });
+  </script>
+</body>
+</html>
