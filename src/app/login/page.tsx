@@ -73,6 +73,7 @@ export default function LoginPage() {
       
       // Set auth tokens via API callback (server-side cookies)
       if (signInData.session) {
+        console.log('Login: Setting auth cookies via callback...');
         try {
           const response = await fetch('/api/auth/callback', {
             method: 'POST',
@@ -85,11 +86,18 @@ export default function LoginPage() {
             }),
           });
 
+          console.log('Login: Callback response status:', response.status);
+          
           if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Login: Callback failed:', errorData);
             throw new Error('Failed to set auth cookies');
           }
+
+          const result = await response.json();
+          console.log('Login: Callback success:', result);
         } catch (error) {
-          console.error('Auth callback error:', error);
+          console.error('Login: Auth callback error:', error);
           setMessage('認証クッキーの設定に失敗しました');
           setIsError(true);
           return;
