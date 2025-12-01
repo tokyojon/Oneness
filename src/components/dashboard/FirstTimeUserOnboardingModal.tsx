@@ -88,6 +88,9 @@ export default function FirstTimeUserOnboardingModal() {
   useEffect(() => {
     // Check if user needs onboarding
     if (user) {
+      console.log('FirstTimeUserOnboardingModal: User data:', user);
+      console.log('FirstTimeUserOnboardingModal: User profile:', user.profile);
+      
       const needsOnboarding = !user.profile?.display_name || 
                             !user.profile?.location || 
                             !user.profile?.bio ||
@@ -95,7 +98,18 @@ export default function FirstTimeUserOnboardingModal() {
                             !user.profile?.personality_profile ||
                             user.profile?.onboarding_completed === false;
       
+      console.log('FirstTimeUserOnboardingModal: Needs onboarding check:', {
+        hasDisplayName: !!user.profile?.display_name,
+        hasLocation: !!user.profile?.location,
+        hasBio: !!user.profile?.bio,
+        hasAvatar: !!user.profile?.avatar_url,
+        hasPersonality: !!user.profile?.personality_profile,
+        onboardingCompleted: user.profile?.onboarding_completed,
+        needsOnboarding
+      });
+      
       if (needsOnboarding) {
+        console.log('FirstTimeUserOnboardingModal: Opening modal');
         setIsOpen(true);
         // Pre-fill some data if available
         if (user.profile?.display_name) {
@@ -107,7 +121,11 @@ export default function FirstTimeUserOnboardingModal() {
         if (user.profile?.location) {
           setOnboardingData(prev => ({ ...prev, location: user.profile.location }));
         }
+      } else {
+        console.log('FirstTimeUserOnboardingModal: Not opening modal - user completed onboarding');
       }
+    } else {
+      console.log('FirstTimeUserOnboardingModal: No user data available');
     }
   }, [user]);
 
