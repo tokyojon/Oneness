@@ -39,10 +39,13 @@ export async function POST(request: NextRequest) {
 
     console.log('Auth callback: Tokens verified for user:', user.id);
 
-    const cookieStore = await cookies();
+    // Create response and set cookies
+    const response = NextResponse.json({ success: true, user });
 
-    // Set httpOnly cookies with more compatible settings
-    cookieStore.set('access_token', access_token, {
+    console.log('Auth callback: Setting cookies...');
+    
+    // Set httpOnly cookies using NextResponse
+    response.cookies.set('access_token', access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax', 
@@ -50,7 +53,7 @@ export async function POST(request: NextRequest) {
       maxAge: 60 * 60 * 24 * 7, 
     });
     
-    cookieStore.set('refresh_token', refresh_token, {
+    response.cookies.set('refresh_token', refresh_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax', 
@@ -59,7 +62,9 @@ export async function POST(request: NextRequest) {
     });
 
     console.log('Auth callback: Cookies set successfully');
-    return NextResponse.json({ success: true, user });
+    console.log('Auth callback: Access token length:', access_token?.length);
+    console.log('Auth callback: Refresh token length:', refresh_token?.length);
+    return response;
   } catch (error) {
     console.error('Auth callback error:', error);
     return NextResponse.json(
