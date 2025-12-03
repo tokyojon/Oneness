@@ -1,19 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { getSupabaseServerClient } from '@/lib/supabase-server';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = getSupabaseServerClient();
     console.log('GET /api/posts - Starting posts fetch...');
-    
+
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '6');
     const offset = parseInt(searchParams.get('offset') || '0');
-    
+
     const authHeader = request.headers.get('authorization');
     let user: any | null = null;
     let token: string | null = null;
@@ -169,8 +169,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = getSupabaseServerClient();
     console.log('POST /api/posts - Starting post creation...');
-    
+
     // Get the user from the session using Supabase auth
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -183,7 +184,7 @@ export async function POST(request: NextRequest) {
 
     const token = authHeader.split(' ')[1];
     console.log('POST /api/posts - Token found');
-    
+
     // Verify the user is authenticated by decoding the JWT
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 

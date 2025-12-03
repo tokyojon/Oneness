@@ -6,12 +6,11 @@ import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import { login } from '@/lib/auth';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 export default function LoginPage() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.com',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
+  );
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -48,7 +47,7 @@ export default function LoginPage() {
 
     try {
       console.log('Attempting to sign in user...');
-      
+
       // Sign in user
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -65,12 +64,12 @@ export default function LoginPage() {
       console.log('Sign in successful:', signInData);
       setMessage('ログインに成功しました！');
       setIsError(false);
-      
+
       // Set user data in localStorage for the auth system
       if (signInData.user) {
         login(signInData.user);
       }
-      
+
       // Set auth tokens via API callback (server-side cookies)
       if (signInData.session) {
         console.log('Login: Setting auth cookies via callback...');
@@ -88,7 +87,7 @@ export default function LoginPage() {
           });
 
           console.log('Login: Callback response status:', response.status);
-          
+
           if (!response.ok) {
             const errorData = await response.json();
             console.error('Login: Callback failed:', errorData);
@@ -104,13 +103,13 @@ export default function LoginPage() {
           return;
         }
       }
-      
+
       // Redirect to dashboard after successful login and cookie setup
       setTimeout(() => {
         console.log('Login: Redirecting to dashboard...');
         router.push('/dashboard');
       }, 1500);
-      
+
     } catch (err) {
       console.error('Unexpected error:', err);
       setMessage('予期せぬエラーが発生しました');
@@ -128,7 +127,7 @@ export default function LoginPage() {
           redirectTo: `${window.location.origin}/dashboard`
         }
       });
-      
+
       if (error) {
         console.error('Google login error:', error);
         setMessage('Googleログインエラー: ' + error.message);
@@ -141,7 +140,7 @@ export default function LoginPage() {
     }
   };
 
-    
+
   return (
     <div className="min-h-screen bg-[#f8f7f6] dark:bg-[#221810] text-[#181411] dark:text-gray-200 font-sans">
       <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
@@ -157,30 +156,30 @@ export default function LoginPage() {
                 </div>
                 <h1 className="text-4xl font-black leading-tight tracking-[-0.033em]">ログイン</h1>
               </div>
-              
+
               <div className="w-full flex flex-col gap-4">
                 <label className="flex flex-col w-full">
                   <p className="text-base font-medium leading-normal pb-2">メールアドレスまたはユーザー名</p>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    placeholder="メールアドレスまたはユーザー名を入力" 
+                    placeholder="メールアドレスまたはユーザー名を入力"
                     className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#181411] focus:outline-0 focus:ring-2 focus:ring-[#ec6d13]/50 border border-[#e6e0db] dark:border-gray-700 bg-white dark:bg-[#221810] dark:text-gray-200 h-14 placeholder:text-[#897261] p-[15px] text-base font-normal leading-normal"
                     required
                   />
                 </label>
-                
+
                 <label className="flex flex-col w-full">
                   <p className="text-base font-medium leading-normal pb-2">パスワード</p>
                   <div className="flex w-full flex-1 items-stretch rounded-xl">
-                    <input 
+                    <input
                       type={showPassword ? "text" : "password"}
                       name="password"
                       value={formData.password}
                       onChange={handleInputChange}
-                      placeholder="パスワードを入力" 
+                      placeholder="パスワードを入力"
                       className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#181411] focus:outline-0 focus:ring-2 focus:ring-[#ec6d13]/50 border border-[#e6e0db] dark:border-gray-700 bg-white dark:bg-[#221810] dark:text-gray-200 h-14 placeholder:text-[#897261] p-[15px] rounded-r-none border-r-0 pr-2 text-base font-normal leading-normal"
                       required
                     />
@@ -196,9 +195,9 @@ export default function LoginPage() {
                   </div>
                 </label>
               </div>
-              
+
               <div className="w-full flex flex-col items-center gap-4">
-                <button 
+                <button
                   onClick={handleSubmit}
                   disabled={isLoading}
                   className="flex w-full min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-4 bg-[#ec6d13] text-white text-base font-bold leading-normal tracking-[0.015em] disabled:opacity-50"
@@ -209,37 +208,37 @@ export default function LoginPage() {
                 </button>
                 <a className="text-sm font-medium text-[#ec6d13] hover:underline" href="#">パスワードをお忘れですか？</a>
               </div>
-              
+
               <div className="flex w-full items-center gap-4">
-                <hr className="flex-grow border-t border-[#e6e0db] dark:border-gray-700"/>
+                <hr className="flex-grow border-t border-[#e6e0db] dark:border-gray-700" />
                 <span className="text-sm text-[#897261] dark:text-gray-400">または</span>
-                <hr className="flex-grow border-t border-[#e6e0db] dark:border-gray-700"/>
+                <hr className="flex-grow border-t border-[#e6e0db] dark:border-gray-700" />
               </div>
-              
+
               <div className="w-full flex flex-col gap-4">
-                <button 
+                <button
                   onClick={handleGoogleLogin}
                   className="flex w-full min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-xl h-14 px-4 bg-white dark:bg-gray-800 border border-[#e6e0db] dark:border-gray-700 text-[#181411] dark:text-gray-200 text-base font-bold leading-normal"
                 >
-                  <img alt="Google logo" className="h-6 w-6" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAg-aXh64jogBJKQpvMMibhkyMT3q4q1XmVRrFfeaEkStu_Cxp-OUAUKazAwkI5KxNyXLBsowLmiqw4H2VE_LFNeBdd88plMYFht0j5g4qPyMlkv2HwAdO8swy_PLMFjuXh89GZaV7z2n8ADUkmEuhpTsRpvQEejd40Yv4vkbL5IcVD3F1N9keePDlAC-lQ4bBvyG7HOYc7aK50HLC8ZQXqQWHUb2IArV-SSoiIBghwxhR-RHArUubqMkz4129Wf8KNZ7QFuiuu2Ws"/>
+                  <img alt="Google logo" className="h-6 w-6" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAg-aXh64jogBJKQpvMMibhkyMT3q4q1XmVRrFfeaEkStu_Cxp-OUAUKazAwkI5KxNyXLBsowLmiqw4H2VE_LFNeBdd88plMYFht0j5g4qPyMlkv2HwAdO8swy_PLMFjuXh89GZaV7z2n8ADUkmEuhpTsRpvQEejd40Yv4vkbL5IcVD3F1N9keePDlAC-lQ4bBvyG7HOYc7aK50HLC8ZQXqQWHUb2IArV-SSoiIBghwxhR-RHArUubqMkz4129Wf8KNZ7QFuiuu2Ws" />
                   <span className="truncate">Googleで続ける</span>
                 </button>
               </div>
-              
+
               {/* Message Display */}
               {message && (
                 <div className={`px-4 py-3 mt-4 text-center ${isError ? 'text-red-600' : 'text-green-600'}`}>
                   {message}
                 </div>
               )}
-              
+
               <p className="text-sm text-center">
                 <span className="text-[#897261] dark:text-gray-400">アカウントをお持ちでないですか？</span>
                 <Link href="/register" className="font-bold text-[#ec6d13] hover:underline"> アカウントを作成</Link>
               </p>
             </div>
           </main>
-          
+
           {/* Footer */}
           <footer className="w-full mt-auto">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 border-t border-[#f4f2f0] dark:border-gray-800">

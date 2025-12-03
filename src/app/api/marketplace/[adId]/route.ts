@@ -1,16 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { getSupabaseServerClient } from '@/lib/supabase-server';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { adId: string } }
 ) {
   try {
+    const supabase = getSupabaseServerClient();
     const adId = params.adId;
     const authHeader = request.headers.get('authorization');
     let user: any | null = null;
@@ -157,6 +157,7 @@ export async function PUT(
   { params }: { params: { adId: string } }
 ) {
   try {
+    const supabase = getSupabaseServerClient();
     const adId = params.adId;
     const authHeader = request.headers.get('authorization');
 
@@ -219,6 +220,7 @@ export async function DELETE(
   { params }: { params: { adId: string } }
 ) {
   try {
+    const supabase = getSupabaseServerClient();
     const adId = params.adId;
     const authHeader = request.headers.get('authorization');
 

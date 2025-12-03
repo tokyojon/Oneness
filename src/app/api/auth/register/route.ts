@@ -3,10 +3,9 @@ import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { getSupabaseServerClient } from '@/lib/supabase-server';
+
+export const dynamic = 'force-dynamic';
 
 const registerSchema = z.object({
   displayName: z.string().min(2).max(255),
@@ -33,6 +32,7 @@ const registerSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = getSupabaseServerClient();
     const body = await request.json();
     const { email, password, displayName, profileData, avatarData } = registerSchema.parse(body);
 
@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
       // Return the specific error if it's available
       const errorMessage = profileErr instanceof Error ? profileErr.message : 'Failed to create user profile';
       const errorDetails = profileErr && typeof profileErr === 'object' ? JSON.stringify(profileErr) : String(profileErr);
-      
+
       return NextResponse.json(
         { error: errorMessage, details: errorDetails },
         { status: 500 }

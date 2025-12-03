@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from "crypto";
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+import { getSupabaseServerClient } from '@/lib/supabase-server';
+
+export const dynamic = 'force-dynamic';
 
 function hashPassword(password: string): string {
   return crypto.createHash("sha256").update(password).digest("hex");
@@ -12,6 +12,7 @@ function hashPassword(password: string): string {
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = getSupabaseServerClient();
     const body = await req.json();
     const { name, email, password, dob } = body;
 

@@ -3,13 +3,11 @@ import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-10-29.clover',
-});
+// Stripe initialized inside handler
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+import { getSupabaseServerClient } from '@/lib/supabase-server';
+
+export const dynamic = 'force-dynamic';
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -18,6 +16,10 @@ export async function POST(req: NextRequest) {
     const body = await req.text();
     const headersList = await headers();
     const sig = headersList.get('stripe-signature');
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2025-10-29.clover',
+    });
 
     if (!sig) {
       return NextResponse.json({ error: 'No signature' }, { status: 400 });
@@ -54,6 +56,7 @@ export async function POST(req: NextRequest) {
 }
 
 async function handleCheckoutSuccess(session: Stripe.Checkout.Session) {
+  const supabase = getSupabaseServerClient();
   const { user_id, op_amount } = session.metadata || {};
 
   if (!user_id || !op_amount) {

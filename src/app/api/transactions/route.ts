@@ -1,10 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,7 +15,7 @@ export async function GET(request: NextRequest) {
     }
 
     const token = authHeader.split(' ')[1];
-    
+
     // Create a Supabase client with the user's JWT token
     const userSupabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -116,7 +113,7 @@ export async function GET(request: NextRequest) {
         stripe_payment_intent_id: tx.stripe_payment_intent_id,
         completed_at: tx.completed_at ? new Date(tx.completed_at) : null
       }));
-      
+
       // Combine both sets of transactions
       transactions.push(...formattedExchangeTxs);
     }

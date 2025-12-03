@@ -3,10 +3,9 @@ import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { getSupabaseServerClient } from '@/lib/supabase-server';
+
+export const dynamic = 'force-dynamic';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -15,6 +14,7 @@ const loginSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = getSupabaseServerClient();
     const body = await request.json();
     const { email, password } = loginSchema.parse(body);
 
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         .eq('user_id', data.user.id)
         .single()
         .then(result => ({ data: result.data, error: result.error })),
-      
+
       // User points summary
       supabase
         .from('points_ledger')
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
         .order('created_at', { ascending: false })
         .limit(10)
         .then(result => ({ data: result.data, error: result.error })),
-      
+
       // AI avatar state
       supabase
         .from('ai_avatar_state')

@@ -2,19 +2,21 @@ import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
     console.log('Auth callback: Starting...');
     const { access_token, refresh_token } = await request.json();
 
-    console.log('Auth callback: Tokens received:', { 
-      hasAccessToken: !!access_token, 
-      hasRefreshToken: !!refresh_token 
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    console.log('Auth callback: Tokens received:', {
+      hasAccessToken: !!access_token,
+      hasRefreshToken: !!refresh_token
     });
 
     if (!access_token || !refresh_token) {
@@ -43,22 +45,22 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ success: true, user });
 
     console.log('Auth callback: Setting cookies...');
-    
+
     // Set httpOnly cookies using NextResponse
     response.cookies.set('access_token', access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax', 
+      sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 24 * 7, 
+      maxAge: 60 * 60 * 24 * 7,
     });
-    
+
     response.cookies.set('refresh_token', refresh_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax', 
+      sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 24 * 30, 
+      maxAge: 60 * 60 * 24 * 30,
     });
 
     console.log('Auth callback: Cookies set successfully');
