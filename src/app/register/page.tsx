@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 'https://edfixzjpvsqpebzehsqy.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkZml4empwdnNxcGViemVoc3F5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3NDA3NDgsImV4cCI6MjA3ODMxNjc0OH0.ozxPhLQHHwwFOL3IWFr_ZlTOVUkXYD_K8lBKSNajAw4';
-const EDGE_FUNCTION_URL = 'https://edfixzjpvsqpebzehsqy.functions.supabase.co/create-user-profile';
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.com',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
+);
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const EDGE_FUNCTION_URL = 'https://edfixzjpvsqpebzehsqy.functions.supabase.co/create-user-profile';
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -61,7 +62,7 @@ export default function SignupPage() {
 
     try {
       console.log('Attempting to sign up user...');
-      
+
       // Sign up user
       const { data: signData, error: signError } = await supabase.auth.signUp({
         email,
@@ -98,7 +99,7 @@ export default function SignupPage() {
       }
 
       console.log('Calling edge function to create profile...');
-      
+
       // Call Edge Function to create profile using user's JWT
       const res = await fetch(EDGE_FUNCTION_URL, {
         method: 'POST',
@@ -120,12 +121,17 @@ export default function SignupPage() {
       console.log('Profile created successfully');
       setMessage('登録とプロフィール作成が完了しました。サインインしています。');
       setIsError(false);
-      
+
+      // Save auth token for dashboard access
+      if (token) {
+        localStorage.setItem('auth_token', token);
+      }
+
       // Redirect to dashboard after successful registration
       setTimeout(() => {
         router.push('/dashboard');
       }, 2000);
-      
+
     } catch (err) {
       console.error('Unexpected error:', err);
       setMessage('予期せぬエラーが発生しました');
@@ -134,7 +140,7 @@ export default function SignupPage() {
       setIsLoading(false);
     }
   };
-  
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans">
       <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
@@ -146,7 +152,7 @@ export default function SignupPage() {
                 <div className="px-4 sm:px-6">
                   <h1 className="text-slate-900 dark:text-slate-100 tracking-tight text-[32px] font-bold leading-tight text-center pb-3">Create account</h1>
                 </div>
-                
+
                 <div className="flex justify-center mt-6">
                   <div className="flex w-full gap-3 flex-wrap px-4 py-3 max-w-sm justify-center">
                     <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm font-bold leading-normal tracking-[0.015em] grow gap-2 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600">
@@ -160,53 +166,53 @@ export default function SignupPage() {
                     </button>
                   </div>
                 </div>
-                
+
                 <p className="text-slate-600 dark:text-slate-400 text-sm font-normal leading-normal pb-3 pt-1 px-4 text-center">または</p>
-                
+
                 <div className="flex justify-center">
                   <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4 px-4 py-3 max-w-sm">
                     <label className="flex flex-col min-w-40 flex-1">
                       <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">お名前</p>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        placeholder="お名前を入力してください" 
+                        placeholder="お名前を入力してください"
                         className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-green-600/50 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-green-600 h-14 placeholder:text-slate-500 dark:placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal transition-colors"
                         required
                         minLength={2}
                       />
                     </label>
-                    
+
                     <label className="flex flex-col min-w-40 flex-1">
                       <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">メールアドレス</p>
-                      <input 
-                        type="email" 
+                      <input
+                        type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        placeholder="you@example.com" 
+                        placeholder="you@example.com"
                         className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-green-600/50 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-green-600 h-14 placeholder:text-slate-500 dark:placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal transition-colors"
                         required
                       />
                     </label>
-                    
+
                     <label className="flex flex-col min-w-40 flex-1">
                       <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">パスワード</p>
-                      <input 
-                        type="password" 
+                      <input
+                        type="password"
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        placeholder="6文字以上" 
+                        placeholder="6文字以上"
                         className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-green-600/50 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-green-600 h-14 placeholder:text-slate-500 dark:placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal transition-colors"
                         required
                         minLength={6}
                       />
                     </label>
-                    
-                    <button 
+
+                    <button
                       type="submit"
                       disabled={isLoading}
                       className="flex mt-2 min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-full h-14 px-4 bg-blue-600 text-white text-base font-bold leading-normal tracking-[0.015em] transition-transform hover:scale-[1.02] disabled:opacity-50"
@@ -217,7 +223,7 @@ export default function SignupPage() {
                     </button>
                   </form>
                 </div>
-                
+
                 {/* Message Display */}
                 {message && (
                   <div className={`px-4 py-3 mt-4 text-center ${isError ? 'text-red-600' : 'text-green-600'}`}>
@@ -225,18 +231,18 @@ export default function SignupPage() {
                   </div>
                 )}
               </main>
-              
+
               <div className="px-4 py-8 text-center">
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4"> 
-                  By registering, you agree to our <a className="font-medium text-blue-600/80 hover:text-blue-600" href="#">Terms of Service</a> and <a className="font-medium text-blue-600/80 hover:text-blue-600" href="#">Privacy Policy</a>. 
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                  By registering, you agree to our <a className="font-medium text-blue-600/80 hover:text-blue-600" href="#">Terms of Service</a> and <a className="font-medium text-blue-600/80 hover:text-blue-600" href="#">Privacy Policy</a>.
                 </p>
-                <p className="text-sm text-slate-600 dark:text-slate-400"> 
-                  Already have an account? <Link href="/login" className="font-bold text-blue-600 hover:underline">Sign in</Link> 
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  Already have an account? <Link href="/login" className="font-bold text-blue-600 hover:underline">Sign in</Link>
                 </p>
               </div>
             </div>
           </div>
-          
+
           {/* Footer */}
           <footer className="flex w-full shrink-0 flex-col items-center justify-center gap-2 border-t border-slate-200 dark:border-slate-700 px-4 py-6 sm:flex-row md:px-6">
             <p className="text-sm text-slate-600 dark:text-slate-400">© 2024 Oneness Kingdom. All rights reserved.</p>

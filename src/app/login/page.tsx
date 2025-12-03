@@ -6,11 +6,12 @@ import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import { login } from '@/lib/auth';
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.com',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
+);
+
 export default function LoginPage() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.com',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
-  );
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -68,6 +69,11 @@ export default function LoginPage() {
       // Set user data in localStorage for the auth system
       if (signInData.user) {
         login(signInData.user);
+      }
+
+      // Set auth token in localStorage for dashboard API calls
+      if (signInData.session?.access_token) {
+        localStorage.setItem('auth_token', signInData.session.access_token);
       }
 
       // Set auth tokens via API callback (server-side cookies)
