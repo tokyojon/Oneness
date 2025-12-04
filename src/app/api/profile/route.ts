@@ -8,15 +8,31 @@ export async function GET(request: NextRequest) {
   try {
     // Get the user from the session using Supabase auth
     const authHeader = request.headers.get('authorization');
+    let token = '';
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    } else {
+      // Fallback to cookies
+      const cookieHeader = request.headers.get('cookie');
+      if (cookieHeader) {
+        const cookies: Record<string, string> = {};
+        cookieHeader.split(';').forEach(cookie => {
+          const [name, value] = cookie.trim().split('=');
+          if (name && value) {
+            cookies[name] = value;
+          }
+        });
+        token = cookies['access_token'];
+      }
+    }
+
+    if (!token) {
       return NextResponse.json(
-        { error: 'Unauthorized - No Bearer token' },
+        { error: 'Unauthorized - No token found' },
         { status: 401 }
       );
     }
-
-    const token = authHeader.split(' ')[1];
 
     // Verify the user is authenticated by decoding the JWT
     const supabase = getSupabaseServerClient();

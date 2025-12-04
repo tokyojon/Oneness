@@ -62,17 +62,23 @@ export default function DashboardPage() {
             try {
                 setError(null);
                 setLoading(true);
-                
+
                 const token = localStorage.getItem('auth_token');
-                if (!token) {
-                    throw new Error('No auth token found');
+                // We don't throw error if token is missing, as we might have cookies
+                // if (!token) {
+                //     throw new Error('No auth token found');
+                // }
+
+                const headers: HeadersInit = {
+                    'Content-Type': 'application/json',
+                };
+
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
                 }
 
                 const profileResponse = await fetch('/api/profile', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
+                    headers,
                 });
 
                 if (!profileResponse.ok) {
@@ -95,10 +101,7 @@ export default function DashboardPage() {
                 setUserProfile(profileData.profile);
 
                 const postsResponse = await fetch('/api/posts', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
+                    headers,
                 });
 
                 if (!postsResponse.ok) {
@@ -109,7 +112,7 @@ export default function DashboardPage() {
                         }
                         return;
                     }
-                    
+
                     console.error('Posts API failed, using fallback');
                     setPosts([]);
                 } else {
@@ -119,7 +122,7 @@ export default function DashboardPage() {
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);
                 setError(error instanceof Error ? error.message : 'Unknown error');
-                
+
                 if (user) {
                     setUserProfile({
                         name: user.profile?.display_name || 'ユーザー名',
@@ -183,12 +186,17 @@ export default function DashboardPage() {
                 }
             }
 
+            const headers: HeadersInit = {
+                'Content-Type': 'application/json',
+            };
+
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch('/api/posts', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
+                headers,
                 body: JSON.stringify(postData),
             });
 
@@ -282,8 +290,8 @@ export default function DashboardPage() {
                                     <button className="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 w-10 bg-[#f4f2f0] dark:bg-gray-800 text-[#181411] dark:text-gray-200 gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5">
                                         <span className="material-symbols-outlined">notifications</span>
                                     </button>
-                                    <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" 
-                                         style={{ backgroundImage: `url("${avatarUrl}")` }}>
+                                    <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
+                                        style={{ backgroundImage: `url("${avatarUrl}")` }}>
                                     </div>
                                 </div>
                             </header>
@@ -298,19 +306,19 @@ export default function DashboardPage() {
                                 <div className="p-4">
                                     <div className="flex flex-col gap-4 rounded-xl border border-[#e6e0db] dark:border-gray-700 bg-white dark:bg-gray-800/50 p-6 shadow-[0_0_4px_rgba(0,0,0,0.05)]">
                                         <div className="flex items-start gap-3">
-                                            <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 flex-shrink-0" 
-                                                 style={{ backgroundImage: `url("${avatarUrl}")` }}>
+                                            <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 flex-shrink-0"
+                                                style={{ backgroundImage: `url("${avatarUrl}")` }}>
                                             </div>
                                             <div className="flex-grow">
-                                                <Textarea 
-                                                    placeholder={`何を考えていますか、${displayName}さん？`} 
+                                                <Textarea
+                                                    placeholder={`何を考えていますか、${displayName}さん？`}
                                                     className="bg-[#f8f7f6] dark:bg-gray-800 border-none resize-none min-h-[60px]"
                                                     value={newPostContent}
                                                     onChange={(e) => setNewPostContent(e.target.value)}
                                                 />
                                             </div>
                                         </div>
-                                        
+
                                         {mediaUrl && (
                                             <div className="relative w-fit mx-auto">
                                                 {mediaType === 'image' ? (
@@ -354,8 +362,8 @@ export default function DashboardPage() {
                                                     </PopoverContent>
                                                 </Popover>
                                             </div>
-                                            <Button 
-                                                onClick={handleNewPost} 
+                                            <Button
+                                                onClick={handleNewPost}
                                                 disabled={(!newPostContent.trim() && !mediaUrl) || isSubmitting}
                                                 className="bg-[#ec6d13] hover:bg-[#d45f0f] text-white"
                                             >

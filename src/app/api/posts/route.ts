@@ -21,34 +21,47 @@ export async function GET(request: NextRequest) {
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.split(' ')[1];
+    } else {
+      // Fallback to cookies
+      const cookieHeader = request.headers.get('cookie');
+      if (cookieHeader) {
+        const cookies: Record<string, string> = {};
+        cookieHeader.split(';').forEach(cookie => {
+          const [name, value] = cookie.trim().split('=');
+          if (name && value) {
+            cookies[name] = value;
+          }
+        });
+        token = cookies['access_token'] || null;
+      }
+    }
+
+    if (token) {
       console.log('GET /api/posts - Token found');
 
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token);
 
       if (authError || !authUser) {
         console.log('GET /api/posts - Invalid token:', authError);
-        return NextResponse.json(
-          { error: 'Invalid token' },
-          { status: 401 }
+        // If token is invalid, we just proceed as anonymous for GET
+      } else {
+        user = authUser;
+        console.log('GET /api/posts - User authenticated:', user.id);
+
+        userSupabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          {
+            global: {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          }
         );
       }
-
-      user = authUser;
-      console.log('GET /api/posts - User authenticated:', user.id);
-
-      userSupabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          global: {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        }
-      );
     } else {
-      console.log('GET /api/posts - No authorization header, proceeding anonymously');
+      console.log('GET /api/posts - No authorization header or cookie, proceeding anonymously');
     }
 
     // Get posts with user information using service supabase to show all posts
@@ -173,16 +186,35 @@ export async function POST(request: NextRequest) {
     console.log('POST /api/posts - Starting post creation...');
 
     // Get the user from the session using Supabase auth
+    // Get the user from the session using Supabase auth
     const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('POST /api/posts - No authorization header');
+    let token = '';
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    } else {
+      // Fallback to cookies
+      const cookieHeader = request.headers.get('cookie');
+      if (cookieHeader) {
+        const cookies: Record<string, string> = {};
+        cookieHeader.split(';').forEach(cookie => {
+          const [name, value] = cookie.trim().split('=');
+          if (name && value) {
+            cookies[name] = value;
+          }
+        });
+        token = cookies['access_token'];
+      }
+    }
+
+    if (!token) {
+      console.log('POST /api/posts - No authorization token found');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const token = authHeader.split(' ')[1];
     console.log('POST /api/posts - Token found');
 
     // Verify the user is authenticated by decoding the JWT
