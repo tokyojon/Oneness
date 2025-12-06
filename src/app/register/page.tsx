@@ -3,12 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.com',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
-);
+import { supabase } from '@/lib/supabase';
 
 const EDGE_FUNCTION_URL = 'https://edfixzjpvsqpebzehsqy.functions.supabase.co/create-user-profile';
 

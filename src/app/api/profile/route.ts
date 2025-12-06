@@ -173,15 +173,34 @@ export async function PUT(request: NextRequest) {
     // Update user profile
     const { display_name, bio, avatar_url, banner_url } = await request.json();
 
+    const supabase = getSupabaseServerClient();
+
     const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    let token = '';
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    } else {
+      // Fallback to cookies
+      const cookieHeader = request.headers.get('cookie');
+      if (cookieHeader) {
+        const cookies: Record<string, string> = {};
+        cookieHeader.split(';').forEach(cookie => {
+          const [name, value] = cookie.trim().split('=');
+          if (name && value) {
+            cookies[name] = value;
+          }
+        });
+        token = cookies['access_token'];
+      }
+    }
+
+    if (!token) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Unauthorized - No token found' },
         { status: 401 }
       );
     }
-
-    const token = authHeader.split(' ')[1];
 
     // Verify the user is authenticated by decoding the JWT
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
