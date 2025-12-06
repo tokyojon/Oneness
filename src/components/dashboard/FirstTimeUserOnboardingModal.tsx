@@ -90,14 +90,14 @@ export default function FirstTimeUserOnboardingModal() {
     if (user) {
       console.log('FirstTimeUserOnboardingModal: User data:', user);
       console.log('FirstTimeUserOnboardingModal: User profile:', user.profile);
-      
-      const needsOnboarding = !user.profile?.display_name || 
-                            !user.profile?.location || 
-                            !user.profile?.bio ||
-                            !user.profile?.avatar_url ||
-                            !user.profile?.personality_profile ||
-                            user.profile?.onboarding_completed === false;
-      
+
+      const needsOnboarding = !user.profile?.display_name ||
+        !user.profile?.location ||
+        !user.profile?.bio ||
+        !user.profile?.avatar_url ||
+        !user.profile?.personality_profile ||
+        user.profile?.onboarding_completed === false;
+
       console.log('FirstTimeUserOnboardingModal: Needs onboarding check:', {
         hasDisplayName: !!user.profile?.display_name,
         hasLocation: !!user.profile?.location,
@@ -107,7 +107,7 @@ export default function FirstTimeUserOnboardingModal() {
         onboardingCompleted: user.profile?.onboarding_completed,
         needsOnboarding
       });
-      
+
       if (needsOnboarding) {
         console.log('FirstTimeUserOnboardingModal: Opening modal');
         setIsOpen(true);
@@ -165,7 +165,7 @@ export default function FirstTimeUserOnboardingModal() {
       const response = await fetch('/api/profile', {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -196,7 +196,7 @@ export default function FirstTimeUserOnboardingModal() {
       const response = await fetch('/api/profile/personality', {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -225,7 +225,7 @@ export default function FirstTimeUserOnboardingModal() {
       const response = await fetch('/api/profile/complete-onboarding', {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
           'Content-Type': 'application/json',
         },
       });
@@ -252,16 +252,16 @@ export default function FirstTimeUserOnboardingModal() {
         });
         return;
       }
-      
+
       const saved = await saveBasicInfo();
       if (saved) {
         setCurrentStep(2);
       }
     } else if (currentStep === 2) {
       // Validate step 2
-      if (!onboardingData.personality.socialStyle || 
-          !onboardingData.personality.communicationStyle ||
-          onboardingData.personality.interests.length === 0) {
+      if (!onboardingData.personality.socialStyle ||
+        !onboardingData.personality.communicationStyle ||
+        onboardingData.personality.interests.length === 0) {
         toast({
           variant: 'destructive',
           title: '入力エラー',
@@ -272,9 +272,9 @@ export default function FirstTimeUserOnboardingModal() {
       setCurrentStep(3);
     } else if (currentStep === 3) {
       // Validate step 3
-      if (!onboardingData.personality.workLifeBalance || 
-          !onboardingData.personality.meetingPreference ||
-          !onboardingData.personality.personalityType) {
+      if (!onboardingData.personality.workLifeBalance ||
+        !onboardingData.personality.meetingPreference ||
+        !onboardingData.personality.personalityType) {
         toast({
           variant: 'destructive',
           title: '入力エラー',
@@ -282,7 +282,7 @@ export default function FirstTimeUserOnboardingModal() {
         });
         return;
       }
-      
+
       const saved = await savePersonalityProfile();
       if (saved) {
         setCurrentStep(4);
@@ -299,10 +299,10 @@ export default function FirstTimeUserOnboardingModal() {
 
   const handleAvatarComplete = async () => {
     setIsCompleting(true);
-    
+
     // Mark onboarding as complete in database
     await completeOnboarding();
-    
+
     toast({
       title: '登録完了！',
       description: 'ようこそワンネスキングダムへ！'
@@ -333,7 +333,7 @@ export default function FirstTimeUserOnboardingModal() {
               <p className="text-sm text-gray-500">{progressPercentage}% 完了</p>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
+              <div
                 className="bg-[#ec6d13] h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progressPercentage}%` }}
               />
@@ -556,7 +556,7 @@ export default function FirstTimeUserOnboardingModal() {
       </Dialog>
 
       {/* Avatar Setup Modal */}
-      <AvatarSetupModal 
+      <AvatarSetupModal
         isOpen={showAvatarModal}
         onClose={() => setShowAvatarModal(false)}
         onComplete={handleAvatarComplete}

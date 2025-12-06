@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     // Update user profile
-    const { display_name, bio, avatar_url, banner_url } = await request.json();
+    const { display_name, bio, location, avatar_url, banner_url } = await request.json();
 
     const supabase = getSupabaseServerClient();
 
@@ -232,6 +232,7 @@ export async function PUT(request: NextRequest) {
         user_id: user.id,
         display_name: display_name,
         bio: bio,
+        location: location,
         avatar_url: avatar_url,
         banner_url: banner_url,
         updated_at: new Date().toISOString()
