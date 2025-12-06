@@ -236,15 +236,46 @@ export async function PUT(request: NextRequest) {
     if (avatar_url !== undefined) updates.avatar_url = avatar_url;
     if (banner_url !== undefined) updates.banner_url = banner_url;
 
-    // Update or create profile
-    const { data: profile, error } = await userSupabase
+    // Check if profile exists first
+    const { data: existingProfile } = await userSupabase
       .from('user_profiles')
-      .upsert(updates)
-      .select()
+      .select('user_id')
+      .eq('user_id', user.id)
       .single();
 
+    let profile;
+    let error;
+
+    if (existingProfile) {
+      // Update existing profile - no need for required fields
+      const { data, error: updateError } = await userSupabase
+        .from('user_profiles')
+        .update(updates)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      profile = data;
+      error = updateError;
+    } else {
+      // Create new profile - ensure required fields
+      if (!updates.display_name) {
+        // Fallback to auth metadata or default
+        updates.display_name = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Kingdom Citizen';
+      }
+
+      const { data, error: insertError } = await userSupabase
+        .from('user_profiles')
+        .insert(updates)
+        .select()
+        .single();
+
+      profile = data;
+      error = insertError;
+    }
+
     if (error) {
-      console.error('Profile update error:', error);
+      console.error('Profile update/insert error:', error);
       return NextResponse.json(
         { error: 'Failed to update profile' },
         { status: 500 }
