@@ -1,0 +1,256 @@
+Navigated to https://onenesskingdom.world/
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+Fetch finished loading: GET "<URL>".
+/login:1 [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) <input placeholder=​"パスワードを入力" class=​"form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#181411]​ focus:​outline-0 focus:​ring-2 focus:​ring-[#ec6d13]​/​50 border border-[#e6e0db]​ dark:​border-gray-700 bg-white dark:​bg-[#221810]​ dark:​text-gray-200 h-14 placeholder:​text-[#897261]​ p-[15px]​ rounded-r-none border-r-0 pr-2 text-base font-normal leading-normal" required type=​"password" value name=​"password">​flex
+page-e75d2e284540577c.js:1 Attempting to sign in user...
+4943-ad5efa83f87ffe4c.js:21 Fetch finished loading: POST "https://edfixzjpvsqpebzehsqy.supabase.co/auth/v1/token?grant_type=password".
+push.5553.to @ 4943-ad5efa83f87ffe4c.js:21
+tA @ 4943-ad5efa83f87ffe4c.js:21
+tO @ 4943-ad5efa83f87ffe4c.js:21
+signInWithPassword @ 4943-ad5efa83f87ffe4c.js:21
+b @ page-e75d2e284540577c.js:1
+i8 @ 4bd1b696-f6bedae49f0827a5.js:1
+(anonymous) @ 4bd1b696-f6bedae49f0827a5.js:1
+nz @ 4bd1b696-f6bedae49f0827a5.js:1
+sn @ 4bd1b696-f6bedae49f0827a5.js:1
+cc @ 4bd1b696-f6bedae49f0827a5.js:1
+ci @ 4bd1b696-f6bedae49f0827a5.js:1
+page-e75d2e284540577c.js:1 Sign in successful: {user: {…}, session: {…}}
+page-e75d2e284540577c.js:1 Login: Setting auth cookies via callback...
+page-e75d2e284540577c.js:1 Login: Callback response status: 200
+page-e75d2e284540577c.js:1 Login: Callback success: {success: true, user: {…}}
+page-e75d2e284540577c.js:1 Fetch finished loading: POST "https://onenesskingdom.world/api/auth/callback".
+b @ page-e75d2e284540577c.js:1
+await in b
+i8 @ 4bd1b696-f6bedae49f0827a5.js:1
+(anonymous) @ 4bd1b696-f6bedae49f0827a5.js:1
+nz @ 4bd1b696-f6bedae49f0827a5.js:1
+sn @ 4bd1b696-f6bedae49f0827a5.js:1
+cc @ 4bd1b696-f6bedae49f0827a5.js:1
+ci @ 4bd1b696-f6bedae49f0827a5.js:1
+page-e75d2e284540577c.js:1 Login: Redirecting to dashboard...
+page-376e0e410f8f4e44.js:1 FirstTimeUserOnboardingModal: No user data available
+page-376e0e410f8f4e44.js:1 FirstTimeUserOnboardingModal: User data: {id: 'b37deb28-abe2-4fce-b964-8ec6bfe74246', aud: 'authenticated', role: 'authenticated', email: 'jonnyt6@hotmail.com', email_confirmed_at: '2025-11-30T04:59:47.084008Z', …}
+page-376e0e410f8f4e44.js:1 FirstTimeUserOnboardingModal: User profile: undefined
+page-376e0e410f8f4e44.js:1 FirstTimeUserOnboardingModal: Needs onboarding check: {hasDisplayName: false, hasLocation: false, hasBio: false, hasAvatar: false, hasPersonality: false, …}
+page-376e0e410f8f4e44.js:1 FirstTimeUserOnboardingModal: Opening modal
+8565-b140787757ad07b3.js:1 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ 8565-b140787757ad07b3.js:1
+o1 @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+ux @ 4bd1b696-f6bedae49f0827a5.js:1
+uE @ 4bd1b696-f6bedae49f0827a5.js:1
+i_ @ 4bd1b696-f6bedae49f0827a5.js:1
+iT @ 4bd1b696-f6bedae49f0827a5.js:1
+iN @ 4bd1b696-f6bedae49f0827a5.js:1
+iz @ 4bd1b696-f6bedae49f0827a5.js:1
+ii @ 4bd1b696-f6bedae49f0827a5.js:1
+iu @ 4bd1b696-f6bedae49f0827a5.js:1
+iG @ 4bd1b696-f6bedae49f0827a5.js:1
+iW @ 4bd1b696-f6bedae49f0827a5.js:1
+iN @ 4bd1b696-f6bedae49f0827a5.js:1
+iz @ 4bd1b696-f6bedae49f0827a5.js:1
+ii @ 4bd1b696-f6bedae49f0827a5.js:1
+iu @ 4bd1b696-f6bedae49f0827a5.js:1
+iX @ 4bd1b696-f6bedae49f0827a5.js:1
+w @ 1255-1049c01b6613a8c4.js:1
+[Violation] Forced reflow while executing JavaScript took 35ms
+page-376e0e410f8f4e44.js:1  PUT https://onenesskingdom.world/api/profile 500 (Internal Server Error)
+U @ page-376e0e410f8f4e44.js:1
+O @ page-376e0e410f8f4e44.js:1
+i8 @ 4bd1b696-f6bedae49f0827a5.js:1
+(anonymous) @ 4bd1b696-f6bedae49f0827a5.js:1
+nz @ 4bd1b696-f6bedae49f0827a5.js:1
+sn @ 4bd1b696-f6bedae49f0827a5.js:1
+cc @ 4bd1b696-f6bedae49f0827a5.js:1
+ci @ 4bd1b696-f6bedae49f0827a5.js:1
+page-376e0e410f8f4e44.js:1 Fetch failed loading: PUT "https://onenesskingdom.world/api/profile".
+U @ page-376e0e410f8f4e44.js:1
+O @ page-376e0e410f8f4e44.js:1
+i8 @ 4bd1b696-f6bedae49f0827a5.js:1
+(anonymous) @ 4bd1b696-f6bedae49f0827a5.js:1
+nz @ 4bd1b696-f6bedae49f0827a5.js:1
+sn @ 4bd1b696-f6bedae49f0827a5.js:1
+cc @ 4bd1b696-f6bedae49f0827a5.js:1
+ci @ 4bd1b696-f6bedae49f0827a5.js:1
