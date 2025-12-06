@@ -225,18 +225,21 @@ export async function PUT(request: NextRequest) {
       }
     );
 
+    // Dynamic payload construction
+    const updates: any = {
+      user_id: user.id,
+      updated_at: new Date().toISOString()
+    };
+    if (display_name !== undefined) updates.display_name = display_name;
+    if (bio !== undefined) updates.bio = bio;
+    if (location !== undefined) updates.location = location;
+    if (avatar_url !== undefined) updates.avatar_url = avatar_url;
+    if (banner_url !== undefined) updates.banner_url = banner_url;
+
     // Update or create profile
     const { data: profile, error } = await userSupabase
       .from('user_profiles')
-      .upsert({
-        user_id: user.id,
-        display_name: display_name,
-        bio: bio,
-        location: location,
-        avatar_url: avatar_url,
-        banner_url: banner_url,
-        updated_at: new Date().toISOString()
-      })
+      .upsert(updates)
       .select()
       .single();
 
@@ -253,10 +256,11 @@ export async function PUT(request: NextRequest) {
       profile: profile
     });
 
-  } catch (error) {
-    console.error('Profile update API error:', error);
+  } catch (error: any) {
+    console.error('Profile update API error (DETAILS):', error);
+    console.error('Error stack:', error?.stack);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error: ' + (error?.message || 'Unknown error') },
       { status: 500 }
     );
   }

@@ -15,10 +15,10 @@ interface AvatarSetupModalProps {
   onComplete?: () => void;
 }
 
-export default function AvatarSetupModal({ 
-  isOpen: controlledIsOpen, 
-  onClose, 
-  onComplete 
+export default function AvatarSetupModal({
+  isOpen: controlledIsOpen,
+  onClose,
+  onComplete
 }: AvatarSetupModalProps = {}) {
   const { user } = useAuth();
   const [internalIsOpen, setInternalIsOpen] = useState(false);
@@ -33,10 +33,16 @@ export default function AvatarSetupModal({
   useEffect(() => {
     // Only run automatic detection if not controlled externally
     if (controlledIsOpen === undefined && user) {
+      // Check if user has finished onboarding. If not, don't popup yet (let onboarding modal handle it)
+      const onboardingCompleted = user.profile?.onboarding_completed;
+      if (!onboardingCompleted) {
+        return;
+      }
+
       // We assume if avatar_url is null or missing, they need to set one up.
       // We also check if it's not the placeholder we might use in UI fallback
       const hasAvatar = !!user.profile?.avatar_url;
-      
+
       if (!hasAvatar) {
         // Small delay to ensure we don't pop up immediately if data is loading or conflicting
         const timer = setTimeout(() => {
@@ -55,21 +61,21 @@ export default function AvatarSetupModal({
         const canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
-        
+
         if (width > maxWidth) {
           height = Math.round((height * maxWidth) / width);
           width = maxWidth;
         }
-        
+
         canvas.width = width;
         canvas.height = height;
-        
+
         const ctx = canvas.getContext('2d');
         if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height);
-            canvas.toBlob((blob) => {
-                if (blob) resolve(blob);
-            }, 'image/jpeg', 0.85);
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+          }, 'image/jpeg', 0.85);
         }
       };
     });
@@ -82,7 +88,7 @@ export default function AvatarSetupModal({
       // Note: We are using cookie-based auth mostly, but some components might check this.
       // If using cookies, we don't strictly need the token header if the API handles cookies.
       // However, the existing upload code used it.
-      
+
       // Resize and convert to blob
       const blob = await resizeImage(data.imageUrl, 512);
       const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
@@ -108,19 +114,19 @@ export default function AvatarSetupModal({
         title: 'アバターを保存しました',
         description: 'あなたの王国での姿が決まりました！',
       });
-      
+
       // Update local user state
       if (user) {
-        const updatedUser = { 
-          ...user, 
-          profile: { 
-            ...user.profile, 
-            avatar_url: result.url || data.imageUrl 
-          } 
+        const updatedUser = {
+          ...user,
+          profile: {
+            ...user.profile,
+            avatar_url: result.url || data.imageUrl
+          }
         };
         login(updatedUser);
       }
-      
+
       // Call completion callback if provided
       if (onComplete) {
         onComplete();
@@ -128,9 +134,9 @@ export default function AvatarSetupModal({
         // Default behavior: reload page
         window.location.reload();
       }
-      
+
       handleClose();
-      
+
     } catch (error) {
       console.error('Error saving avatar:', error);
       toast({
@@ -154,8 +160,8 @@ export default function AvatarSetupModal({
             ワンネスキングダムでのあなたの姿を生成します。写真から作るか、おまかせで生成できます。
           </DialogDescription>
         </DialogHeader>
-        
-        <KawaiiGenerator 
+
+        <KawaiiGenerator
           onSave={handleAvatarSave}
           isSaving={isSaving}
         />
