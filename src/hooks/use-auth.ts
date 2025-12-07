@@ -15,23 +15,32 @@ export const useAuth = () => {
         // Optimize: Check local storage first to avoid unnecessary API calls
         // This prevents 401 errors in console for non-logged in users
         const currentUser = getCurrentUser();
-        
-        if (!currentUser) {
-          setIsLoggedIn(false);
-          setUser(null);
-          setLoading(false);
-          return;
+
+        if (currentUser) {
+          setIsLoggedIn(true);
+          setUser(currentUser);
         }
 
-        const authenticated = await isAuthenticated();
+        // Always verify with API to get fresh data
+        const { authenticated, user: freshUser } = await isAuthenticated();
 
         if (!authenticated) {
           // If API check fails (e.g. session expired), clear local state
           setIsLoggedIn(false);
           setUser(null);
+          // Also clear stale data from storage
+          if (currentUser) {
+            localStorage.removeItem('user');
+            window.dispatchEvent(new Event('storage'));
+          }
         } else {
           setIsLoggedIn(true);
-          setUser(currentUser);
+          setUser(freshUser);
+          // Update local storage with fresh data
+          if (JSON.stringify(currentUser) !== JSON.stringify(freshUser)) {
+            localStorage.setItem('user', JSON.stringify(freshUser));
+            window.dispatchEvent(new Event('storage'));
+          }
         }
       } catch (error) {
         console.error('Auth check failed:', error);

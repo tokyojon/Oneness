@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { refreshSession } from "@/lib/auth";
 import AvatarSetupModal from "./AvatarSetupModal";
 
 interface OnboardingData {
@@ -122,6 +123,21 @@ export default function FirstTimeUserOnboardingModal() {
         if (user.profile?.location) {
           setOnboardingData(prev => ({ ...prev, location: user.profile.location }));
         }
+        // Hydrate personality data if available
+        if (user.profile?.personality_profile) {
+          const p = user.profile.personality_profile;
+          setOnboardingData(prev => ({
+            ...prev,
+            personality: {
+              socialStyle: p.socialStyle || '',
+              communicationStyle: p.communicationStyle || '',
+              interests: Array.isArray(p.interests) ? p.interests : [],
+              workLifeBalance: p.workLifeBalance || '',
+              meetingPreference: p.meetingPreference || '',
+              personalityType: p.personalityType || ''
+            }
+          }));
+        }
       } else {
         console.log('FirstTimeUserOnboardingModal: Not opening modal - user completed onboarding');
       }
@@ -181,6 +197,9 @@ export default function FirstTimeUserOnboardingModal() {
         throw new Error('プロフィールの保存に失敗しました');
       }
 
+      // Refresh local user state with new data
+      await refreshSession();
+
       return true;
     } catch (error) {
       toast({
@@ -210,6 +229,9 @@ export default function FirstTimeUserOnboardingModal() {
       if (!response.ok) {
         throw new Error('性格プロフィールの保存に失敗しました');
       }
+
+      // Refresh local user state with new data
+      await refreshSession();
 
       return true;
     } catch (error) {
