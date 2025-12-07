@@ -261,14 +261,26 @@ export async function PUT(req: NextRequest) {
   if (error) {
     console.error("Profile update error:", error);
     // Fallback if specific columns fail (e.g. they don't exist yet)
-    if (error.code === '42703') {
+    if (error.code === '42703') { // Undefined column
+      console.warn("Retrying profile update with basic fields only due to missing columns.");
       const basicUpdates = { ...dbRow };
+      // Remove potentially missing columns for the retry
       delete basicUpdates.social_style;
       delete basicUpdates.communication_style;
       delete basicUpdates.interests;
       delete basicUpdates.work_life_balance;
       delete basicUpdates.meeting_preference;
       delete basicUpdates.personality_type;
+      delete basicUpdates.personality_profile;
+
+      // Also remove new columns that might not exist yet
+      delete basicUpdates.location;
+      delete basicUpdates.website;
+      delete basicUpdates.username;
+
+      // Keep only core fields: user_id, display_name, bio, avatar_url (if standard), updated_at
+      // But we might want to keep avatar_url if we think it's core. 
+      // Safest is to strip down to absolute basics if we are crashing.
 
       const { data: retryData, error: retryError } = await supabase
         .from('user_profiles')
@@ -276,7 +288,10 @@ export async function PUT(req: NextRequest) {
         .select()
         .single();
 
-      if (retryError) return NextResponse.json({ error: retryError.message }, { status: 500 });
+      if (retryError) {
+        console.error("Retry profile update failed:", retryError);
+        return NextResponse.json({ error: retryError.message }, { status: 500 });
+      }
       return NextResponse.json({ data: retryData }, { status: 200 });
     }
     return NextResponse.json({ error: error.message }, { status: 500 });
