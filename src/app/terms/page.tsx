@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
-import { Button } from "@/components/ui/button";
+import React from 'react';
 
 const termsContent = `ワンネス王国 利用規約
 
@@ -14,7 +13,7 @@ const termsContent = `ワンネス王国 利用規約
 
 ワンネス王国（以下「本プラットフォーム」といいます）へようこそ。アカウントを作成し、本プラットフォームにアクセスまたは利用することにより、お客様は本利用規約（以下「本規約」といいます）に拘束されることに同意したものとみなされます。本規約に同意されない場合は、本プラットフォームを利用することはできません。
 
-本規約は、お客様とワンネス王国（運営法人名: [法人名を挿入]）との間の法的拘束力のある契約を構成します。
+本規約は、お客様とOneness Kingdom (UAE)（運営法人名: Oneness Kingdom）との間の法的拘束力のある契約を構成します。
 
 2. 利用資格と本人確認 (KYC)
 
@@ -176,24 +175,10 @@ Eメール: legal@oneness.kingdom
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-[#f8f7f6] dark:bg-[#221810]">
+    <div className="min-h-screen bg-[#f8f7f6] dark:bg-[#221810] pt-8">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <div className="size-6 text-[#ec6d13]">
-              <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                <path d="M44 4H30.6666V17.3334H17.3334V30.6666H4V44H44V4Z" fill="currentColor"></path>
-              </svg>
-            </div>
-            <h1 className="text-2xl font-bold text-[#181411] dark:text-white">利用規約</h1>
-          </div>
-          <Link href="/">
-            <Button variant="outline" className="border-[#ec6d13] text-[#ec6d13] hover:bg-[#ec6d13] hover:text-white">
-              ホームに戻る
-            </Button>
-          </Link>
-        </div>
+        {/* Header - Removed to use default Navbar */}
+        <h1 className="text-3xl font-bold text-[#181411] dark:text-white mb-8 text-center">利用規約</h1>
 
         {/* Content */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#e6e0db] dark:border-gray-700 p-8">
@@ -204,23 +189,7 @@ export default function TermsPage() {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-[#897261] dark:text-gray-400 text-sm">
-            © 2024 ワンネス王国. All rights reserved.
-          </p>
-          <div className="flex justify-center gap-6 mt-4">
-            <Link href="/terms" className="text-[#ec6d13] hover:underline text-sm">
-              利用規約
-            </Link>
-            <Link href="/privacy" className="text-[#ec6d13] hover:underline text-sm">
-              プライバシーポリシー
-            </Link>
-            <Link href="/contact" className="text-[#ec6d13] hover:underline text-sm">
-              お問い合わせ
-            </Link>
-          </div>
-        </div>
+        {/* Footer - Removed to use default Footer */}
       </div>
     </div>
   );

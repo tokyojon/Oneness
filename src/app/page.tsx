@@ -25,10 +25,10 @@ export default function Home() {
     <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased">
       {/* Hero Section */}
       <section className="relative h-[80vh] md:h-screen flex items-center justify-center text-center overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full bg-cover bg-center z-0" 
-             style={{ 
-               backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAQfxzIK5BKSB1LfXRWxCdyNt3CnQ4fuhSuE3qMlUGVeJIRMSEeOsYLzyRMzo7XFRDA7uFwHsFhjAPF1Lo0eEB3JsTf3mQsfxB82F6M3-HgFk7KgQ3RIdXRDNQ-bnOaCuHfijYpC1pV0e6xkHEo4-0S2L_xjvprZ8neqi3QkZBrGWdl3kMpA5clU1fOJh9pannAyjuaglwQiKyff_p5YRKuV7P4ZrMDpa8SktuyZEFsVomFKYpZoluHgCBzNBH0HqeqAlCdiHb80EM')" 
-             }} />
+        <div className="absolute top-0 left-0 w-full h-full bg-cover bg-center z-0"
+          style={{
+            backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAQfxzIK5BKSB1LfXRWxCdyNt3CnQ4fuhSuE3qMlUGVeJIRMSEeOsYLzyRMzo7XFRDA7uFwHsFhjAPF1Lo0eEB3JsTf3mQsfxB82F6M3-HgFk7KgQ3RIdXRDNQ-bnOaCuHfijYpC1pV0e6xkHEo4-0S2L_xjvprZ8neqi3QkZBrGWdl3kMpA5clU1fOJh9pannAyjuaglwQiKyff_p5YRKuV7P4ZrMDpa8SktuyZEFsVomFKYpZoluHgCBzNBH0HqeqAlCdiHb80EM')"
+          }} />
         <div className="hero-gradient absolute bottom-0 left-0 w-full h-1/2 z-10"></div>
         <div className="relative z-20 px-4 pt-16 md:pt-24">
           <h2 className="text-4xl md:text-6xl font-bold text-white mb-4" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
@@ -37,7 +37,7 @@ export default function Home() {
           <p className="text-lg md:text-xl text-white max-w-3xl mx-auto" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
             私たちの王国に参加する
           </p>
-          <Button 
+          <Button
             className="mt-8 px-8 py-3 font-bold rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all transform bg-warm-primary text-white"
             asChild
           >
@@ -157,7 +157,7 @@ export default function Home() {
             </div>
           </div>
           <div className="text-center mt-20">
-            <Button 
+            <Button
               className="px-10 py-4 font-bold text-lg rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all transform bg-warm-primary text-white"
               asChild
             >
@@ -179,9 +179,9 @@ export default function Home() {
           <div className="space-y-4">
             {[
               { id: 'basic', title: '基本情報', content: 'Oneness Point (OP) は、Oneness Kingdom 内の貢献と活動を評価するためのポイントシステムです。' },
-              { 
-                id: 'axes', 
-                title: '7つの軸', 
+              {
+                id: 'axes',
+                title: '7つの軸',
                 content: [
                   '経済：貢献と活動に応じたOPの獲得と利用',
                   '教育：学びと成長を通じたOPの獲得',
@@ -247,9 +247,9 @@ export default function Home() {
                   className="flex justify-between items-center p-6 cursor-pointer w-full text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   <h3 className="text-xl font-bold text-warm-primary">{section.title}</h3>
-                  <span 
+                  <span
                     className="material-icons-outlined transition-transform duration-200"
-                    style={{ 
+                    style={{
                       color: '#D4A373',
                       transform: openSection === section.id ? 'rotate(45deg)' : 'rotate(0deg)'
                     }}
@@ -276,24 +276,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-gray-800">
-        <div className="container mx-auto px-6 md:px-12">
-          <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left">
-            <div className="mb-4 md:mb-0">
-              <h3 className="text-xl font-bold text-warm-primary">Oneness Kingdom</h3>
-              <p className="text-text-light/60 dark:text-text-dark/60 mt-1">A new paradigm for a thriving world.</p>
-            </div>
-            <div className="flex space-x-6">
-              <a className="text-text-light/80 dark:text-text-dark/80 hover:text-primary transition-colors" href="#">Privacy Policy</a>
-              <a className="text-text-light/80 dark:text-text-dark/80 hover:text-primary transition-colors" href="#">Terms & Conditions</a>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700 text-center text-text-light/60 dark:text-text-dark/60">
-            <p>© 2024 Oneness Kingdom. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+
 
       <style jsx>{`
         .hero-gradient {

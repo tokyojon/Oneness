@@ -32,7 +32,7 @@ export default function RootLayout({
           <div className="min-h-screen flex flex-col">
             <Header />
             <main className="flex-grow">{children}</main>
-            {/* The footer is removed from the main layout for dashboard view */}
+            <Footer />
           </div>
           <Toaster />
           <FloatingVoiceChat position="bottom-right" size="medium" />
