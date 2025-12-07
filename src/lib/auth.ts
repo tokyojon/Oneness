@@ -2,7 +2,34 @@
 
 export const isAuthenticated = async (): Promise<{ authenticated: boolean; user?: any }> => {
   try {
-    const response = await fetch('/api/auth/me');
+    let token = localStorage.getItem('auth_token');
+
+    // Also try to find Supabase token if custom token is missing
+    if (!token) {
+      // Simple heuristic to find sb-*-auth-token
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key?.startsWith('sb-') && key?.endsWith('-auth-token')) {
+          const sessionStr = localStorage.getItem(key);
+          if (sessionStr) {
+            try {
+              const session = JSON.parse(sessionStr);
+              if (session.access_token) {
+                token = session.access_token;
+                break;
+              }
+            } catch (e) { /* ignore */ }
+          }
+        }
+      }
+    }
+
+    const headers: HeadersInit = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch('/api/auth/me', { headers });
     if (response.ok) {
       const data = await response.json();
       return { authenticated: true, user: data.user };

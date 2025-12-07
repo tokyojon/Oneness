@@ -138,17 +138,23 @@ export async function PUT(req: NextRequest) {
     console.error('Error updating personality:', error);
     // Fallback: try updating ONLY the jsonb column if explicit columns fail (e.g. they don't exist)
     if (error.code === '42703') { // Undefined column
+      console.warn("Retrying personality update with basic fields only due to missing columns.");
+      const basicUpdates: any = {
+        user_id: user.id,
+        personality_profile: personality_profile,
+        updated_at: new Date().toISOString(),
+      };
+
       const { data: retryData, error: retryError } = await supabase
         .from('user_profiles')
-        .upsert({
-          user_id: user.id,
-          personality_profile: personality_profile,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' })
+        .upsert(basicUpdates, { onConflict: 'user_id' })
         .select()
         .single();
 
-      if (retryError) return NextResponse.json({ error: retryError.message }, { status: 500 });
+      if (retryError) {
+        console.error("Retry personality update failed:", retryError);
+        return NextResponse.json({ error: retryError.message }, { status: 500 });
+      }
       return NextResponse.json({ data: retryData }, { status: 200 });
     }
     return NextResponse.json({ error: error.message }, { status: 500 });
