@@ -1,6 +1,4 @@
-'use client';
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import KawaiiGenerator, { GeneratedAvatarPayload } from "../KawaiiGenerator";
 import { useAuth } from "@/hooks/use-auth";
@@ -13,18 +11,23 @@ interface AvatarSetupModalProps {
   isOpen?: boolean;
   onClose?: () => void;
   onComplete?: () => void;
+  personalityData?: any;
 }
 
 export default function AvatarSetupModal({
   isOpen: controlledIsOpen,
   onClose,
-  onComplete
+  onComplete,
+  personalityData
 }: AvatarSetupModalProps = {}) {
   const { user } = useAuth();
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+
+  // Track if we have already generated the profile to avoid duplicates
+  const hasGeneratedProfile = useRef(false);
 
   // Use controlled state if provided, otherwise use internal state
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
@@ -81,14 +84,99 @@ export default function AvatarSetupModal({
     });
   };
 
+  const generateCharacterProfile = async () => {
+    if (!personalityData || hasGeneratedProfile.current) return;
+
+    console.log("Generating character profile based on:", personalityData);
+    hasGeneratedProfile.current = true; // Prevent multiple calls
+
+    try {
+      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY ?? '';
+      if (!apiKey) {
+        console.error('Gemini API key missing');
+        return;
+      }
+
+      const prompt = `
+        Based on the following user personality traits, create a creative and engaging "Character Profile" (max 200 characters) for a digital kingdom.
+        Traits:
+        - Social Style: ${personalityData.socialStyle}
+        - Communication: ${personalityData.communicationStyle}
+        - Interests: ${personalityData.interests.join(', ')}
+        - Work/Life: ${personalityData.workLifeBalance}
+        - Type: ${personalityData.personalityType}
+        
+        Output only the character description text in Japanese.
+      `;
+
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+      const payload = {
+        contents: [{ parts: [{ text: prompt }] }]
+      };
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) throw new Error('Failed to generate text');
+
+      const data = await response.json();
+      const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (generatedText) {
+        console.log("Generated Character Profile:", generatedText);
+        // Save to DB
+        await saveCharacterProfile(generatedText);
+      }
+
+    } catch (error) {
+      console.error("Error generating character profile:", error);
+      hasGeneratedProfile.current = false; // Reset on error to allow retry
+    }
+  };
+
+  const saveCharacterProfile = async (text: string) => {
+    try {
+      // We need to merge this into the existing personality_profile
+      // Since we don't have a specific endpoint for partial updates to the json column,
+      // and we want to avoid race conditions, ideally the API handles it.
+      // But for now, we'll fetch the current profile first or just send what we have + traits.
+      // Actually, we have 'personalityData' which IS the current profile data from the previous step.
+
+      const updatedProfile = {
+        ...personalityData,
+        traits: text
+      };
+
+      const token = localStorage.getItem('auth_token');
+      await fetch('/api/profile/personality', {
+        method: 'PUT',
+        headers: {
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          personality_profile: updatedProfile
+        }),
+      });
+
+      toast({
+        title: 'キャラクター設定完了',
+        description: 'あなたの性格からキャラクタープロフィールが生成されました！',
+      });
+
+    } catch (error) {
+      console.error("Error saving character profile:", error);
+    }
+  };
+
   const handleAvatarSave = async (data: { avatar: GeneratedAvatarPayload['avatarConfig']; imageUrl: string }) => {
     setIsSaving(true);
     try {
       const token = localStorage.getItem('auth_token');
-      // Note: We are using cookie-based auth mostly, but some components might check this.
-      // If using cookies, we don't strictly need the token header if the API handles cookies.
-      // However, the existing upload code used it.
-
       // Resize and convert to blob
       const blob = await resizeImage(data.imageUrl, 512);
       const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
@@ -102,6 +190,9 @@ export default function AvatarSetupModal({
       const uploadResponse = await fetch('/api/upload/avatar', {
         method: 'POST',
         body: formData,
+        headers: {
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        }
       });
 
       if (!uploadResponse.ok) {
@@ -121,7 +212,7 @@ export default function AvatarSetupModal({
           ...user,
           profile: {
             ...user.profile,
-            avatar_url: result.url || data.imageUrl
+            avatar_url: result.url || result.avatarUrl || data.imageUrl
           }
         };
         login(updatedUser);
@@ -164,6 +255,10 @@ export default function AvatarSetupModal({
         <KawaiiGenerator
           onSave={handleAvatarSave}
           isSaving={isSaving}
+          onGenerationStart={() => {
+            // Trigger character profile generation when avatar generation starts
+            generateCharacterProfile();
+          }}
         />
       </DialogContent>
     </Dialog>

@@ -560,6 +560,7 @@ export default function FirstTimeUserOnboardingModal() {
         isOpen={showAvatarModal}
         onClose={() => setShowAvatarModal(false)}
         onComplete={handleAvatarComplete}
+        personalityData={onboardingData.personality}
       />
     </>
   );

@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-
+import { writeFile, mkdir } from 'fs/promises';
+import path from 'path';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 export const dynamic = 'force-dynamic';
@@ -73,28 +74,25 @@ export async function POST(request: NextRequest) {
     // Generate unique file name
     const fileExt = file.name.split('.').pop() || 'png';
     const fileName = `avatar-${user.id}-${Date.now()}.${fileExt}`;
-    const filePath = `avatars/${fileName}`;
 
-    // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('profile-assets')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: true
-      });
+    // Define filesystem path
+    const uploadDir = path.join(process.cwd(), 'public', 'avatars');
+    const filePath = path.join(uploadDir, fileName);
 
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
-      return NextResponse.json(
-        { error: 'Failed to upload file' },
-        { status: 500 }
-      );
+    // Ensure directory exists
+    try {
+      await mkdir(uploadDir, { recursive: true });
+    } catch (err) {
+      console.error('Error creating directory:', err);
     }
 
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('profile-assets')
-      .getPublicUrl(filePath);
+    // Convert file to buffer and write to disk
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    await writeFile(filePath, buffer);
+
+    // Public URL path
+    const publicUrl = `/avatars/${fileName}`;
 
     // Update user's profile with new avatar URL and config
     const { error: updateError } = await userSupabase
@@ -116,7 +114,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      avatarUrl: publicUrl,
+      url: publicUrl, // Ensure this matches what AvatarSetupModal expects (it expects 'url' or 'avatarUrl'?) 
+      // AvatarSetupModal uses: result.url || data.imageUrl
       message: 'アバターが正常にアップロードされました'
     });
 

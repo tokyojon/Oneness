@@ -447,13 +447,13 @@ export default function KawaiiGenerator({ onAvatarGenerated, onSave, isSaving = 
         {/* --- Download Button --- */}
         {generatedImage && !isLoading && onSave && (
           <div className="flex flex-col md:flex-row flex-wrap justify-center gap-4 mb-6">
-              <button
-                onClick={handleSaveAvatar}
-                disabled={!latestGeneration || isSaving}
-                className="flex items-center justify-center w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-xl shadow-md hover:bg-blue-700 transition-all font-semibold disabled:bg-gray-300"
-              >
-                {isSaving ? '保存中...' : 'アバターを保存'}
-              </button>
+            <button
+              onClick={handleSaveAvatar}
+              disabled={!latestGeneration || isSaving}
+              className="flex items-center justify-center w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-xl shadow-md hover:bg-blue-700 transition-all font-semibold disabled:bg-gray-300"
+            >
+              {isSaving ? '保存中...' : 'アバターを確定'}
+            </button>
           </div>
         )}
 
@@ -466,22 +466,20 @@ export default function KawaiiGenerator({ onAvatarGenerated, onSave, isSaving = 
             <button
               onClick={() => setGender('female')}
               disabled={isLoading}
-              className={`w-1/2 md:w-1/3 py-3 rounded-xl font-bold transition-all ${
-                gender === 'female'
+              className={`w-1/2 md:w-1/3 py-3 rounded-xl font-bold transition-all ${gender === 'female'
                   ? 'bg-pink-500 text-white shadow-lg'
                   : 'bg-white text-pink-500 border-2 border-gray-300'
-              }`}
+                }`}
             >
               女性
             </button>
             <button
               onClick={() => setGender('male')}
               disabled={isLoading}
-              className={`w-1/2 md:w-1/3 py-3 rounded-xl font-bold transition-all ${
-                gender === 'male'
+              className={`w-1/2 md:w-1/3 py-3 rounded-xl font-bold transition-all ${gender === 'male'
                   ? 'bg-blue-500 text-white shadow-lg'
                   : 'bg-white text-blue-500 border-2 border-gray-300'
-              }`}
+                }`}
             >
               男性
             </button>
