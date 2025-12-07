@@ -168,62 +168,89 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PUT(request: NextRequest) {
-  try {
-    // Update user profile
-    const { display_name, bio, location, avatar_url, banner_url } = await request.json();
+export async function PUT(req: NextRequest) {
+  const supabase = getSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-    const supabase = getSupabaseServerClient();
-
-    const authHeader = request.headers.get('authorization');
-    let token = '';
-
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      token = authHeader.split(' ')[1];
-    } else {
-      // Fallback to cookies
-      const cookieHeader = request.headers.get('cookie');
-      if (cookieHeader) {
-        const cookies: Record<string, string> = {};
-        cookieHeader.split(';').forEach(cookie => {
-          const [name, value] = cookie.trim().split('=');
-          if (name && value) {
-            cookies[name] = value;
-          }
-        });
-        token = cookies['access_token'];
-      }
-    }
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Unauthorized - No token found' },
-        { status: 401 }
-      );
-    }
-
-    // Verify the user is authenticated by decoding the JWT
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
-      );
-    }
-
-    // Create a Supabase client for database operations with user context
-    const userSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      }
-    );
-
-    // Dynamic payload construction
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  let body: any;
+  try {
+    body = await req.json();
+  } catch (err) {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+
+  // Accept either camelCase keys or snake_case; normalize to snake_case for DB
+  const updates: any = {};
+
+  if ('display_name' in body) updates.display_name = body.display_name;
+  if ('displayName' in body) updates.display_name = body.displayName;
+  if ('bio' in body) updates.bio = body.bio;
+  if ('location' in body) updates.location = body.location;
+  if ('username' in body) updates.username = body.username;
+  if ('avatar_url' in body) updates.avatar_url = body.avatar_url;
+
+  // Ensure display_name is set for new profiles (NOT NULL constraint)
+  if (!updates.display_name) {
+    const { data: existing } = await supabase.from('user_profiles').select('display_name').eq('user_id', user.id).single();
+    if (!existing) {
+      updates.display_name = user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email?.split('@')[0] ||
+        'Kingdom Citizen';
+    }
+  }
+
+  // allow clients to optionally include personality fields in same call
+  if ('personality_profile' in body && typeof body.personality_profile === 'object') {
+    const p = body.personality_profile;
+    if ('socialStyle' in p) updates.social_style = p.socialStyle;
+    if ('communicationStyle' in p) updates.communication_style = p.communicationStyle;
+    if ('interests' in p && Array.isArray(p.interests)) updates.interests = p.interests.map(String);
+    if ('workLifeBalance' in p) updates.work_life_balance = p.workLifeBalance;
+    if ('meetingPreference' in p) updates.meeting_preference = p.meetingPreference;
+    if ('personalityType' in p) updates.personality_type = p.personalityType;
+    updates.personality_profile = p;
+  }
+
+  const dbRow = {
+    user_id: user.id,
+    ...updates,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .upsert(dbRow, { onConflict: 'user_id' })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Profile update error:", error);
+    // Fallback if specific columns fail (e.g. they don't exist yet)
+    if (error.code === '42703') {
+      const basicUpdates = { ...dbRow };
+      delete basicUpdates.social_style;
+      delete basicUpdates.communication_style;
+      delete basicUpdates.interests;
+      delete basicUpdates.work_life_balance;
+      delete basicUpdates.meeting_preference;
+      delete basicUpdates.personality_type;
+
+      const { data: retryData, error: retryError } = await supabase
+        .from('user_profiles')
+        .upsert(basicUpdates, { onConflict: 'user_id' })
+        .select()
+        .single();
+
+      if (retryError) return NextResponse.json({ error: retryError.message }, { status: 500 });
+      return NextResponse.json({ data: retryData }, { status: 200 });
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ data }, { status: 200 });
+}
