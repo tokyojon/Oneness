@@ -170,7 +170,36 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   const supabase = getSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+
+  // Get token from header or cookies
+  const authHeader = req.headers.get('authorization');
+  let token = '';
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  } else {
+    // Fallback to cookies
+    const cookieHeader = req.headers.get('cookie');
+    if (cookieHeader) {
+      const cookies: Record<string, string> = {};
+      cookieHeader.split(';').forEach(cookie => {
+        const [name, value] = cookie.trim().split('=');
+        if (name && value) {
+          cookies[name] = value;
+        }
+      });
+      // Try common cookie names
+      token = cookies['access_token'] || cookies['sb-access-token'] || '';
+    }
+  }
+
+  // If we still don't have a token, we can't verify the user via this method
+  // unless we trust the session cookie handled by middleware. 
+  // But getSupabaseServerClient is just a raw client.
+
+  // Note: getSupabaseServerClient uses Service Role. 
+  // We MUST use the token to get the user safely.
+  const { data: { user } } = await supabase.auth.getUser(token);
 
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

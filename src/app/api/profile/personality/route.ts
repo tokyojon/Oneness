@@ -45,7 +45,29 @@ export const dynamic = 'force-dynamic';
 export async function PUT(req: NextRequest) {
   // Maintaining PUT method compatibility with frontend, but implementation uses provided logic
   const supabase = getSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+
+  // Get token from header or cookies
+  const authHeader = req.headers.get('authorization');
+  let token = '';
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  } else {
+    // Fallback to cookies
+    const cookieHeader = req.headers.get('cookie');
+    if (cookieHeader) {
+      const cookies: Record<string, string> = {};
+      cookieHeader.split(';').forEach(cookie => {
+        const [name, value] = cookie.trim().split('=');
+        if (name && value) {
+          cookies[name] = value;
+        }
+      });
+      token = cookies['access_token'] || cookies['sb-access-token'] || '';
+    }
+  }
+
+  const { data: { user } } = await supabase.auth.getUser(token);
 
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
