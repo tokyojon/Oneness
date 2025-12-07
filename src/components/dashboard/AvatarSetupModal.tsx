@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { supabase } from '@/lib/supabase';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import KawaiiGenerator, { GeneratedAvatarPayload } from "../KawaiiGenerator";
 import { useAuth } from "@/hooks/use-auth";
@@ -151,7 +152,8 @@ export default function AvatarSetupModal({
         traits: text
       };
 
-      const token = localStorage.getItem('auth_token');
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || localStorage.getItem('auth_token');
       await fetch('/api/profile/personality', {
         method: 'PUT',
         headers: {
@@ -176,7 +178,8 @@ export default function AvatarSetupModal({
   const handleAvatarSave = async (data: { avatar: GeneratedAvatarPayload['avatarConfig']; imageUrl: string }) => {
     setIsSaving(true);
     try {
-      const token = localStorage.getItem('auth_token');
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || localStorage.getItem('auth_token');
       // Resize and convert to blob
       const blob = await resizeImage(data.imageUrl, 512);
       const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });

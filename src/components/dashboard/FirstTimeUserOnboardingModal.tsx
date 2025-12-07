@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -161,7 +162,8 @@ export default function FirstTimeUserOnboardingModal() {
 
   const saveBasicInfo = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || localStorage.getItem('auth_token');
       const response = await fetch('/api/profile', {
         method: 'PUT',
         headers: {
@@ -192,7 +194,8 @@ export default function FirstTimeUserOnboardingModal() {
 
   const savePersonalityProfile = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || localStorage.getItem('auth_token');
       const response = await fetch('/api/profile/personality', {
         method: 'PUT',
         headers: {
@@ -221,7 +224,8 @@ export default function FirstTimeUserOnboardingModal() {
 
   const completeOnboarding = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || localStorage.getItem('auth_token');
       const response = await fetch('/api/profile/complete-onboarding', {
         method: 'PUT',
         headers: {
