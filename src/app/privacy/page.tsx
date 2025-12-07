@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import React from 'react';
 
 const privacyPolicyContent = `ワンネス王国 利用規約
 
