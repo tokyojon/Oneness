@@ -4,6 +4,10 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from 'lucide-react';
 
 const EDGE_FUNCTION_URL = 'https://edfixzjpvsqpebzehsqy.functions.supabase.co/create-user-profile';
 
@@ -14,238 +18,255 @@ export default function SignupPage() {
     password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [isError, setIsError] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage('');
-    setIsError(false);
+    setIsLoading(true);
 
     const name = formData.name.trim();
     const email = formData.email.trim();
     const password = formData.password;
 
     if (!name || !email || !password) {
-      setMessage('すべての項目を入力してください。');
-      setIsError(true);
-      return;
-    }
-
-    if (name.length < 2) {
-      setMessage('お名前は2文字以上で入力してください。');
-      setIsError(true);
+      toast({
+        variant: "destructive",
+        title: "入力エラー",
+        description: "すべての項目を入力してください。",
+      });
+      setIsLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      setMessage('パスワードは6文字以上で入力してください。');
-      setIsError(true);
+      toast({
+        variant: "destructive",
+        title: "パスワードエラー",
+        description: "パスワードは6文字以上で入力してください。",
+      });
+      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
-
     try {
-      console.log('Attempting to sign up user...');
-
-      // Sign up user
-      const { data: signData, error: signError } = await supabase.auth.signUp({
+      // 1. Sign up with Supabase
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: name } }
+        options: {
+          data: { full_name: name }
+        }
       });
 
-      if (signError) {
-        console.error('Sign up error:', signError);
-        setMessage('登録エラー: ' + signError.message);
-        setIsError(true);
-        return;
-      }
+      if (signUpError) throw signUpError;
 
-      console.log('Sign up successful:', signData);
+      if (authData.user) {
+        // 2. Create User Profile via Edge Function
+        // We use the session access token if available, otherwise we might need to wait for the session
+        let token = authData.session?.access_token;
 
-      // If email confirmation required, signData.user may be null
-      const user = signData?.user;
-      const session = signData?.session;
+        if (!token) {
+          // If email confirmation is required, we might not get a session immediately.
+          // But for this flow we assume we can proceed or tell the user to check email.
+          const { data: sessionData } = await supabase.auth.getSession();
+          token = sessionData.session?.access_token;
+        }
 
-      if (!user) {
-        setMessage('登録を受け付けました。メールアドレスの確認をお願いします。');
-        setIsError(false);
-        return;
-      }
+        if (token) {
+          try {
+            const profileRes = await fetch(EDGE_FUNCTION_URL, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                user_id: authData.user.id,
+                display_name: name
+              })
+            });
 
-      // Obtain the user's access token (JWT)
-      const token = session?.access_token || (await supabase.auth.getSession()).data.session?.access_token;
+            if (!profileRes.ok) {
+              console.error('Profile creation warning:', await profileRes.text());
+              // We don't block registration on profile creation failure, strictly speaking, 
+              // but it might cause issues later. We log it.
+            }
+          } catch (profileError) {
+            console.error("Failed to call profile creation edge function", profileError);
+          }
+        }
 
-      if (!token) {
-        setMessage('登録されましたが、プロフィール作成用の認証トークンを取得できませんでした。メール確認後にサインインしてください。');
-        setIsError(false);
-        return;
-      }
+        toast({
+          title: "登録成功",
+          description: "アカウントが作成されました。ダッシュボードへ移動します。",
+        });
 
-      console.log('Calling edge function to create profile...');
-
-      // Call Edge Function to create profile using user's JWT
-      const res = await fetch(EDGE_FUNCTION_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        },
-        body: JSON.stringify({ user_id: user.id, display_name: name })
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        console.error('Profile creation failed:', err);
-        setMessage('登録されましたが、プロフィール作成に失敗しました: ' + (err.error || res.statusText));
-        setIsError(true);
-        return;
-      }
-
-      console.log('Profile created successfully');
-      setMessage('登録とプロフィール作成が完了しました。サインインしています。');
-      setIsError(false);
-
-      // Save auth token for dashboard access
-      if (token) {
-        localStorage.setItem('auth_token', token);
-      }
-
-      // Redirect to dashboard after successful registration
-      setTimeout(() => {
+        // 3. Redirect
         router.push('/dashboard');
-      }, 2000);
+      } else {
+        // Should ideally not happen if auto-confirm is on, otherwise:
+        toast({
+          title: "確認メールを送信しました",
+          description: "メールを確認して登録を完了してください。",
+        });
+      }
 
-    } catch (err) {
-      console.error('Unexpected error:', err);
-      setMessage('予期せぬエラーが発生しました');
-      setIsError(true);
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      toast({
+        variant: "destructive",
+        title: "登録エラー",
+        description: error.message || "予期せぬエラーが発生しました。",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleGoogleSignup = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Googleログインエラー",
+        description: error.message,
+      });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans">
-      <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
-        <div className="flex h-full grow flex-col">
-          {/* Main Content */}
-          <div className="flex flex-1 justify-center py-5 sm:px-6 lg:px-8 pt-24">
-            <div className="flex flex-col w-full max-w-md flex-1">
-              <main className="flex-grow pt-8">
-                <div className="px-4 sm:px-6">
-                  <h1 className="text-slate-900 dark:text-slate-100 tracking-tight text-[32px] font-bold leading-tight text-center pb-3">Create account</h1>
+    <div className="min-h-screen bg-[#f8f7f6] dark:bg-[#221810] text-[#181411] dark:text-gray-200 font-sans flex flex-col">
+      <div className="flex-1 flex flex-col justify-center items-center px-4 py-12 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center">
+            <div className="mx-auto w-12 h-12 text-[#ec6d13] mb-4">
+              <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <path d="M44 4H30.6666V17.3334H17.3334V30.6666H4V44H44V4Z" fill="currentColor"></path>
+              </svg>
+            </div>
+            <h2 className="text-3xl font-black tracking-tight">アカウント作成</h2>
+            <p className="mt-2 text-sm text-[#897261] dark:text-gray-400">
+              ワンネスキングダムへようこそ
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800/50 py-8 px-4 shadow-[0_0_4px_rgba(0,0,0,0.05)] rounded-xl sm:px-10 border border-[#e6e0db] dark:border-gray-700">
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-[#181411] dark:text-gray-200">
+                  お名前
+                </label>
+                <div className="mt-1">
+                  <Input
+                    id="name"
+                    name="name"
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="山田 太郎"
+                    className="h-12"
+                  />
                 </div>
+              </div>
 
-                <div className="flex justify-center mt-6">
-                  <div className="flex w-full gap-3 flex-wrap px-4 py-3 max-w-sm justify-center">
-                    <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm font-bold leading-normal tracking-[0.015em] grow gap-2 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M21.8 12.2c0-.7-.1-1.5-.2-2.2H12v4.1h5.5c-.2 1.4-.9 2.5-2.1 3.3v2.7h3.5c2-1.9 3.2-4.6 3.2-7.9Z" fill="#4285F4"></path>
-                        <path d="M12 22c2.7 0 5-1 6.6-2.6l-3.5-2.7c-.9.6-2.1 1-3.2 1-2.4 0-4.5-1.6-5.2-3.8H3.2v2.8C5 20.1 8.3 22 12 22Z" fill="#34A853"></path>
-                        <path d="M6.8 14.3c-.2-.6-.3-1.2-.3-1.8s.1-1.2.3-1.8V8.1H3.2C2.4 9.7 2 11.2 2 12.5s.4 2.8 1.2 4.4l3.6-2.6Z" fill="#FBBC05"></path>
-                        <path d="M12 6.8c1.5 0 2.8.5 3.8 1.5l3.1-3.1C17 .8 14.7 0 12 0 8.3 0 5 1.9 3.2 4.7l3.6 2.8c.7-2.2 2.8-3.7 5.2-3.7Z" fill="#EA4335"></path>
-                      </svg>
-                      <span className="truncate">Googleで登録</span>
-                    </button>
-                  </div>
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-[#181411] dark:text-gray-200">
+                  メールアドレス
+                </label>
+                <div className="mt-1">
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="you@example.com"
+                    className="h-12"
+                  />
                 </div>
+              </div>
 
-                <p className="text-slate-600 dark:text-slate-400 text-sm font-normal leading-normal pb-3 pt-1 px-4 text-center">または</p>
-
-                <div className="flex justify-center">
-                  <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4 px-4 py-3 max-w-sm">
-                    <label className="flex flex-col min-w-40 flex-1">
-                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">お名前</p>
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        placeholder="お名前を入力してください"
-                        className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-green-600/50 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-green-600 h-14 placeholder:text-slate-500 dark:placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal transition-colors"
-                        required
-                        minLength={2}
-                      />
-                    </label>
-
-                    <label className="flex flex-col min-w-40 flex-1">
-                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">メールアドレス</p>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        placeholder="you@example.com"
-                        className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-green-600/50 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-green-600 h-14 placeholder:text-slate-500 dark:placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal transition-colors"
-                        required
-                      />
-                    </label>
-
-                    <label className="flex flex-col min-w-40 flex-1">
-                      <p className="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal pb-2">パスワード</p>
-                      <input
-                        type="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        placeholder="6文字以上"
-                        className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-green-600/50 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-green-600 h-14 placeholder:text-slate-500 dark:placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal transition-colors"
-                        required
-                        minLength={6}
-                      />
-                    </label>
-
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="flex mt-2 min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-full h-14 px-4 bg-blue-600 text-white text-base font-bold leading-normal tracking-[0.015em] transition-transform hover:scale-[1.02] disabled:opacity-50"
-                    >
-                      <span className="truncate">
-                        {isLoading ? '登録中...' : '登録する'}
-                      </span>
-                    </button>
-                  </form>
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-[#181411] dark:text-gray-200">
+                  パスワード
+                </label>
+                <div className="mt-1">
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="h-12"
+                  />
                 </div>
+              </div>
 
-                {/* Message Display */}
-                {message && (
-                  <div className={`px-4 py-3 mt-4 text-center ${isError ? 'text-red-600' : 'text-green-600'}`}>
-                    {message}
-                  </div>
-                )}
-              </main>
+              <div>
+                <Button
+                  type="submit"
+                  className="w-full h-12 bg-[#ec6d13] hover:bg-[#d45f0f] text-white font-bold"
+                  disabled={isLoading}
+                >
+                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  {isLoading ? '登録中...' : '登録する'}
+                </Button>
+              </div>
+            </form>
 
-              <div className="px-4 py-8 text-center">
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                  By registering, you agree to our <a className="font-medium text-blue-600/80 hover:text-blue-600" href="#">Terms of Service</a> and <a className="font-medium text-blue-600/80 hover:text-blue-600" href="#">Privacy Policy</a>.
-                </p>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Already have an account? <Link href="/login" className="font-bold text-blue-600 hover:underline">Sign in</Link>
-                </p>
+            <div className="mt-6">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-[#e6e0db] dark:border-gray-700" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white dark:bg-gray-800 text-[#897261]">
+                    または
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <Button
+                  variant="outline"
+                  onClick={handleGoogleSignup}
+                  className="w-full h-12 border-[#e6e0db] dark:border-gray-700 gap-2"
+                >
+                  <svg className="h-5 w-5" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M12.0003 20.45c4.6667 0 8.5-3.83 8.5-8.5 0-4.67-3.8333-8.5-8.5-8.5-4.6667 0-8.50002 3.83-8.50002 8.5 0 4.67 3.83332 8.5 8.50002 8.5Z" stroke="#000000" strokeWidth="2" strokeMiterlimit="10" fill="none" />
+                    <path d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22Z" fill="white" />
+                    <path d="M11.99 12.01L12.01 11.99" stroke="#E6E0DB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Googleで登録
+                </Button>
               </div>
             </div>
           </div>
 
-          {/* Footer */}
-          <footer className="flex w-full shrink-0 flex-col items-center justify-center gap-2 border-t border-slate-200 dark:border-slate-700 px-4 py-6 sm:flex-row md:px-6">
-            <p className="text-sm text-slate-600 dark:text-slate-400">© 2024 Oneness Kingdom. All rights reserved.</p>
-            <nav className="flex gap-4 sm:ml-auto sm:gap-6">
-              <a className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100" href="#">Terms of Service</a>
-              <a className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100" href="#">Privacy Policy</a>
-            </nav>
-          </footer>
+          <p className="text-center text-sm text-[#897261] dark:text-gray-400">
+            すでにアカウントをお持ちですか？{' '}
+            <Link href="/login" className="font-bold text-[#ec6d13] hover:text-[#d45f0f]">
+              ログイン
+            </Link>
+          </p>
         </div>
       </div>
     </div>
