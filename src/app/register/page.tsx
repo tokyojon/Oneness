@@ -55,62 +55,29 @@ export default function SignupPage() {
     }
 
     try {
-      // 1. Sign up with Supabase
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: name }
-        }
+      console.log('Attempting to register user via API...');
+
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
       });
 
-      if (signUpError) throw signUpError;
+      const data = await response.json();
 
-      if (authData.user) {
-        // 2. Create User Profile via Edge Function
-        // We use the session access token if available, otherwise we might need to wait for the session
-        let token = authData.session?.access_token;
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed');
+      }
 
-        if (!token) {
-          // If email confirmation is required, we might not get a session immediately.
-          // But for this flow we assume we can proceed or tell the user to check email.
-          const { data: sessionData } = await supabase.auth.getSession();
-          token = sessionData.session?.access_token;
-        }
-
-        if (token) {
-          try {
-            const profileRes = await fetch(EDGE_FUNCTION_URL, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-              },
-              body: JSON.stringify({
-                user_id: authData.user.id,
-                display_name: name
-              })
-            });
-
-            if (!profileRes.ok) {
-              console.error('Profile creation warning:', await profileRes.text());
-              // We don't block registration on profile creation failure, strictly speaking, 
-              // but it might cause issues later. We log it.
-            }
-          } catch (profileError) {
-            console.error("Failed to call profile creation edge function", profileError);
-          }
-        }
-
+      if (data.user) {
         toast({
           title: "登録成功",
           description: "アカウントが作成されました。ダッシュボードへ移動します。",
         });
 
-        // 3. Redirect
+        // Redirect
         router.push('/dashboard');
       } else {
-        // Should ideally not happen if auto-confirm is on, otherwise:
         toast({
           title: "確認メールを送信しました",
           description: "メールを確認して登録を完了してください。",

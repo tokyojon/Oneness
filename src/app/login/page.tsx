@@ -27,6 +27,8 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setMessage('');
+    setIsError(false);
 
     const email = formData.email.trim();
     const password = formData.password;
@@ -37,33 +39,40 @@ export default function LoginPage() {
         title: "入力エラー",
         description: "メールアドレスとパスワードを入力してください。",
       });
+      setMessage('すべての項目を入力してください。');
+      setIsError(true);
       return;
     }
 
     setIsLoading(true);
 
     try {
-      console.log('Attempting to sign in user...');
+      console.log('Attempting to sign in user via API...');
 
-      // Sign in user
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (signInError) {
-        throw signInError;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
       }
 
-      console.log('Sign in successful:', signInData);
+      console.log('Sign in successful:', data);
+      setMessage('ログインに成功しました！');
+      setIsError(false);
 
-      // Update local storage for compatibility with other components
-      if (signInData.user) {
-        login(signInData.user);
+      // Update local storage for legacy compatibility if needed
+      if (data.user) {
+        login(data.user);
       }
-      if (signInData.session?.access_token) {
-        localStorage.setItem('auth_token', signInData.session.access_token);
-      }
+      // Note: access_token is now in httpOnly cookie, so we don't set it in localStorage
+      // However, some components might still look for it. For now, we rely on cookies.
+      // If client-side components need it, we might need to change strategy.
+      // But adhering to "Remove Direct Supabase Interaction" implies we shouldn't use the token on client.
 
       toast({
         title: "ログイン成功",
@@ -82,6 +91,8 @@ export default function LoginPage() {
         title: "ログインエラー",
         description: err.message || "メールアドレスまたはパスワードが正しくありません。",
       });
+      setMessage(err.message || 'ログインエラー');
+      setIsError(true);
     } finally {
       setIsLoading(false);
     }
