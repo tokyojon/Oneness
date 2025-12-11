@@ -1,8 +1,21 @@
 // Authentication utility functions using API calls and cookies for tokens, localStorage for user data only
 
+import { supabase } from '@/lib/supabase';
+
 export const isAuthenticated = async (): Promise<{ authenticated: boolean; user?: any }> => {
   try {
-    let token = localStorage.getItem('auth_token');
+    let token: string | undefined;
+
+    // Try to get session from Supabase SDK first (handles refresh automatically)
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+      token = session.access_token;
+    }
+
+    // Fallback to manual token from localStorage if SDK has no session
+    if (!token) {
+      token = localStorage.getItem('auth_token') || undefined;
+    }
 
     // Also try to find Supabase token if custom token is missing
     if (!token) {
