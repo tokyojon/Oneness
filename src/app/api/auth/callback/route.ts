@@ -4,6 +4,49 @@ import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
+export async function GET(request: NextRequest) {
+  const requestUrl = new URL(request.url);
+  const code = requestUrl.searchParams.get('code');
+
+  if (code) {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    try {
+      const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (!error && session) {
+        const response = NextResponse.redirect(new URL('/dashboard', request.url));
+
+        response.cookies.set('access_token', session.access_token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 60 * 60 * 24 * 7,
+        });
+
+        response.cookies.set('refresh_token', session.refresh_token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 60 * 60 * 24 * 30,
+        });
+
+        return response;
+      }
+    } catch (error) {
+      console.error('Auth callback GET error:', error);
+    }
+  }
+
+  // Fallback to login if something fails
+  return NextResponse.redirect(new URL('/login', request.url));
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log('Auth callback: Starting...');

@@ -27,8 +27,6 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage('');
-    setIsError(false);
 
     const email = formData.email.trim();
     const password = formData.password;
@@ -39,8 +37,6 @@ export default function LoginPage() {
         title: "入力エラー",
         description: "メールアドレスとパスワードを入力してください。",
       });
-      setMessage('すべての項目を入力してください。');
-      setIsError(true);
       return;
     }
 
@@ -62,17 +58,11 @@ export default function LoginPage() {
       }
 
       console.log('Sign in successful:', data);
-      setMessage('ログインに成功しました！');
-      setIsError(false);
 
       // Update local storage for legacy compatibility if needed
       if (data.user) {
         login(data.user);
       }
-      // Note: access_token is now in httpOnly cookie, so we don't set it in localStorage
-      // However, some components might still look for it. For now, we rely on cookies.
-      // If client-side components need it, we might need to change strategy.
-      // But adhering to "Remove Direct Supabase Interaction" implies we shouldn't use the token on client.
 
       toast({
         title: "ログイン成功",
@@ -91,8 +81,6 @@ export default function LoginPage() {
         title: "ログインエラー",
         description: err.message || "メールアドレスまたはパスワードが正しくありません。",
       });
-      setMessage(err.message || 'ログインエラー');
-      setIsError(true);
     } finally {
       setIsLoading(false);
     }
@@ -103,7 +91,7 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `${window.location.origin}/api/auth/callback`
         }
       });
 
