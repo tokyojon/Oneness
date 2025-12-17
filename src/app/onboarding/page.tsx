@@ -2,7 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+<<<<<<< HEAD
 import { updateProfile } from './actions' // We'll import the server action
+=======
+import { updateProfile } from './actions'
+>>>>>>> ae6cab7 (init)
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -21,7 +25,10 @@ export default function OnboardingProfilePage() {
         // Call server action
         const result = await updateProfile(formData)
 
+<<<<<<< HEAD
         // updateProfile redirects on success, so if we get here with result, it's an error or we need to handle it
+=======
+>>>>>>> ae6cab7 (init)
         if (result?.error) {
             setError(result.error)
             setIsLoading(false)
@@ -30,7 +37,10 @@ export default function OnboardingProfilePage() {
 
     return (
         <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-[#faf9f6] dark:bg-[#1a1614]">
+<<<<<<< HEAD
             {/* Background Elements */}
+=======
+>>>>>>> ae6cab7 (init)
             <div className="absolute inset-0 z-0">
                 <div className="absolute top-[10%] left-[20%] w-[500px] h-[500px] rounded-full bg-emerald-400/10 blur-[120px]" />
                 <div className="absolute bottom-[20%] right-[20%] w-[400px] h-[400px] rounded-full bg-blue-400/10 blur-[100px]" />
@@ -101,7 +111,10 @@ export default function OnboardingProfilePage() {
                         </Button>
                     </form>
 
+<<<<<<< HEAD
                     {/* Progress Indicator */}
+=======
+>>>>>>> ae6cab7 (init)
                     <div className="mt-8 flex justify-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-primary" />
                         <div className="w-2 h-2 rounded-full bg-stone-300 dark:bg-stone-700" />
