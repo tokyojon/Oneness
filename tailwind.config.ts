@@ -72,27 +72,6 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
-        // Custom colors from HTML landing page
-        'background-light': '#FEFBF6',
-        'background-dark': '#1C1C1C',
-        'text-light': '#333333',
-        'text-dark': '#E0E0E0',
-        'card-light': '#FFFFFF',
-        'card-dark': '#2D2D2D',
-        'terracotta': '#E07A5F',
-        'olive': '#84A98C',
-        'warm-primary': '#D4A373',
-        'register-primary': '#73c91d',
-        'register-bg-light': '#f7f8f6',
-        'register-bg-dark': '#192111',
-        'register-text-light': '#141711',
-        'register-text-dark': '#e0e5dc',
-        'register-subtle-light': '#758764',
-        'register-subtle-dark': '#a0a89a',
-        'register-border-light': '#e0e5dc',
-        'register-border-dark': '#3a4232',
-        'register-button-light': '#f2f4f0',
-        'register-button-dark': '#2a3321',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -126,16 +105,11 @@ export default {
             transform: 'translateY(0)',
           },
         },
-        pulseShadow: {
-          '0%, 100%': { boxShadow: '0 0 0 0 rgba(212, 163, 115, 0.4)' },
-          '50%': { boxShadow: '0 0 0 10px rgba(212, 163, 115, 0)' }
-        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
-        pulseShadow: 'pulseShadow 2.5s infinite'
       },
     },
   },

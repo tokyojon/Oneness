@@ -1,13 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-import { getSupabaseServerClient } from '@/lib/supabase-server';
-
-export const dynamic = 'force-dynamic';
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(request: NextRequest, { params }: { params: { postId: string } }) {
   try {
-    const supabase = getSupabaseServerClient();
     const { postId } = params;
 
     // Get the user from the session using Supabase auth
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
     }
 
     const token = authHeader.split(' ')[1];
-
+    
     // Verify the user is authenticated by decoding the JWT
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 

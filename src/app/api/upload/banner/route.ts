@@ -1,13 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-import { getSupabaseServerClient } from '@/lib/supabase-server';
-
-export const dynamic = 'force-dynamic';
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabaseServerClient();
     // Get the user from the session using Supabase auth
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     const token = authHeader.split(' ')[1];
-
+    
     // Create a Supabase client with the user's JWT token
     const userSupabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

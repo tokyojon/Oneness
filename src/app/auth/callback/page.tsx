@@ -2,13 +2,13 @@ import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-import { getSupabaseServerClient } from '@/lib/supabase-server';
-
-export const dynamic = 'force-dynamic';
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export default async function AuthCallback() {
   try {
-    const supabase = getSupabaseServerClient();
     const cookieStore = await cookies();
     const { data, error } = await supabase.auth.getSession();
 
@@ -27,9 +27,9 @@ export default async function AuthCallback() {
     if (profileError && profileError.code === 'PGRST116') {
       // Profile doesn't exist, create it
       const displayName = data.session.user.user_metadata?.full_name ||
-        data.session.user.user_metadata?.name ||
-        data.session.user.email?.split('@')[0] ||
-        'User';
+                         data.session.user.user_metadata?.name ||
+                         data.session.user.email?.split('@')[0] ||
+                         'User';
 
       const { error: createProfileError } = await supabase
         .from('user_profiles')

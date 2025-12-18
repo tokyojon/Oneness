@@ -1,19 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-import { getSupabaseServerClient } from '@/lib/supabase-server';
-
-export const dynamic = 'force-dynamic';
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = getSupabaseServerClient();
     console.log('GET /api/posts - Starting posts fetch...');
-
+    
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '6');
     const offset = parseInt(searchParams.get('offset') || '0');
-
+    
     const authHeader = request.headers.get('authorization');
     let user: any | null = null;
     let token: string | null = null;
@@ -21,47 +21,34 @@ export async function GET(request: NextRequest) {
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.split(' ')[1];
-    } else {
-      // Fallback to cookies
-      const cookieHeader = request.headers.get('cookie');
-      if (cookieHeader) {
-        const cookies: Record<string, string> = {};
-        cookieHeader.split(';').forEach(cookie => {
-          const [name, value] = cookie.trim().split('=');
-          if (name && value) {
-            cookies[name] = value;
-          }
-        });
-        token = cookies['access_token'] || null;
-      }
-    }
-
-    if (token) {
       console.log('GET /api/posts - Token found');
 
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token);
 
       if (authError || !authUser) {
         console.log('GET /api/posts - Invalid token:', authError);
-        // If token is invalid, we just proceed as anonymous for GET
-      } else {
-        user = authUser;
-        console.log('GET /api/posts - User authenticated:', user.id);
-
-        userSupabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          {
-            global: {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          }
+        return NextResponse.json(
+          { error: 'Invalid token' },
+          { status: 401 }
         );
       }
+
+      user = authUser;
+      console.log('GET /api/posts - User authenticated:', user.id);
+
+      userSupabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        }
+      );
     } else {
-      console.log('GET /api/posts - No authorization header or cookie, proceeding anonymously');
+      console.log('GET /api/posts - No authorization header, proceeding anonymously');
     }
 
     // Get posts with user information using service supabase to show all posts
@@ -182,41 +169,21 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabaseServerClient();
     console.log('POST /api/posts - Starting post creation...');
-
-    // Get the user from the session using Supabase auth
+    
     // Get the user from the session using Supabase auth
     const authHeader = request.headers.get('authorization');
-    let token = '';
-
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      token = authHeader.split(' ')[1];
-    } else {
-      // Fallback to cookies
-      const cookieHeader = request.headers.get('cookie');
-      if (cookieHeader) {
-        const cookies: Record<string, string> = {};
-        cookieHeader.split(';').forEach(cookie => {
-          const [name, value] = cookie.trim().split('=');
-          if (name && value) {
-            cookies[name] = value;
-          }
-        });
-        token = cookies['access_token'];
-      }
-    }
-
-    if (!token) {
-      console.log('POST /api/posts - No authorization token found');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('POST /api/posts - No authorization header');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
+    const token = authHeader.split(' ')[1];
     console.log('POST /api/posts - Token found');
-
+    
     // Verify the user is authenticated by decoding the JWT
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 

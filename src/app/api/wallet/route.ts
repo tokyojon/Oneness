@@ -1,6 +1,10 @@
-import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { createClient } from '@supabase/supabase-js';
+import { NextRequest, NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic';
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,9 +18,8 @@ export async function GET(request: NextRequest) {
     }
 
     const token = authHeader.split(' ')[1];
-
+    
     // Verify the user is authenticated by decoding the JWT
-    const supabase = getSupabaseServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {

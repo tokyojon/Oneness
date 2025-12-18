@@ -1,45 +1,29 @@
-import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic';
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function GET(request: NextRequest) {
   try {
     // Get the user from the session using Supabase auth
     const authHeader = request.headers.get('authorization');
-    let token = '';
-
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      token = authHeader.split(' ')[1];
-    } else {
-      // Fallback to cookies
-      const cookieHeader = request.headers.get('cookie');
-      if (cookieHeader) {
-        const cookies: Record<string, string> = {};
-        cookieHeader.split(';').forEach(cookie => {
-          const [name, value] = cookie.trim().split('=');
-          if (name && value) {
-            cookies[name] = value;
-          }
-        });
-        token = cookies['access_token'];
-      }
-    }
-
-    if (!token) {
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
-        { error: 'Unauthorized - No token found' },
+        { error: 'Unauthorized - No Bearer token' },
         { status: 401 }
       );
     }
 
+    const token = authHeader.split(' ')[1];
+    
     // Verify the user is authenticated by decoding the JWT
-    const supabase = getSupabaseServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError) {
-      console.error('API Auth Error:', authError.message);
       return NextResponse.json(
         { error: 'Invalid token - ' + authError.message },
         { status: 401 }
@@ -169,133 +153,76 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PUT(req: NextRequest) {
-  const supabase = getSupabaseServerClient();
-
-  // Get token from header or cookies
-  const authHeader = req.headers.get('authorization');
-  let token = '';
-
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.split(' ')[1];
-  } else {
-    // Fallback to cookies
-    const cookieHeader = req.headers.get('cookie');
-    if (cookieHeader) {
-      const cookies: Record<string, string> = {};
-      cookieHeader.split(';').forEach(cookie => {
-        const [name, value] = cookie.trim().split('=');
-        if (name && value) {
-          cookies[name] = value;
-        }
-      });
-      // Try common cookie names
-      token = cookies['access_token'] || cookies['sb-access-token'] || '';
-    }
-  }
-
-  // If we still don't have a token, we can't verify the user via this method
-  // unless we trust the session cookie handled by middleware. 
-  // But getSupabaseServerClient is just a raw client.
-
-  // Note: getSupabaseServerClient uses Service Role. 
-  // We MUST use the token to get the user safely.
-  const { data: { user } } = await supabase.auth.getUser(token);
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  let body: any;
+export async function PUT(request: NextRequest) {
   try {
-    body = await req.json();
-  } catch (err) {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
-
-  // Accept either camelCase keys or snake_case; normalize to snake_case for DB
-  const updates: any = {};
-
-  if ('display_name' in body) updates.display_name = body.display_name;
-  if ('displayName' in body) updates.display_name = body.displayName;
-  if ('bio' in body) updates.bio = body.bio;
-  if ('location' in body) updates.location = body.location;
-  if ('username' in body) updates.username = body.username;
-  if ('avatar_url' in body) updates.avatar_url = body.avatar_url;
-
-  // Ensure display_name is set for new profiles (NOT NULL constraint)
-  if (!updates.display_name) {
-    const { data: existing } = await supabase.from('user_profiles').select('display_name').eq('user_id', user.id).single();
-    if (!existing) {
-      updates.display_name = user.user_metadata?.full_name ||
-        user.user_metadata?.name ||
-        user.email?.split('@')[0] ||
-        'Kingdom Citizen';
+    // Update user profile
+    const { display_name, bio, avatar_url, banner_url } = await request.json();
+    
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
-  }
 
-  // allow clients to optionally include personality fields in same call
-  if ('personality_profile' in body && typeof body.personality_profile === 'object') {
-    const p = body.personality_profile;
-    if ('socialStyle' in p) updates.social_style = p.socialStyle;
-    if ('communicationStyle' in p) updates.communication_style = p.communicationStyle;
-    if ('interests' in p && Array.isArray(p.interests)) updates.interests = p.interests.map(String);
-    if ('workLifeBalance' in p) updates.work_life_balance = p.workLifeBalance;
-    if ('meetingPreference' in p) updates.meeting_preference = p.meetingPreference;
-    if ('personalityType' in p) updates.personality_type = p.personalityType;
-    updates.personality_profile = p;
-  }
+    const token = authHeader.split(' ')[1];
+    
+    // Verify the user is authenticated by decoding the JWT
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
 
-  const dbRow = {
-    user_id: user.id,
-    ...updates,
-    updated_at: new Date().toISOString(),
-  };
-
-  const { data, error } = await supabase
-    .from('user_profiles')
-    .upsert(dbRow, { onConflict: 'user_id' })
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Profile update error:", error);
-    // Fallback if specific columns fail (e.g. they don't exist yet)
-    if (error.code === '42703') { // Undefined column
-      console.warn("Retrying profile update with basic fields only due to missing columns.");
-      const basicUpdates = { ...dbRow };
-      // Remove potentially missing columns for the retry
-      delete basicUpdates.social_style;
-      delete basicUpdates.communication_style;
-      delete basicUpdates.interests;
-      delete basicUpdates.work_life_balance;
-      delete basicUpdates.meeting_preference;
-      delete basicUpdates.personality_type;
-      delete basicUpdates.personality_profile;
-
-      // Also remove new columns that might not exist yet
-      delete basicUpdates.location;
-      delete basicUpdates.website;
-      delete basicUpdates.username;
-
-      // Keep only core fields: user_id, display_name, bio, avatar_url (if standard), updated_at
-      // But we might want to keep avatar_url if we think it's core. 
-      // Safest is to strip down to absolute basics if we are crashing.
-
-      const { data: retryData, error: retryError } = await supabase
-        .from('user_profiles')
-        .upsert(basicUpdates, { onConflict: 'user_id' })
-        .select()
-        .single();
-
-      if (retryError) {
-        console.error("Retry profile update failed:", retryError);
-        return NextResponse.json({ error: retryError.message }, { status: 500 });
+    // Create a Supabase client for database operations with user context
+    const userSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
       }
-      return NextResponse.json({ data: retryData }, { status: 200 });
-    }
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+    );
 
-  return NextResponse.json({ data }, { status: 200 });
+    // Update or create profile
+    const { data: profile, error } = await userSupabase
+      .from('user_profiles')
+      .upsert({
+        user_id: user.id,
+        display_name: display_name,
+        bio: bio,
+        avatar_url: avatar_url,
+        banner_url: banner_url,
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Profile update error:', error);
+      return NextResponse.json(
+        { error: 'Failed to update profile' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      profile: profile
+    });
+
+  } catch (error) {
+    console.error('Profile update API error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
 }

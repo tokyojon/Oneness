@@ -1,140 +1,449 @@
-import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { ArrowRight, Star, Heart, Shield, Zap } from 'lucide-react'
-import Image from 'next/image'
+'use client';
 
-export default async function LandingPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { LandingPostsSection } from '@/components/LandingPostsSection';
 
-  if (user) {
-    redirect('/dashboard')
-  }
+export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    if (isLoggedIn) {
+      router.replace('/dashboard');
+    }
+  }, [router]);
+
+  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-image');
+  const feature1Image = PlaceHolderImages.find(p => p.id === 'feature-1');
+  const feature2Image = PlaceHolderImages.find(p => p.id === 'feature-2');
+  const feature3Image = PlaceHolderImages.find(p => p.id === 'feature-3');
+  const feature4Image = PlaceHolderImages.find(p => p.id === 'feature-4');
 
   return (
-    <div className="min-h-screen bg-[#faf9f6] dark:bg-[#121212] overflow-x-hidden font-sans text-slate-800 dark:text-slate-100">
+    <div className="flex flex-col min-h-screen">
+      {/* Hero Banner */}
+      <section className="relative w-full h-[50vh] md:h-[60vh]">
+        {heroImage && (
+          <Image
+            src={heroImage.imageUrl}
+            alt={heroImage.description}
+            fill
+            className="object-cover"
+            priority
+          />
+        )}
+      </section>
 
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-        {/* Abstract Background */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-100 via-[#faf9f6] to-[#faf9f6] dark:from-stone-900 dark:via-[#121212] dark:to-[#121212] opacity-80" />
-          <div className="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] rounded-full bg-gradient-to-br from-orange-300/20 to-pink-300/20 blur-[120px] animate-pulse-slow" />
-          <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-blue-300/20 to-purple-300/20 blur-[120px] animate-pulse-slow delay-1000" />
-        </div>
-
-        <div className="container relative z-10 px-4 md:px-6 w-full max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
-
-          {/* Text Content */}
-          <div className="flex-1 text-center md:text-left space-y-8 animate-fade-in-up">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/50 dark:bg-white/5 border border-amber-200/50 dark:border-white/10 backdrop-blur-sm shadow-sm">
-              <Star className="w-4 h-4 text-amber-500 mr-2 fill-amber-500" />
-              <span className="text-sm font-medium text-amber-800 dark:text-amber-200">Welcome to Oneness Kingdom</span>
-            </div>
-
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1]">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-stone-800 to-stone-500 dark:from-white dark:to-stone-400">
-                Unite in <br /> Harmony & Love
-              </span>
-            </h1>
-
-            <p className="text-xl md:text-2xl text-stone-600 dark:text-stone-300 max-w-2xl leading-relaxed">
-              A new digital nation built on the principles of peace, sustainability, and authentic connection. Join the movement today.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start pt-4">
-              <Link href="/register">
-                <Button size="lg" className="h-14 px-8 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white shadow-lg hover:shadow-orange-500/25 transition-all text-lg font-bold">
-                  Join the Kingdom <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button variant="outline" size="lg" className="h-14 px-8 rounded-full border-2 border-stone-200 dark:border-stone-700 bg-transparent hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200 text-lg font-medium">
-                  Sign In
-                </Button>
-              </Link>
-            </div>
-
-            <div className="pt-8 flex items-center justify-center md:justify-start gap-8 text-sm text-stone-500 dark:text-stone-400 font-medium">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <span>sovereign Identity</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-blue-500" />
-                <span>Gift Economy</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-purple-500" />
-                <span>Global Community</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Hero Visual */}
-          <div className="flex-1 w-full max-w-lg md:max-w-none relative animate-fade-in-up delay-200">
-            <div className="relative w-full aspect-square md:aspect-[4/5] rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white/30 dark:border-white/10 bg-white/20 backdrop-blur-md">
-              {/* Placeholder for a cool image or 3D element */}
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-100/50 to-blue-100/50 dark:from-stone-800/50 dark:to-stone-900/50 flex items-center justify-center">
-                <span className="text-9xl opacity-20 select-none">OK</span>
-              </div>
-              {/* Abstract Shapes */}
-              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-pink-400/30 rounded-full blur-2xl animate-float-slow" />
-              <div className="absolute bottom-1/3 right-1/4 w-40 h-40 bg-blue-400/30 rounded-full blur-2xl animate-float-delayed" />
-            </div>
-
-            {/* Floating Card */}
-            <div className="absolute bottom-10 -left-10 md:-left-20 bg-white dark:bg-stone-800 p-4 rounded-2xl shadow-xl border border-stone-100 dark:border-stone-700 w-64 animate-bounce-slow">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                  <Zap className="w-5 h-5 fill-current" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-sm">Active Citizens</h3>
-                  <p className="text-xs text-stone-500">Growing daily</p>
-                </div>
-              </div>
-              <div className="h-2 w-full bg-stone-100 dark:bg-stone-700 rounded-full overflow-hidden">
-                <div className="h-full w-[85%] bg-green-500 rounded-full" />
-              </div>
-            </div>
-          </div>
-
+      {/* Hero Text Content */}
+      <section className="w-full bg-background py-12 md:py-16">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight mb-4">
+            ワンネスキングダムへようこそ
+          </h1>
+          <Button 
+            asChild 
+            size="lg" 
+            className="bg-primary text-primary-foreground hover:bg-primary/90 transition-transform duration-300 hover:scale-105"
+          >
+            <Link href="/register">私たちの王国に参加する</Link>
+          </Button>
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="py-24 relative bg-white dark:bg-[#1a1614]">
-        <div className="container px-4 mx-auto max-w-7xl">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-6">Built for a New Era</h2>
-            <p className="text-lg text-stone-600 dark:text-stone-400">
-              Experience a platform where technology serves humanity, fostering genuine connection and collective prosperity.
+      <section className="w-full py-16 md:py-24 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-headline font-bold mb-4">特徴</h2>
+            <p className="text-muted-foreground max-w-3xl mx-auto text-lg">
+              ワンネスキングダムが提供する価値や体験を、わかりやすくご紹介します。
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { title: 'Sovereignty First', icon: Shield, color: 'text-blue-500', bg: 'bg-blue-50', desc: 'Your data, your identity. You own your digital presence completely.' },
-              { title: 'Gift Economy', icon: Heart, color: 'text-pink-500', bg: 'bg-pink-50', desc: 'Transactions based on gratitude and abundance, not just profit.' },
-              { title: 'Conscious AI', icon: Zap, color: 'text-amber-500', bg: 'bg-amber-50', desc: 'AI tools designed to enhance human creativity and connection.' },
-            ].map((feature, i) => (
-              <div key={i} className="group p-8 rounded-3xl bg-[#faf9f6] dark:bg-stone-900 border border-stone-100 dark:border-stone-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <div className={`w-14 h-14 rounded-2xl ${feature.bg} dark:bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                  <feature.icon className={`w-7 h-7 ${feature.color}`} />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <FeatureCard
+              title="貢献とつながり"
+              description="あなたの愛、学び、貢献の行動は、私たちのコミュニティ内で価値として視覚化され、循環します。"
+              image={feature1Image}
+              details={[
+                '• 行動がポイントに変換され、王国経済に参加',
+                '• 貢献が可視化され、コミュニティから評価',
+                '• 持続可能な価値循環システム',
+              ]}
+            />
+            <FeatureCard
+              title="ヒューマンネットワークの構築"
+              description="フォロー、評価、推薦を通じて有意義な関係を築き、デジタルな家族の絆さえも形成します。"
+              image={feature2Image}
+              details={[
+                '• AI支援のマッチングシステム',
+                '• 信頼スコアに基づく推薦',
+                '• グローバルなつながり',
+              ]}
+            />
+            <FeatureCard
+              title="AIを活用したコミュニティ"
+              description="私たちのプラットフォームは、公正なマッチング、推薦、そして私たちの王国の安全と調和を確保するためにAIを使用しています。"
+              image={feature3Image}
+              details={[
+                '• 不正行為の自動検出',
+                '• パーソナライズされた推薦',
+                '• コミュニティガイドラインの自動執行',
+              ]}
+            />
+          </div>
+
+          <div className="max-w-4xl mx-auto bg-muted/50 p-6 rounded-lg">
+            <h3 className="text-xl font-semibold mb-4">ワンネス王国の価値観</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-background p-4 rounded">
+                <h4 className="font-medium mb-2">愛</h4>
+                <p className="text-sm text-muted-foreground">すべての行動の基盤となる無条件の愛</p>
+              </div>
+              <div className="bg-background p-4 rounded">
+                <h4 className="font-medium mb-2">平和</h4>
+                <p className="text-sm text-muted-foreground">対話と理解を通じた調和の促進</p>
+              </div>
+              <div className="bg-background p-4 rounded">
+                <h4 className="font-medium mb-2">持続可能性</h4>
+                <p className="text-sm text-muted-foreground">長期的な繁栄を考慮したシステム設計</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="w-full py-16 md:py-24 bg-muted/40">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-headline font-bold mb-4">ワンネスキングダムの始め方</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              シンプルな3つのステップで、あなたの旅がスタートします。
+            </p>
+          </div>
+
+          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center mb-12">
+            <Step
+              step="1"
+              title="アカウントを登録"
+              description="あなたのプロフィールを作成し、ワンネスへの旅を始めましょう。"
+              details={[
+                'メールアドレスで簡単登録',
+                'プロフィール設定',
+                '初期ポイント付与',
+              ]}
+            />
+            <Step
+              step="2"
+              title="AIによる認証"
+              description="高度なAI強化認証プロセスであなたの身元を保護します。"
+              details={[
+                '顔認証による本人確認',
+                '行動パターン分析',
+                '継続的な信頼度評価',
+              ]}
+            />
+            <Step
+              step="3"
+              title="コミュニティに参加"
+              description="貢献し、つながり、私たちの王国の成長に参加しましょう。"
+              details={[
+                '投稿と交流',
+                'ポイント獲得',
+                '経済活動への参加',
+              ]}
+            />
+          </div>
+
+          <div className="max-w-2xl mx-auto bg-background p-6 rounded-lg text-center shadow-lg">
+            <h3 className="text-xl font-semibold mb-4">始める準備はできましたか？</h3>
+            <Button asChild size="lg" className="mx-auto">
+              <Link href="/register">今すぐ登録</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <section className="w-full py-16 md:py-24 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-headline font-bold mb-6 text-center">
+              愛と貢献のメタソーシャルプラットフォーム
+            </h2>
+            <div className="space-y-6">
+              <p className="text-lg text-muted-foreground">
+                私たちは、価値が経済力や軍事力ではなく、愛とつながりによって定義される新しい国際コミュニティ国家を構築しています。
+              </p>
+
+              <div className="bg-muted/50 p-6 rounded-lg">
+                <h3 className="text-xl font-semibold mb-4">私たちの使命</h3>
+                <ul className="space-y-3 list-disc pl-5">
+                  <li>デジタル空間に調和のとれた王国を創造する</li>
+                  <li>個人の貢献を可視化し、正当に評価する</li>
+                  <li>AIを活用した公平なコミュニティ運営</li>
+                  <li>国境を越えた真のつながりを促進</li>
+                </ul>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-muted/50 p-6 rounded-lg">
+                  <h3 className="text-xl font-semibold mb-4">創設者</h3>
+                  <p className="text-muted-foreground">
+                    ワンネスキングダムは、テクノロジーとスピリチュアリティの融合を信じるグローバルチームによって設立されました。
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-                <p className="text-stone-600 dark:text-stone-400 leading-relaxed">
-                  {feature.desc}
+                <div className="bg-muted/50 p-6 rounded-lg">
+                  <h3 className="text-xl font-semibold mb-4">技術基盤</h3>
+                  <p className="text-muted-foreground">
+                    ブロックチェーン、AI、クラウド技術を組み合わせ、透明性と安全性を確保しています。
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="w-full py-16 md:py-24 bg-gradient-to-br from-amber-50 to-orange-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-headline font-bold mb-4">🪙 OP制度</h2>
+            <p className="text-muted-foreground max-w-3xl mx-auto text-lg">
+              愛・平和・調和・貢献を基準に、会員が提供・共有・成長を通してポイント（価値）を循環させる仕組みです。
+            </p>
+          </div>
+
+          <div className="max-w-6xl mx-auto space-y-8">
+            <div className="rounded-lg border bg-card text-card-foreground shadow-xl">
+              <div className="flex flex-col space-y-1.5 p-6">
+                <div className="font-semibold tracking-tight text-2xl font-headline">基本理念</div>
+              </div>
+              <div className="p-6 pt-0">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">💱 基本情報</h3>
+                    <ul className="space-y-2 text-muted-foreground">
+                      <li>• <strong>通貨名:</strong> OP</li>
+                      <li>• <strong>換算レート:</strong> 1 OP = 100円</li>
+                      <li>• <strong>会員登録:</strong> 無料</li>
+                      <li>• <strong>最終目標:</strong> 「王様の王様」= 真のワンネス達成者</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">✨ 7つの軸</h3>
+                    <div className="grid grid-cols-2 gap-2 text-muted-foreground">
+                      <div className="bg-amber-100 p-2 rounded">愛</div>
+                      <div className="bg-blue-100 p-2 rounded">知恵</div>
+                      <div className="bg-green-100 p-2 rounded">公正</div>
+                      <div className="bg-red-100 p-2 rounded">力</div>
+                      <div className="bg-purple-100 p-2 rounded">超能力</div>
+                      <div className="bg-pink-100 p-2 rounded">治療</div>
+                      <div className="bg-indigo-100 p-2 rounded col-span-2 text-center">審判</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="rounded-lg border bg-card text-card-foreground shadow-lg">
+                <div className="flex flex-col space-y-1.5 p-6">
+                  <div className="font-semibold tracking-tight text-xl font-headline">🎯 基本活動ポイント</div>
+                </div>
+                <div className="p-6 pt-0">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-secondary">
+                      <span className="text-sm">提供登録（AI審査通過）</span>
+                      <span className="font-semibold text-primary">+1 OP</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-secondary">
+                      <span className="text-sm">紹介成功</span>
+                      <span className="font-semibold text-primary">+1 OP</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-secondary">
+                      <span className="text-sm">会員同士が繋がる</span>
+                      <span className="font-semibold text-primary">+1 OP</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-secondary">
+                      <span className="text-sm">寄付を行う</span>
+                      <span className="font-semibold text-primary">+1 OP</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border bg-card text-card-foreground shadow-lg">
+                <div className="flex flex-col space-y-1.5 p-6">
+                  <div className="font-semibold tracking-tight text-xl font-headline">❤️ 家族制度ポイント</div>
+                </div>
+                <div className="p-6 pt-0">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-secondary">
+                      <span className="text-sm">夫・妻になる</span>
+                      <span className="font-semibold text-primary">+10 OP</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-amber-100 border-2 border-amber-300">
+                      <span className="text-sm">夫婦になる</span>
+                      <span className="font-semibold text-amber-700">+200 OP</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-secondary">
+                      <span className="text-sm">子供になる</span>
+                      <span className="font-semibold text-primary">+10 OP</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-secondary">
+                      <span className="text-sm">兄弟・姉妹になる</span>
+                      <span className="font-semibold text-primary">+10 OP</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border bg-card text-card-foreground shadow-lg">
+                <div className="flex flex-col space-y-1.5 p-6">
+                  <div className="font-semibold tracking-tight text-xl font-headline">🌟 コミュニティ制度</div>
+                </div>
+                <div className="p-6 pt-0">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-secondary">
+                      <span className="text-sm">コミュニティ世話役</span>
+                      <span className="font-semibold text-primary">+10 OP</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-secondary">
+                      <span className="text-sm">コミュニティ参加</span>
+                      <span className="font-semibold text-primary">+10 OP</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-secondary">
+                      <span className="text-sm">コミュニティに寄付</span>
+                      <span className="font-semibold text-primary">+10 OP〜</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-secondary">
+                      <span className="text-sm">コミュニティ招待</span>
+                      <span className="font-semibold text-primary">+1 OP</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border bg-card text-card-foreground shadow-lg">
+                <div className="flex flex-col space-y-1.5 p-6">
+                  <div className="font-semibold tracking-tight text-xl font-headline">🏆 社会貢献制度</div>
+                </div>
+                <div className="p-6 pt-0">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-amber-100 border-2 border-amber-300">
+                      <span className="text-sm">教育者になる</span>
+                      <span className="font-semibold text-amber-700">+200 OP</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-amber-100 border-2 border-amber-300">
+                      <span className="text-sm">生産者になる</span>
+                      <span className="font-semibold text-amber-700">+200 OP</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-amber-100 border-2 border-amber-300">
+                      <span className="text-sm">仲介役</span>
+                      <span className="font-semibold text-amber-700">+200 OP</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-amber-100 border-2 border-amber-300">
+                      <span className="text-sm">平和維持セキュリティ役</span>
+                      <span className="font-semibold text-amber-700">+200 OP</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg border text-card-foreground shadow-xl bg-gradient-to-br from-amber-100 to-yellow-100">
+              <div className="flex flex-col space-y-1.5 p-6">
+                <div className="font-semibold tracking-tight text-2xl font-headline">👑 称号制度</div>
+              </div>
+              <div className="p-6 pt-0">
+                <p className="text-muted-foreground mb-4">
+                  貢献度と累計ポイントにより称号を自動認定します。各7軸（愛・知恵・公正・力・超能力・治療・審判）に対して3段階の称号があります。
                 </p>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="bg-white p-4 rounded-lg shadow-md border-2 border-amber-200">
+                    <h4 className="font-headline text-xl font-bold mb-2">賢者</h4>
+                    <p className="text-primary font-semibold mb-1">1,000 OP</p>
+                    <p className="text-sm text-muted-foreground">各軸の賢者として認定</p>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-md border-2 border-amber-200">
+                    <h4 className="font-headline text-xl font-bold mb-2">君</h4>
+                    <p className="text-primary font-semibold mb-1">10,000 OP</p>
+                    <p className="text-sm text-muted-foreground">各軸の君として認定</p>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-md border-2 border-amber-200">
+                    <h4 className="font-headline text-xl font-bold mb-2">王様</h4>
+                    <p className="text-primary font-semibold mb-1">100,000 OP</p>
+                    <p className="text-sm text-muted-foreground">各軸の王様として認定</p>
+                  </div>
+                </div>
+                <div className="mt-6 p-4 bg-white rounded-lg border-2 border-amber-300">
+                  <p className="font-semibold text-center text-lg">🌟 最高称号: 王様の王様 - 1,000,000 OP 🌟</p>
+                </div>
               </div>
-            ))}
+            </div>
+
+            <div className="rounded-lg border bg-card text-card-foreground shadow-xl">
+              <div className="flex flex-col space-y-1.5 p-6">
+                <div className="font-semibold tracking-tight text-2xl font-headline">💱 仮想通貨交換ルール</div>
+              </div>
+              <div className="p-6 pt-0">
+                <ul className="space-y-2 text-muted-foreground">
+                  <li>• <strong>交換上限:</strong> 月1回、保有OPの最大33％まで</li>
+                  <li>• <strong>対象者:</strong> 7軸いずれかの称号者（賢者以上）</li>
+                  <li>• <strong>交換可能通貨:</strong> JPYC・TEC</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
+      <LandingPostsSection />
     </div>
-  )
+  );
 }
+
+const FeatureCard = ({ title, description, image, details }: { title: string; description: string; image?: { imageUrl: string; description: string; imageHint: string }; details?: string[] }) => (
+  <Card className="text-center bg-card shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:-translate-y-2">
+    <CardHeader className="items-center">
+      {image && (
+        <div className="relative w-full h-40 mb-4 rounded-t-lg overflow-hidden">
+          <Image src={image.imageUrl} alt={image.description} layout="fill" objectFit="cover" data-ai-hint={image.imageHint} />
+        </div>
+      )}
+      <CardTitle className="font-headline text-2xl">{title}</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className="text-muted-foreground">{description}</p>
+      {details && (
+        <ul className="space-y-2 list-disc pl-5 mt-4">
+          {details.map((detail, index) => (
+            <li key={index}>{detail}</li>
+          ))}
+        </ul>
+      )}
+    </CardContent>
+  </Card>
+);
+
+const Step = ({ step, title, description, details }: { step: string; title: string; description: string; details?: string[] }) => (
+  <div className="flex flex-col items-center">
+    <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-2xl font-bold mb-4 border-4 border-background shadow-lg">
+      {step}
+    </div>
+    <h3 className="text-xl font-headline font-semibold mb-2">{title}</h3>
+    <p className="text-muted-foreground">{description}</p>
+    {details && (
+      <ul className="space-y-2 list-disc pl-5 mt-4">
+        {details.map((detail, index) => (
+          <li key={index}>{detail}</li>
+        ))}
+      </ul>
+    )}
+  </div>
+);

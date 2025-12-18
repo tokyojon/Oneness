@@ -2,54 +2,18 @@ import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-import { getSupabaseServerClient } from '@/lib/supabase-server';
-
-export const dynamic = 'force-dynamic';
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = getSupabaseServerClient();
-    console.log('Auth me: Starting...');
-    console.log('Auth me: Request headers cookie:', request.headers.get('cookie'));
-
-    // Try both cookie reading methods for Next.js 15 compatibility
-    let accessToken: string | undefined, refreshToken: string | undefined;
-
-    try {
-      const cookieStore = await cookies();
-      const allCookies = cookieStore.getAll();
-      console.log('Auth me: All cookies from cookieStore:', allCookies.map(c => ({ name: c.name, value: c.value?.substring(0, 20) + '...' })));
-
-      accessToken = cookieStore.get('access_token')?.value;
-      refreshToken = cookieStore.get('refresh_token')?.value;
-      console.log('Auth me: Using cookies() API');
-    } catch (cookieError) {
-      console.log('Auth me: cookies() failed, trying request.headers.cookie:', cookieError);
-      // Fallback to parsing from request headers
-      const cookieHeader = request.headers.get('cookie');
-      if (cookieHeader) {
-        const cookies: Record<string, string> = {};
-        cookieHeader.split(';').forEach(cookie => {
-          const [name, value] = cookie.trim().split('=');
-          if (name && value) {
-            cookies[name] = value;
-          }
-        });
-        accessToken = cookies['access_token'];
-        refreshToken = cookies['refresh_token'];
-        console.log('Auth me: Parsed from headers');
-      }
-    }
-
-    console.log('Auth me: Final token check:', {
-      hasAccessToken: !!accessToken,
-      hasRefreshToken: !!refreshToken,
-      accessTokenLength: accessToken?.length || 0,
-      refreshTokenLength: refreshToken?.length || 0
-    });
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get('access_token')?.value;
+    const refreshToken = cookieStore.get('refresh_token')?.value;
 
     if (!accessToken) {
-      console.log('Auth me: No access token found');
       return NextResponse.json(
         { error: 'No access token' },
         { status: 401 }
@@ -61,6 +25,10 @@ export async function GET(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        },
         global: {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -86,11 +54,29 @@ export async function GET(request: NextRequest) {
           );
         }
 
-        // Get refreshed user data
+        // Update cookies with new tokens
+        cookieStore.set('access_token', refreshData.session.access_token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          maxAge: 3600
+        });
+        cookieStore.set('refresh_token', refreshData.session.refresh_token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          maxAge: 30 * 24 * 3600
+        });
+
+        // Retry with new token
         const refreshedSupabase = createClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
           process.env.SUPABASE_SERVICE_ROLE_KEY!,
           {
+            auth: {
+              persistSession: false,
+              autoRefreshToken: false,
+            },
             global: {
               headers: {
                 Authorization: `Bearer ${refreshData.session.access_token}`,
@@ -99,41 +85,18 @@ export async function GET(request: NextRequest) {
           }
         );
 
-        const { data: refreshedUserData, error: refreshedError } = await refreshedSupabase.auth.getUser();
+        const { data: refreshedUser, error: refreshedError } = await refreshedSupabase.auth.getUser();
 
-        if (refreshedError || !refreshedUserData.user) {
+        if (refreshedError || !refreshedUser.user) {
           return NextResponse.json(
             { error: 'Invalid token after refresh' },
             { status: 401 }
           );
         }
 
-        // Get refreshed user profile
-        const refreshedUser = await getUserData(refreshedSupabase, refreshedUserData.user.id, refreshedUserData.user.email);
-
-        // Update cookies with new tokens using NextResponse
-        const response = NextResponse.json({
-          user: refreshedUser
-        });
-
-        response.cookies.set('access_token', refreshData.session.access_token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 3600
-        });
-
-        response.cookies.set('refresh_token', refreshData.session.refresh_token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 30 * 24 * 3600
-        });
-
-        console.log('Auth me: Refreshed tokens and updated cookies');
-        return response;
+        // Get user data
+        const userData = await getUserData(refreshedSupabase, refreshedUser.user.id, refreshedUser.user.email);
+        return NextResponse.json({ user: userData });
       }
 
       return NextResponse.json(

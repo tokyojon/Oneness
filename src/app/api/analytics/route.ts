@@ -1,6 +1,10 @@
-import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { createClient } from '@supabase/supabase-js';
+import { NextRequest, NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic';
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 // Track ad view
 export async function POST(request: NextRequest) {
@@ -9,7 +13,6 @@ export async function POST(request: NextRequest) {
     let user = null;
 
     // Optional auth - anonymous views are allowed
-    const supabase = getSupabaseServerClient();
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
       const { data: { user: authUser } } = await supabase.auth.getUser(token);

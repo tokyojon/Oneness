@@ -2,23 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
-// Stripe initialized inside handler
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2025-10-29.clover',
+});
 
-import { getSupabaseServerClient } from '@/lib/supabase-server';
-
-export const dynamic = 'force-dynamic';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 const JPY_PER_OP = 100.0;
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = getSupabaseServerClient();
     const body = await req.json();
     const { op_amount, user_id } = body;
-
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2025-10-29.clover',
-    });
 
     if (!op_amount || !user_id) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });

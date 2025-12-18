@@ -1,9 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-import { getSupabaseServerClient } from '@/lib/supabase-server';
-
-export const dynamic = 'force-dynamic';
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 // Array of prompts with hints and tips on peace, love, and harmony
 const teamPrompts = [
@@ -25,7 +26,6 @@ const teamPrompts = [
 
 export async function GET() {
   try {
-    const supabase = getSupabaseServerClient();
     console.log('Generating team post...');
 
     // Select a prompt - for now, cycle through or randomize

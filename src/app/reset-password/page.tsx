@@ -21,8 +21,8 @@ import { OnenessKingdomLogo } from "@/lib/icons";
 import { CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
+import { supabase } from "@/lib/supabase";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from '@supabase/supabase-js';
 
 const formSchema = z.object({
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
@@ -33,10 +33,6 @@ const formSchema = z.object({
 });
 
 function ResetPasswordForm() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.com',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
-  );
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
