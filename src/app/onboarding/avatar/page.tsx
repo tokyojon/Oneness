@@ -2,18 +2,11 @@
 
 import { useState } from 'react'
 import KawaiiGenerator, { GeneratedAvatarPayload } from '@/components/KawaiiGenerator'
-<<<<<<< HEAD
 import { saveAvatar, skipAvatar } from '../actions' // Import from parent directory actions
 import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
-=======
-import { saveAvatar, skipAvatar } from '../actions'
-import { createClient } from '@/utils/supabase/client'
-import { Button } from '@/components/ui/button'
-import { motion } from 'framer-motion'
->>>>>>> ae6cab7 (init)
 
 export default function OnboardingAvatarPage() {
     const [isSaving, setIsSaving] = useState(false)
@@ -21,17 +14,11 @@ export default function OnboardingAvatarPage() {
     const handleSave = async (data: { avatar: GeneratedAvatarPayload['avatarConfig']; imageUrl: string }) => {
         setIsSaving(true)
         try {
-<<<<<<< HEAD
             // 1. Convert Data URL to Blob
             const res = await fetch(data.imageUrl)
             const blob = await res.blob()
 
             // 2. Upload to Supabase Storage
-=======
-            const res = await fetch(data.imageUrl)
-            const blob = await res.blob()
-
->>>>>>> ae6cab7 (init)
             const supabase = createClient()
             const filename = `${Date.now()}-avatar.png`
             const { data: uploadData, error: uploadError } = await supabase
@@ -42,7 +29,6 @@ export default function OnboardingAvatarPage() {
                     upsert: true
                 })
 
-<<<<<<< HEAD
             let finalUrl = data.imageUrl // Fallback to base64 if upload fails? No, too big.
 
             if (uploadError) {
@@ -50,21 +36,12 @@ export default function OnboardingAvatarPage() {
                 // If upload fails, maybe we just try to save the base64 if it's small enough, or show error
                 // For this demo, let's proceed with base64 if upload fails, assuming server action handles it or we accept it might fail
                 // Actually, let's just log it and try to save the public URL if possible
-=======
-            let finalUrl = data.imageUrl
-
-            if (uploadError) {
-                console.error('Upload error:', uploadError)
->>>>>>> ae6cab7 (init)
             } else if (uploadData) {
                 const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(uploadData.path)
                 finalUrl = publicUrl
             }
 
-<<<<<<< HEAD
             // 3. Save URL to Profile via Server Action
-=======
->>>>>>> ae6cab7 (init)
             await saveAvatar(finalUrl, data.avatar.prompt)
 
         } catch (error) {
@@ -75,10 +52,7 @@ export default function OnboardingAvatarPage() {
 
     return (
         <div className="min-h-screen w-full flex flex-col items-center justify-center relative overflow-hidden bg-[#faf9f6] dark:bg-[#1a1614] py-10">
-<<<<<<< HEAD
             {/* Background Elements */}
-=======
->>>>>>> ae6cab7 (init)
             <div className="absolute inset-0 z-0 pointer-events-none">
                 <div className="absolute top-[20%] right-[20%] w-[500px] h-[500px] rounded-full bg-pink-400/10 blur-[120px]" />
                 <div className="absolute bottom-[10%] left-[10%] w-[400px] h-[400px] rounded-full bg-purple-400/10 blur-[100px]" />
@@ -109,10 +83,7 @@ export default function OnboardingAvatarPage() {
                         Skip for now
                     </Button>
 
-<<<<<<< HEAD
                     {/* Progress Indicator */}
-=======
->>>>>>> ae6cab7 (init)
                     <div className="flex justify-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-stone-300 dark:bg-stone-700" />
                         <div className="w-2 h-2 rounded-full bg-primary" />

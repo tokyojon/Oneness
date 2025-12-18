@@ -20,11 +20,8 @@ export async function login(formData: FormData) {
         password,
     })
 
-<<<<<<< HEAD
     // console.log('Login attempt:', email, error) // Debugging
 
-=======
->>>>>>> ae6cab7 (init)
     if (error) {
         return { error: error.message }
     }
@@ -52,13 +49,10 @@ export async function signup(formData: FormData) {
         return { error: error.message }
     }
 
-<<<<<<< HEAD
     // Session is not established immediately if email confirmation is enabled, 
     // but if it's disabled or auto-confirm, it might be.
     // For this rewrite, we assume auto-confirm or we handle the check.
 
-=======
->>>>>>> ae6cab7 (init)
     revalidatePath('/', 'layout')
     redirect('/onboarding')
 }
