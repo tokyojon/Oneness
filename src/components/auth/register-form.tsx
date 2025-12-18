@@ -50,37 +50,8 @@ export default function RegisterForm() {
       password: "",
     },
   });
-  
-  async function handleOAuthLogin(provider: 'google' | 'apple') {
-    setIsLoading(true);
 
-    try {
-      const response = await fetch(`/api/auth/oauth/${provider}`, {
-        method: 'POST',
-      });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        // Redirect to OAuth provider
-        window.location.href = data.url;
-      } else {
-        toast({
-          variant: "destructive",
-          title: "OAuthエラー",
-          description: data.error || `${provider === 'google' ? 'Google' : 'Apple'}での認証に失敗しました。`,
-        });
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "エラー",
-        description: `${provider === 'google' ? 'Google' : 'Apple'}認証中に予期せぬエラーが発生しました。`,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }
 
   const handleBasicInfoSubmit = (values: z.infer<typeof formSchema>) => {
     // Store basic info and move to profile step
@@ -102,7 +73,7 @@ export default function RegisterForm() {
 
     try {
       const values = form.getValues();
-      
+
       // Use provided profile data or fallback to state (state might be stale if just set)
       const finalProfileData = currentProfileData || profileData;
 
