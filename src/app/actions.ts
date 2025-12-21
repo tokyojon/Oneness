@@ -2,7 +2,6 @@
 
 import { z } from 'zod';
 import { aiEnhancedRegistration, AIEnhancedRegistrationOutput } from '@/ai/flows/ai-enhanced-registration';
-import { automatedAgeVerification } from '@/ai/flows/automated-age-verification';
 import { generateWelcomeEmail } from '@/ai/flows/welcome-email';
 
 const loginSchema = z.object({
@@ -108,6 +107,7 @@ export async function verifyAgeAction(values: z.infer<typeof ageVerificationSche
         if (!process.env.GOOGLE_GENAI_API_KEY) {
             return { success: false, message: 'AIキーが未設定のため年齢確認を実行できません。サーバーの環境変数 GOOGLE_GENAI_API_KEY を設定してください。' };
         }
+        const { automatedAgeVerification } = await import('@/ai/flows/automated-age-verification');
         const result = await automatedAgeVerification(values);
         return { success: true, data: result };
     } catch (error) {
