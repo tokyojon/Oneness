@@ -5,16 +5,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import KawaiiGenerator, { GeneratedAvatarPayload } from "../KawaiiGenerator";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+<<<<<<< HEAD
 import { useRouter } from 'next/navigation';
 
 import { login } from "@/lib/auth";
+=======
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
 
 export default function AvatarSetupModal() {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+<<<<<<< HEAD
   const router = useRouter();
+=======
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
 
   useEffect(() => {
     // Check if user is logged in and has no avatar
@@ -64,10 +70,14 @@ export default function AvatarSetupModal() {
   const handleAvatarSave = async (data: { avatar: GeneratedAvatarPayload['avatarConfig']; imageUrl: string }) => {
     setIsSaving(true);
     try {
+<<<<<<< HEAD
       const token = localStorage.getItem('auth_token');
       // Note: We are using cookie-based auth mostly, but some components might check this.
       // If using cookies, we don't strictly need the token header if the API handles cookies.
       // However, the existing upload code used it.
+=======
+      const guestUserId = localStorage.getItem('guest_user_id');
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
       
       // Resize and convert to blob
       const blob = await resizeImage(data.imageUrl, 512);
@@ -81,6 +91,12 @@ export default function AvatarSetupModal() {
       // Upload avatar
       const uploadResponse = await fetch('/api/upload/avatar', {
         method: 'POST',
+<<<<<<< HEAD
+=======
+        headers: {
+          'x-guest-user-id': guestUserId || '',
+        },
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
         body: formData,
       });
 
@@ -96,6 +112,7 @@ export default function AvatarSetupModal() {
       });
       
       // Update local user state
+<<<<<<< HEAD
       if (user) {
         const updatedUser = { 
           ...user, 
@@ -108,6 +125,9 @@ export default function AvatarSetupModal() {
         // Force a reload to update all components
         window.location.reload();
       }
+=======
+      window.location.reload();
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
       
       setIsOpen(false);
       

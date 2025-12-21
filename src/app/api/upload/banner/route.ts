@@ -8,6 +8,7 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
+<<<<<<< HEAD
     // Get the user from the session using Supabase auth
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -40,6 +41,11 @@ export async function POST(request: NextRequest) {
         { error: 'Invalid token' },
         { status: 401 }
       );
+=======
+    const guestUserId = request.headers.get('x-guest-user-id');
+    if (!guestUserId) {
+      return NextResponse.json({ error: 'Missing guest user id' }, { status: 400 });
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
     }
 
     // Parse the multipart form data
@@ -71,7 +77,11 @@ export async function POST(request: NextRequest) {
 
     // Generate unique file name
     const fileExt = file.name.split('.').pop();
+<<<<<<< HEAD
     const fileName = `banner-${user.id}-${Date.now()}.${fileExt}`;
+=======
+    const fileName = `banner-${guestUserId}-${Date.now()}.${fileExt}`;
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
     const filePath = `banners/${fileName}`;
 
     // Upload to Supabase Storage
@@ -96,10 +106,17 @@ export async function POST(request: NextRequest) {
       .getPublicUrl(filePath);
 
     // Update user's profile with new banner URL
+<<<<<<< HEAD
     const { error: updateError } = await userSupabase
       .from('user_profiles')
       .upsert({
         user_id: user.id,
+=======
+    const { error: updateError } = await supabase
+      .from('user_profiles')
+      .upsert({
+        user_id: guestUserId,
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
         banner_url: publicUrl,
         updated_at: new Date().toISOString()
       });

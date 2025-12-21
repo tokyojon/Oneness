@@ -45,18 +45,26 @@ export default function ProfilePage() {
         const fetchProfileData = async () => {
             try {
                 console.log('Profile page - Starting data fetch...');
+<<<<<<< HEAD
                 const token = localStorage.getItem('auth_token');
                 if (!token) {
                     console.log('Profile page - No auth token found');
                     setLoading(false);
                     return;
                 }
+=======
+                const guestUserId = localStorage.getItem('guest_user_id');
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
 
                 console.log('Profile page - Fetching profile data...');
                 const response = await fetch('/api/profile', {
                     headers: {
+<<<<<<< HEAD
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
+=======
+                        'x-guest-user-id': guestUserId || '',
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
                     },
                 });
 

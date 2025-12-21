@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+<<<<<<< HEAD
 // Define which routes are protected
 const protectedRoutes = ['/dashboard'];
 const authRoutes = ['/login', '/register'];
@@ -25,6 +26,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
+=======
+export async function middleware(request: NextRequest) {
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
   return NextResponse.next();
 }
 

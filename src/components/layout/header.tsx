@@ -9,10 +9,12 @@ import { Search, MessageSquare, Bell, Wallet } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { logoutAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+<<<<<<< HEAD
 import { logout } from '@/lib/auth';
+=======
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
 import { LanguageSelector } from '@/components/layout/LanguageSelector';
 
 export default function Header() {
@@ -23,6 +25,7 @@ export default function Header() {
   const { isLoggedIn, user } = useAuth();
   const isDashboard = pathname.startsWith('/dashboard');
 
+<<<<<<< HEAD
   const handleLogout = async () => {
     try {
       console.log('Starting logout process...');
@@ -66,6 +69,15 @@ export default function Header() {
     }
   };
 
+=======
+  const handleSearch = (searchTerm: string) => {
+    if (searchTerm.trim()) {
+      // Navigate to search results page with query parameter
+      router.push(`/dashboard/search?q=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
+
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
   if (isDashboard || isLoggedIn) {
     return (
       <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-sm border-b">
@@ -150,7 +162,7 @@ export default function Header() {
                 <DropdownMenuItem asChild><Link href="/dashboard/profile">プロフィール</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link href="/dashboard/settings">設定</Link></DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>ログアウト</DropdownMenuItem>
+                <DropdownMenuItem disabled>ゲストモード</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -177,11 +189,8 @@ export default function Header() {
           <Button variant="ghost" asChild className={cn(isTransparent && "hover:bg-white/10")}>
             <Link href="/exchange">両替</Link>
           </Button>
-          <Button variant="ghost" asChild className={cn(isTransparent && "hover:bg-white/10")}>
-            <Link href="/login">ログイン</Link>
-          </Button>
           <Button asChild className={cn(isTransparent ? "bg-white/90 text-black hover:bg-white" : "bg-primary text-primary-foreground")}>
-            <Link href="/register">登録</Link>
+            <Link href="/dashboard">はじめる</Link>
           </Button>
           </nav>
       </div>

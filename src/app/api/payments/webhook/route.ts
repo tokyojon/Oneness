@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+<<<<<<< HEAD
 import { createClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
 
@@ -15,6 +16,34 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: NextRequest) {
   try {
+=======
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { headers } from 'next/headers';
+
+export async function POST(req: NextRequest) {
+  try {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!stripeSecretKey) {
+      return NextResponse.json({ error: 'Stripe is not configured' }, { status: 500 });
+    }
+    if (!endpointSecret) {
+      return NextResponse.json({ error: 'Stripe webhook secret is not configured' }, { status: 500 });
+    }
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return NextResponse.json({ error: 'Supabase is not configured' }, { status: 500 });
+    }
+
+    const stripe = new Stripe(stripeSecretKey, {
+      apiVersion: '2025-10-29.clover',
+    });
+
+    const supabase = createClient<any>(supabaseUrl, supabaseServiceKey);
+
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
     const body = await req.text();
     const headersList = await headers();
     const sig = headersList.get('stripe-signature');
@@ -36,7 +65,11 @@ export async function POST(req: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object as Stripe.Checkout.Session;
+<<<<<<< HEAD
         await handleCheckoutSuccess(session);
+=======
+        await handleCheckoutSuccess(supabase, session);
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
         break;
 
       default:
@@ -53,7 +86,14 @@ export async function POST(req: NextRequest) {
   }
 }
 
+<<<<<<< HEAD
 async function handleCheckoutSuccess(session: Stripe.Checkout.Session) {
+=======
+async function handleCheckoutSuccess(
+  supabase: SupabaseClient<any>,
+  session: Stripe.Checkout.Session
+) {
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
   const { user_id, op_amount } = session.metadata || {};
 
   if (!user_id || !op_amount) {

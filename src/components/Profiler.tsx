@@ -24,6 +24,10 @@ interface UserProfile {
   location: string;
   favoriteQuote: string;
   hobbies: string[];
+<<<<<<< HEAD
+=======
+  personalityQuiz: Record<string, string>;
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
 }
 
 interface ProfilerProps {
@@ -66,15 +70,79 @@ const Profiler: React.FC<ProfilerProps> = ({ onProfileComplete, isSubmitting = f
     occupation: '',
     location: '',
     favoriteQuote: '',
+<<<<<<< HEAD
     hobbies: []
+=======
+    hobbies: [],
+    personalityQuiz: {}
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
   });
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentStep]);
 
+<<<<<<< HEAD
   const steps = [
     { title: '基本情報', icon: Users },
+=======
+  const personalityQuestions = [
+    {
+      id: 'social',
+      question: '週末の過ごし方で最も好きなのは？',
+      options: [
+        { value: 'party', label: 'にぎやかなパーティーで過ごす' },
+        { value: 'reading', label: '静かに本を読む' },
+        { value: 'friends', label: '友人と過ごしてリフレッシュ' },
+        { value: 'alone', label: '一人で過ごしてリフレッシュ' }
+      ]
+    },
+    {
+      id: 'vacation',
+      question: '休暇の過ごし方で一番好きなのは？',
+      options: [
+        { value: 'thrilling', label: 'スリル満点のジェットコースター' },
+        { value: 'home', label: '家でのんびり過ごす' },
+        { value: 'mountain', label: '冒険的な山小屋での休暇' },
+        { value: 'beach', label: 'リゾート地でのんびり過ごす' }
+      ]
+    },
+    {
+      id: 'planning',
+      question: '旅行の計画を立てる際、どのようにしますか？',
+      options: [
+        { value: 'detailed', label: '詳細なスケジュールを立てる' },
+        { value: 'spontaneous', label: '行き当たりばったりが好き' },
+        { value: 'predictable', label: '予定通りに進めるのが好き' },
+        { value: 'surprises', label: '突然のサプライズが好き' }
+      ]
+    },
+    {
+      id: 'hobby',
+      question: '午後の過ごし方で好きなのは？',
+      options: [
+        { value: 'art', label: 'アートや音楽を楽しむ' },
+        { value: 'math', label: '数学や科学について考える' },
+        { value: 'building', label: '何かを作る' },
+        { value: 'puzzle', label: '論理パズルを解く' }
+      ]
+    },
+    {
+      id: 'outlook',
+      question: 'コップの水が半分入っているとき、あなたは？',
+      options: [
+        { value: 'optimist', label: 'まだ半分も残っていると考える（楽観的）' },
+        { value: 'pessimist', label: 'もう半分しか残っていないと考える（悲観的）' },
+        { value: 'realist', label: 'ちょうど半分残っていると考える（現実的）' },
+        { value: 'opportunist', label: 'コップを満たす方法を考える（機転が利く）' }
+      ]
+    }
+  ];
+
+  const steps = [
+    { title: '基本情報', icon: Users },
+    { title: '性格診断', icon: Heart },
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
     { title: '性格', icon: Heart },
     { title: '興味・価値観', icon: Lightbulb },
     { title: '目標・夢', icon: Target },
@@ -195,7 +263,49 @@ const Profiler: React.FC<ProfilerProps> = ({ onProfileComplete, isSubmitting = f
           </div>
         );
 
+<<<<<<< HEAD
       case 1: // Personality
+=======
+      case 1: // Personality Quiz
+        return (
+          <div className="space-y-8">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold mb-2">性格診断クイズ</h2>
+              <p className="text-muted-foreground">いくつかの質問に答えて、あなたの性格タイプを診断しましょう</p>
+            </div>
+            
+            {personalityQuestions.map((question, qIndex) => (
+              <div key={question.id} className="space-y-4 p-4 border rounded-lg">
+                <h3 className="text-lg font-medium">{qIndex + 1}. {question.question}</h3>
+                <RadioGroup
+                  value={profile.personalityQuiz[question.id] || ''}
+                  onValueChange={(value) => {
+                    setProfile(prev => ({
+                      ...prev,
+                      personalityQuiz: {
+                        ...prev.personalityQuiz,
+                        [question.id]: value
+                      }
+                    }));
+                  }}
+                  className="space-y-2"
+                >
+                  {question.options.map((option) => (
+                    <div key={option.value} className="flex items-center space-x-3 p-3 hover:bg-muted/50 rounded-md transition-colors">
+                      <RadioGroupItem value={option.value} id={`${question.id}-${option.value}`} />
+                      <Label htmlFor={`${question.id}-${option.value}`} className="text-base font-normal cursor-pointer w-full">
+                        {option.label}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+            ))}
+          </div>
+        );
+
+      case 2: // Personality
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
         return (
           <div className="space-y-6">
             <div>

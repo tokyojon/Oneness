@@ -13,12 +13,19 @@ import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { fileToDataUri } from "@/lib/utils";
+<<<<<<< HEAD
 import ProtectedRoute from "@/components/auth/protected-route";
+=======
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
 import { useAuth } from "@/hooks/use-auth";
 import { TipButton } from "@/components/wallet/tip-button";
 import { useEffect } from "react";
 import LoadingSpinner from "@/components/common/loading-state";
+<<<<<<< HEAD
 import { useRouter } from "next/navigation";
+=======
+import Profiler from "@/components/Profiler";
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
 
 interface Post {
     id: number;
@@ -26,6 +33,7 @@ interface Post {
         name: string;
         username: string;
         avatarUrl: string;
+<<<<<<< HEAD
     };
     content: string;
     imageUrl?: string;
@@ -207,7 +215,241 @@ export default function DashboardPage() {
             }
             setPosts([newPost, ...posts]);
         }
+=======
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
     };
+    content: string;
+    imageUrl?: string;
+    imageHint?: string;
+    videoUrl?: string;
+    likes: number;
+    comments: number;
+    timestamp: string;
+    isLiked: boolean;
+    isBookmarked: boolean;
+}
+
+interface Story {
+    id: number;
+    username: string;
+    avatarUrl: string;
+}
+
+interface Suggestion {
+    id: number;
+    name: string;
+    username: string;
+    avatarUrl: string;
+}
+
+export default function DashboardPage() {
+    const { user } = useAuth();
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [stories, setStories] = useState<Story[]>([]);
+    const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [userProfile, setUserProfile] = useState<any>(null);
+    const [error, setError] = useState<string | null>(null);
+    const { toast } = useToast();
+    const [isOnboardingSaving, setIsOnboardingSaving] = useState(false);
+
+    const handleOnboardingComplete = async (profile: any) => {
+        const guestUserId = localStorage.getItem('guest_user_id');
+        if (!guestUserId) return;
+
+        setIsOnboardingSaving(true);
+        try {
+            const response = await fetch('/api/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-guest-user-id': guestUserId,
+                },
+                body: JSON.stringify({
+                    display_name: profile.displayName,
+                    bio: profile.bio,
+                    location: profile.location,
+                    occupation: profile.occupation,
+                    relationship_status: profile.relationshipStatus,
+                    favorite_quote: profile.favoriteQuote,
+                    interests: profile.interests,
+                    personality_traits: profile.personality,
+                    goals: profile.goals,
+                    values: profile.values,
+                    hobbies: profile.hobbies,
+                }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({}));
+                throw new Error(data?.error || 'Failed to save profile');
+            }
+
+            toast({
+                title: 'プロフィールを保存しました',
+                description: 'ようこそ！ダッシュボードへ進みましょう。',
+            });
+
+            const refreshed = await fetch('/api/profile', {
+                headers: {
+                    'x-guest-user-id': guestUserId,
+                },
+            });
+            if (refreshed.ok) {
+                const refreshedData = await refreshed.json();
+                setUserProfile(refreshedData.profile);
+            }
+        } catch (e) {
+            toast({
+                variant: 'destructive',
+                title: '保存エラー',
+                description: e instanceof Error ? e.message : 'プロフィールの保存に失敗しました',
+            });
+        } finally {
+            setIsOnboardingSaving(false);
+        }
+    };
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                setError(null);
+                setLoading(true);
+                const guestUserId = localStorage.getItem('guest_user_id');
+                const profileResponse = await fetch('/api/profile', {
+                    headers: {
+                        'x-guest-user-id': guestUserId || '',
+                    },
+                });
+
+                if (!profileResponse.ok) {
+                    throw new Error(`Profile fetch failed: ${profileResponse.status}`);
+                }
+
+                const profileData = await profileResponse.json();
+                setUserProfile(profileData.profile);
+
+                const postsResponse = await fetch('/api/posts', {
+                    headers: {
+                        'x-guest-user-id': guestUserId || '',
+                    },
+                });
+
+                if (!postsResponse.ok) {
+                    console.error('Posts API failed, using fallback');
+                    setPosts([]);
+                } else {
+                    const postsData = await postsResponse.json();
+                    setPosts(postsData.posts || []);
+                }
+
+                setStories([]);
+                setSuggestions([]);
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+                setError(error instanceof Error ? error.message : 'Unknown error');
+                
+                if (user) {
+                    setUserProfile({
+                        name: user.profile?.display_name || 'ユーザー',
+                        username: user.email?.split('@')[0] || 'user',
+                        avatarUrl: user.profile?.avatar_url || "https://picsum.photos/seed/user1/100/100",
+                    });
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, [user, toast]);
+
+    const handleNewPost = async (content: string, mediaUrl?: string, mediaType?: 'image' | 'video') => {
+        try {
+            console.log('Creating new post:', { content, mediaUrl, mediaType });
+            const guestUserId = localStorage.getItem('guest_user_id');
+
+            const postData: any = { content };
+            if (mediaUrl) {
+                if (mediaType === 'image') {
+                    postData.imageUrl = mediaUrl;
+                    postData.imageHint = "user uploaded content";
+                } else {
+                    postData.videoUrl = mediaUrl;
+                }
+            }
+
+            console.log('Sending post data:', postData);
+            const response = await fetch('/api/posts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-guest-user-id': guestUserId || '',
+                },
+                body: JSON.stringify(postData),
+            });
+
+            console.log('Post response status:', response.status);
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Post created successfully:', data);
+                setPosts([data.post, ...posts]);
+            } else {
+                const errorData = await response.json();
+                console.error('Post creation failed:', errorData);
+                throw new Error(errorData.error || 'Failed to create post');
+            }
+        } catch (error) {
+            console.error('Error creating post:', error);
+            const newPost: Post = {
+                id: Date.now(),
+                author: {
+                    name: userProfile?.name || user?.profile?.display_name || 'ユーザー',
+                    username: userProfile?.username || user?.email?.split('@')[0] || 'user',
+                    avatarUrl: userProfile?.avatarUrl || user?.profile?.avatar_url || "https://picsum.photos/seed/user1/100/100"
+                },
+                content,
+                likes: 0,
+                comments: 0,
+                timestamp: "たった今",
+                isLiked: false,
+                isBookmarked: false
+            };
+            if (mediaUrl) {
+                if (mediaType === 'image') {
+                     newPost.imageUrl = mediaUrl;
+                     newPost.imageHint = "user uploaded content";
+                } else {
+                     newPost.videoUrl = mediaUrl;
+                }
+            }
+            setPosts([newPost, ...posts]);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center space-y-4">
+                    <LoadingSpinner className="h-8 w-8 animate-spin mx-auto" />
+                    <p className="text-muted-foreground">読み込み中...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center space-y-4">
+                    <p className="text-destructive">{error}</p>
+                    <Button onClick={() => window.location.reload()}>
+                        再読み込み
+                    </Button>
+                </div>
+            </div>
+        );
+    }
 
     if (loading) {
         return (
@@ -238,6 +480,7 @@ export default function DashboardPage() {
     }
 
     return (
+<<<<<<< HEAD
         <ProtectedRoute>
             <div className="space-y-6">
                 <Stories stories={stories} />
@@ -253,6 +496,27 @@ export default function DashboardPage() {
                 )}
             </div>
         </ProtectedRoute>
+=======
+        <div className="space-y-6">
+            {!userProfile?.onboardingCompleted ? (
+                <Profiler onProfileComplete={handleOnboardingComplete} isSubmitting={isOnboardingSaving} />
+            ) : (
+                <>
+                    <Stories stories={stories} />
+                    <CreatePostCard onNewPost={handleNewPost} />
+                    {posts.length === 0 ? (
+                        <Card>
+                            <CardContent className="text-center py-8">
+                                <p className="text-muted-foreground">まだ投稿がありません。最初の投稿を作成しましょう！</p>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        posts.map(post => <PostCard key={post.id} post={post} />)
+                    )}
+                </>
+            )}
+        </div>
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
     );
 }
 
@@ -291,6 +555,7 @@ const CreatePostCard = ({ onNewPost }: { onNewPost: (content: string, mediaUrl?:
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
+<<<<<<< HEAD
                 const token = localStorage.getItem('auth_token');
                 if (!token) return;
 
@@ -298,6 +563,14 @@ const CreatePostCard = ({ onNewPost }: { onNewPost: (content: string, mediaUrl?:
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
+=======
+                const guestUserId = localStorage.getItem('guest_user_id');
+                if (!guestUserId) return;
+
+                const response = await fetch('/api/profile', {
+                    headers: {
+                        'x-guest-user-id': guestUserId,
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
                     },
                 });
 
@@ -457,6 +730,7 @@ const PostCard = ({ post }: { post: Post }) => {
 
     const handleLike = async () => {
         try {
+<<<<<<< HEAD
             const token = localStorage.getItem('auth_token');
             if (!token) {
                 toast({
@@ -466,12 +740,21 @@ const PostCard = ({ post }: { post: Post }) => {
                 });
                 return;
             }
+=======
+            const guestUserId = localStorage.getItem('guest_user_id');
+            if (!guestUserId) return;
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
 
             const response = await fetch(`/api/posts/${post.id}/like`, {
                 method: 'POST',
                 headers: {
+<<<<<<< HEAD
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
+=======
+                    'Content-Type': 'application/json',
+                    'x-guest-user-id': guestUserId,
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
                 },
             });
 
@@ -498,6 +781,7 @@ const PostCard = ({ post }: { post: Post }) => {
 
     const handleBookmark = async () => {
         try {
+<<<<<<< HEAD
             const token = localStorage.getItem('auth_token');
             if (!token) {
                 toast({
@@ -507,12 +791,21 @@ const PostCard = ({ post }: { post: Post }) => {
                 });
                 return;
             }
+=======
+            const guestUserId = localStorage.getItem('guest_user_id');
+            if (!guestUserId) return;
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
 
             const response = await fetch(`/api/posts/${post.id}/bookmark`, {
                 method: 'POST',
                 headers: {
+<<<<<<< HEAD
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
+=======
+                    'Content-Type': 'application/json',
+                    'x-guest-user-id': guestUserId,
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
                 },
             });
 
@@ -540,6 +833,7 @@ const PostCard = ({ post }: { post: Post }) => {
         if (!showComments) {
             setCommentsLoading(true);
             try {
+<<<<<<< HEAD
                 const token = localStorage.getItem('auth_token');
                 if (!token) return;
 
@@ -547,6 +841,14 @@ const PostCard = ({ post }: { post: Post }) => {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
+=======
+                const guestUserId = localStorage.getItem('guest_user_id');
+                if (!guestUserId) return;
+
+                const response = await fetch(`/api/posts/${post.id}/comments`, {
+                    headers: {
+                        'x-guest-user-id': guestUserId,
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
                     },
                 });
 
@@ -570,16 +872,26 @@ const PostCard = ({ post }: { post: Post }) => {
 
         setSubmittingComment(true);
         try {
+<<<<<<< HEAD
             const token = localStorage.getItem('auth_token');
             if (!token) {
                 throw new Error('Not authenticated');
             }
+=======
+            const guestUserId = localStorage.getItem('guest_user_id');
+            if (!guestUserId) throw new Error('Missing guest user id');
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
 
             const response = await fetch(`/api/posts/${post.id}/comments`, {
                 method: 'POST',
                 headers: {
+<<<<<<< HEAD
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
+=======
+                    'Content-Type': 'application/json',
+                    'x-guest-user-id': guestUserId,
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
                 },
                 body: JSON.stringify({ content: newComment.trim() }),
             });
@@ -610,6 +922,7 @@ const PostCard = ({ post }: { post: Post }) => {
 
     const handleShare = async (platform: string = 'copy') => {
         try {
+<<<<<<< HEAD
             const token = localStorage.getItem('auth_token');
             if (!token) {
                 toast({
@@ -619,12 +932,21 @@ const PostCard = ({ post }: { post: Post }) => {
                 });
                 return;
             }
+=======
+            const guestUserId = localStorage.getItem('guest_user_id');
+            if (!guestUserId) return;
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
 
             const response = await fetch(`/api/posts/${post.id}/share`, {
                 method: 'POST',
                 headers: {
+<<<<<<< HEAD
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
+=======
+                    'Content-Type': 'application/json',
+                    'x-guest-user-id': guestUserId,
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
                 },
                 body: JSON.stringify({ platform }),
             });

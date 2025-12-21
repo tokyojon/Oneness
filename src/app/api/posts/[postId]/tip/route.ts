@@ -1,7 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
+<<<<<<< HEAD
 const supabase = createClient(
+=======
+const supabase = createClient<any>(
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
@@ -11,15 +15,53 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
     const { postId } = params;
     const { amount, recipientId } = await request.json();
 
+<<<<<<< HEAD
     // Get the user from the session using Supabase auth
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+=======
+    const guestUserId = request.headers.get('x-guest-user-id');
+    const authHeader = request.headers.get('authorization');
+
+    let senderId: string | null = null;
+    let userSupabase: ReturnType<typeof createClient<any>> = supabase;
+
+    if (guestUserId) {
+      senderId = guestUserId;
+    } else if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const scoped = createClient<any>(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        }
+      );
+
+      const { data: { user: sender }, error: authError } = await scoped.auth.getUser();
+
+      if (authError || !sender) {
+        return NextResponse.json(
+          { error: 'Invalid token' },
+          { status: 401 }
+        );
+      }
+
+      senderId = sender.id;
+      userSupabase = scoped;
+    } else {
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
+<<<<<<< HEAD
     const token = authHeader.split(' ')[1];
     
     // Create a Supabase client with the user's JWT token
@@ -45,6 +87,8 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
       );
     }
 
+=======
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
     // Validate amount
     if (!amount || isNaN(amount) || amount <= 0) {
       return NextResponse.json(
@@ -57,7 +101,11 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
     const { data: senderPoints, error: balanceError } = await userSupabase
       .from('points_ledger')
       .select('amount')
+<<<<<<< HEAD
       .eq('user_id', sender.id);
+=======
+      .eq('user_id', senderId);
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
 
     if (balanceError) {
       console.error('Balance fetch error:', balanceError);
@@ -96,7 +144,11 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
       const { error: deductError } = await userSupabase
         .from('points_ledger')
         .insert({
+<<<<<<< HEAD
           user_id: sender.id,
+=======
+          user_id: senderId,
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
           amount: -amount,
           type: 'tip_sent',
           related_post_id: postId,
@@ -116,7 +168,11 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
           amount: amount,
           type: 'tip_received',
           related_post_id: postId,
+<<<<<<< HEAD
           related_user_id: sender.id
+=======
+          related_user_id: senderId
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
         });
 
       if (addError) {
@@ -128,7 +184,11 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
       const { error: tipRecordError } = await userSupabase
         .from('tip_transactions')
         .insert({
+<<<<<<< HEAD
           sender_id: sender.id,
+=======
+          sender_id: senderId,
+>>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
           recipient_id: recipientProfile.user_id,
           post_id: postId,
           amount: amount
