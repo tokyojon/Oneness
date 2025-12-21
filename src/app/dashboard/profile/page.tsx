@@ -1,33 +1,142 @@
+'use client';
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bookmark, Grid3x3, Settings, UserPlus, Tag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useAuth } from "@/hooks/use-auth";
+import { useEffect, useState } from "react";
+import { LoadingSpinner } from "@/lib/icons";
 
-const userProfile = {
-    name: "愛 平和 (Ai Heiwa)",
-    username: "ai_heiwa",
-    avatarUrl: "https://picsum.photos/seed/user1/200/200",
-    bio: "愛と平和と調和のメタソーシャルプラットフォーム、ワンネスキングダムの市民。貢献とつながりを大切にしています。 #ワンネス #平和 #貢献",
-    posts: 12,
-    followers: 1530,
-    following: 210,
-};
+interface UserProfile {
+    id: string;
+    name: string;
+    username: string;
+    email: string;
+    avatarUrl: string;
+    bannerUrl: string;
+    bio: string;
+    posts: number;
+    followers: number;
+    following: number;
+    op_balance: number;
+    created_at: string;
+    updated_at: string;
+}
 
-const userPosts = [
-    { id: 1, imageUrl: "https://picsum.photos/seed/up1/500/500", imageHint: "serene landscape" },
-    { id: 2, imageUrl: "https://picsum.photos/seed/up2/500/500", imageHint: "community gathering" },
-    { id: 3, imageUrl: "https://picsum.photos/seed/up3/500/500", imageHint: "abstract art" },
-    { id: 4, imageUrl: "https://picsum.photos/seed/up4/500/500", imageHint: "person meditating" },
-    { id: 5, imageUrl: "https://picsum.photos/seed/up5/500/500", imageHint: "futuristic city" },
-    { id: 6, imageUrl: "https://picsum.photos/seed/up6/500/500", imageHint: "children playing" },
-];
-
+interface UserPost {
+    id: string;
+    imageUrl: string;
+    imageHint: string;
+    likes: number;
+    comments: number;
+    created_at: string;
+}
 
 export default function ProfilePage() {
+    const { user } = useAuth();
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+    const [userPosts, setUserPosts] = useState<UserPost[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProfileData = async () => {
+            try {
+                console.log('Profile page - Starting data fetch...');
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    console.log('Profile page - No auth token found');
+                    setLoading(false);
+                    return;
+                }
+
+                console.log('Profile page - Fetching profile data...');
+                const response = await fetch('/api/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Profile page - Data received:', data);
+                    setUserProfile(data.profile);
+                    setUserPosts(data.posts || []);
+                    console.log('Profile page - Posts set:', data.posts?.length || 0, 'posts');
+                } else {
+                    console.error('Profile page - Failed to fetch profile data:', response.status);
+                    const errorData = await response.json();
+                    console.error('Profile page - Error:', errorData);
+                    // Fallback to basic user data
+                    setUserProfile({
+                        id: user?.id || '',
+                        name: user?.profile?.display_name || 'ユーザー',
+                        username: user?.email?.split('@')[0] || 'user',
+                        email: user?.email || '',
+                        avatarUrl: user?.profile?.avatar_url || "https://picsum.photos/seed/user1/200/200",
+                        bannerUrl: user?.profile?.banner_url || "/default_banner.png",
+                        bio: user?.profile?.bio || "ワンネスキングダムの市民。貢献とつながりを大切にしています。",
+                        posts: 0,
+                        followers: 0,
+                        following: 0,
+                        op_balance: user?.points?.total || 0,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    });
+                    setUserPosts([]);
+                }
+            } catch (error) {
+                console.error('Profile page - Error fetching profile data:', error);
+                setLoading(false);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProfileData();
+    }, [user]);
+
+    if (loading) {
+        return (
+            <div className="container mx-auto max-w-4xl py-8">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center space-y-4">
+                        <LoadingSpinner className="h-8 w-8 animate-spin mx-auto" />
+                        <p className="text-muted-foreground">読み込み中...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!userProfile) {
+        return (
+            <div className="container mx-auto max-w-4xl py-8">
+                <div className="text-center">
+                    <p className="text-muted-foreground">プロフィールデータを読み込めませんでした。</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="container mx-auto max-w-4xl py-8">
+            {/* Desktop Banner Section */}
+            <div className="hidden md:block mb-6">
+                <div className="relative h-48 md:h-64 rounded-lg overflow-hidden">
+                    <Image 
+                        src={userProfile.bannerUrl} 
+                        alt="Profile Banner" 
+                        layout="fill"
+                        objectFit="cover"
+                        className="w-full h-full"
+                    />
+                </div>
+            </div>
+
             <header className="flex items-center gap-8 md:gap-16 px-4">
                 <Avatar className="w-24 h-24 md:w-36 md:h-36 border-4 border-background ring-2 ring-primary">
                     <AvatarImage src={userProfile.avatarUrl} alt={userProfile.name} />
@@ -50,6 +159,7 @@ export default function ProfilePage() {
                         <p><span className="font-semibold">{userProfile.posts}</span> 投稿</p>
                         <p><span className="font-semibold">{userProfile.followers}</span> フォロワー</p>
                         <p><span className="font-semibold">{userProfile.following}</span> フォロー中</p>
+                        <p><span className="font-semibold text-primary">🪙 {userProfile.op_balance}</span> OP</p>
                     </div>
                      <div>
                         <h2 className="font-semibold">{userProfile.name}</h2>

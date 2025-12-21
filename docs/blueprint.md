@@ -3,10 +3,12 @@
 ## Core Features:
 
 - Landing Page: A visually appealing landing page to introduce the Oneness Kingdom program.
-- User Registration: Allow new users to register an account with AI-enhanced identity verification, integrating face recognition and document submission to prevent fraud.  Users under 18 will have restricted permissions.
+- User Registration: Allow new users to register an account.
 - User Login: Enable existing users to log in securely to access the platform.
-- Netlify Database Integration: Set up and connect to a Netlify database for user data storage.
-- Age Verification Tool: Reason whether to prevent a user from being able to access adult parts of the Oneness Kingdom, and other features of the app, based on an automated analysis of user-submitted documentation.
+- Supabase Integration: PostgreSQL for transactional data, Auth, and Realtime.
+- Neo4j Graph: Social relationships and Trust graph queries.
+- Realtime Features: Chat, notifications, AI avatar state via Supabase Realtime.
+- Marketplace: Listings, interactions, evaluations, and points ledger.
 
 ## Style Guidelines:
 

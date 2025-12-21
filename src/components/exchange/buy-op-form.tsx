@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
+import { loadStripe } from "@stripe/stripe-js"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -46,21 +47,47 @@ export default function BuyOpForm({ user }: BuyOpFormProps) {
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
 
-        // This is where a payment gateway integration would be called.
-        console.log("Purchase request:", values);
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        toast({
-            title: "購入が完了しました",
-            description: `${values.op_amount} OPがアカウントに追加されました。`,
-        });
-        
-        setIsLoading(false);
-        form.reset();
+        try {
+            // Get current user
+            const userResponse = await fetch('/api/auth/me');
+            if (!userResponse.ok) {
+                throw new Error('Authentication required');
+            }
+            const userData = await userResponse.json();
+
+            const response = await fetch('/api/payments/create-purchase', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    op_amount: values.op_amount,
+                    user_id: userData.user.id,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to create payment');
+            }
+
+            // Redirect to Stripe Checkout
+            window.location.href = data.checkoutUrl;
+        } catch (error) {
+            toast({
+                title: "エラー",
+                description: error instanceof Error ? error.message : "購入処理に失敗しました。",
+                variant: "destructive",
+            });
+        } finally {
+            setIsLoading(false);
+        }
     }
-    
     const opAmount = form.watch('op_amount') || 0;
-    const jpyAmount = opAmount * JPY_PER_OP;
+    const baseJpyAmount = opAmount * JPY_PER_OP;
+    const fee = baseJpyAmount * 0.05; // 5% fee added to purchase
+    const totalJpyAmount = baseJpyAmount + fee;
 
     return (
         <Card>
@@ -95,10 +122,18 @@ export default function BuyOpForm({ user }: BuyOpFormProps) {
                                 <span className="text-muted-foreground">現在のレート:</span>
                                 <span>1 OP = {JPY_PER_OP} JPY</span>
                             </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">基本金額:</span>
+                                <span>{baseJpyAmount.toLocaleString()} JPY</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">手数料 (5%):</span>
+                                <span>{fee.toLocaleString()} JPY</span>
+                            </div>
                              <div className="flex justify-between text-lg font-bold text-primary pt-2">
                                 <span>お支払い金額:</span>
                                 <span>
-                                    {jpyAmount.toLocaleString()} JPY
+                                    {totalJpyAmount.toLocaleString()} JPY
                                 </span>
                             </div>
                         </div>

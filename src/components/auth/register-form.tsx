@@ -17,311 +17,274 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { useState } from "react"
-import { registerAction } from "@/app/actions";
-import { LoadingSpinner } from "@/lib/icons";
-import { AlertCircle, CheckCircle } from "lucide-react"
-import { cn, fileToDataUri } from "@/lib/utils"
-import WebcamCapture from "./webcam-capture"
-import { AIEnhancedRegistrationOutput } from "@/ai/flows/ai-enhanced-registration";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { useState, useEffect } from "react"
+import { CheckCircle } from "lucide-react"
 import { Card, CardContent } from "../ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useRouter } from "next/navigation"
-
+import { login } from "@/lib/auth"
+import Profiler from "../Profiler"
 
 const formSchema = z.object({
-    name: z.string().min(2, { message: "名前は2文字以上である必要があります。" }),
-    email: z.string().email({ message: "有効なメールアドレスを入力してください。" }),
-    password: z.string().min(8, { message: "パスワードは8文字以上である必要があります。" }),
-    day: z.string().min(1, { message: "日が必要です。" }),
-    month: z.string().min(1, { message: "月が必要です。" }),
-    year: z.string().min(1, { message: "年が必要です。" }),
-}).refine(data => {
-    const { day, month, year } = data;
-    const date = new Date(`${year}-${month}-${day}`);
-    return date.getDate() === parseInt(day) && (date.getMonth() + 1) === parseInt(month);
-}, {
-    message: "無効な日付です。",
-    path: ["day"], // Or you can point to a common field
+  displayName: z.string().min(2, { message: "表示名は最低2文字以上である必要があります。" }),
+  email: z.string().trim().toLowerCase().email({ message: "有効なメールアドレスを入力してください。" }),
+  password: z.string().min(6, { message: "パスワードは最低6文字以上である必要があります。" }),
 });
 
-const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
-const months = [
-    { value: "01", label: "1月" }, { value: "02", label: "2月" }, { value: "03", label: "3月" },
-    { value: "04", label: "4月" }, { value: "05", label: "5月" }, { value: "06", label: "6月" },
-    { value: "07", label: "7月" }, { value: "08", label: "8月" }, { value: "09", label: "9月" },
-    { value: "10", label: "10月" }, { value: "11", label: "11月" }, { value: "12", label: "12月" }
-];
-const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0'));
-
-
 export default function RegisterForm() {
-    const { toast } = useToast();
-    const router = useRouter();
-    const [step, setStep] = useState(1);
-    const [isLoading, setIsLoading] = useState(false);
-    const [aiResult, setAiResult] = useState<AIEnhancedRegistrationOutput | null>(null);
+  const { toast } = useToast();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0); // 0: Basic Info, 1: Profile, 2: Success
+  const [profileData, setProfileData] = useState<any>(null);
 
-    const [photoDataUri, setPhotoDataUri] = useState<string | null>(null);
-    const [documentFile, setDocumentFile] = useState<File | null>(null);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentStep]);
 
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            name: "",
-            email: "",
-            password: "",
-            day: "",
-            month: "",
-            year: "",
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      displayName: "",
+      email: "",
+      password: "",
+    },
+  });
+  
+  async function handleOAuthLogin(provider: 'google' | 'apple') {
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`/api/auth/oauth/${provider}`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Redirect to OAuth provider
+        window.location.href = data.url;
+      } else {
+        toast({
+          variant: "destructive",
+          title: "OAuthエラー",
+          description: data.error || `${provider === 'google' ? 'Google' : 'Apple'}での認証に失敗しました。`,
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "エラー",
+        description: `${provider === 'google' ? 'Google' : 'Apple'}認証中に予期せぬエラーが発生しました。`,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleBasicInfoSubmit = (values: z.infer<typeof formSchema>) => {
+    // Store basic info and move to profile step
+    setCurrentStep(1);
+  };
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    handleBasicInfoSubmit(values);
+  };
+
+  const handleProfileComplete = (profile: any) => {
+    setProfileData(profile);
+    // Now submit all the data
+    submitRegistration(profile);
+  };
+
+  async function submitRegistration(currentProfileData?: any) {
+    setIsLoading(true);
+
+    try {
+      const values = form.getValues();
+      
+      // Use provided profile data or fallback to state (state might be stale if just set)
+      const finalProfileData = currentProfileData || profileData;
+
+      const payload = {
+        email: values.email,
+        password: values.password,
+        display_name: values.displayName,
+        profileData: finalProfileData || undefined,
+        kyc_status: "pending",
+        role: "user",
+        welcome_bonus: 100,
+        avatarData: undefined // Explicitly undefined to satisfy schema
+      };
+
+      console.log('Register payload:', payload);
+
+      const response = await fetch('https://edfixzjpvsqpebzehsqy.supabase.co/functions/v1/admin-register-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`, // Add auth header for Edge Function
         },
-    });
+        body: JSON.stringify(payload),
+      });
 
-    const handleNextStep = async () => {
-        const isValid = await form.trigger();
-        if (isValid) {
-            setStep(2);
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Registration failed:', data);
+      }
+
+      if (response.ok) {
+        toast({
+          title: "登録が完了しました",
+          description: data.message,
+        });
+
+        if (data.autoSignInFailed) {
+          // Auto sign-in failed, show message to login manually
+          toast({
+            title: "ログインが必要です",
+            description: "アカウントが作成されました。ログインしてください。",
+            variant: "default",
+          });
+          // Redirect to login page
+          setTimeout(() => {
+            router.push('/login');
+          }, 2000);
+        } else {
+          // Store user data using auth utility and login properly
+          login(data.user);
+          setIsSuccess(true);
+          // Redirect to dashboard after a short delay
+          setTimeout(() => {
+            router.push('/dashboard');
+          }, 2000);
         }
-    };
-    
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        if (!photoDataUri || !documentFile) {
-            toast({
-                variant: "destructive",
-                title: "情報が不足しています",
-                description: "認証のために写真と書類の両方を提供してください。",
-            });
-            return;
-        }
-
-        setIsLoading(true);
-        setAiResult(null);
-
-        try {
-            const documentDataUri = await fileToDataUri(documentFile);
-            
-            const { day, month, year, ...restOfValues } = values;
-            const dob = new Date(`${year}-${month}-${day}`).toISOString();
-
-            const registrationData = {
-                ...restOfValues,
-                dob: dob,
-                photoDataUri,
-                documentDataUri
-            };
-
-            const result = await registerAction(registrationData);
-
-            if (result.success) {
-                toast({
-                    title: "登録成功",
-                    description: result.message,
-                });
-                // In a real app, a token would be stored, not just a flag.
-                localStorage.setItem('isLoggedIn', 'true');
-                if(result.redirect) {
-                    router.push(result.redirect);
-                } else {
-                    setStep(3); // Go to success step
-                }
-                if (result.aiResult) {
-                    setAiResult(result.aiResult);
-                }
-            } else {
-                toast({
-                    variant: "destructive",
-                    title: "登録失敗",
-                    description: result.message,
-                });
-                if(result.aiResult){
-                    setAiResult(result.aiResult);
-                }
-            }
-        } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "エラー",
-                description: "書類の処理中に予期せぬエラーが発生しました。",
-            });
-        } finally {
-            setIsLoading(false);
-        }
+      } else {
+        toast({
+          variant: "destructive",
+          title: "登録に失敗しました",
+          description: data.error || 'エラーが発生しました',
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "エラー",
+        description: "登録中に予期せぬエラーが発生しました。",
+      });
+    } finally {
+      setIsLoading(false);
     }
+  }
 
-    if (step === 3) {
-        return (
-            <Card>
-                <CardContent className="p-6">
-                    <div className="text-center space-y-4">
-                        <h2 className="text-2xl font-headline font-semibold">王国へようこそ！</h2>
-                        <div className="flex justify-center">
-                          <CheckCircle className="w-12 h-12 text-green-500" />
-                        </div>
-                        <p className="text-muted-foreground">登録が完了しました。ご参加いただき、誠にありがとうございます。</p>
-                        {aiResult && (
-                             <Alert variant={aiResult.isLegitimate ? "default" : "destructive"}>
-                                <AlertCircle className="h-4 w-4" />
-                                <AlertTitle>{aiResult.isLegitimate ? "認証詳細" : "認証の問題"}</AlertTitle>
-                                <AlertDescription>
-                                    <p className="font-semibold">AI評価：</p>
-                                    <p>{aiResult.reason}</p>
-                                </AlertDescription>
-                            </Alert>
-                        )}
-                        <Button onClick={() => router.push('/dashboard')}>ダッシュボードへ</Button>
-                    </div>
-                </CardContent>
-            </Card>
-        );
-    }
-    
+  if (isSuccess) {
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {step === 1 && (
-                    <>
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>氏名</FormLabel>
-                                    <FormControl><Input placeholder="愛 平和" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="email"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>メールアドレス</FormLabel>
-                                    <FormControl><Input placeholder="citizen@oneness.kingdom" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="password"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>パスワード</FormLabel>
-                                    <FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormItem>
-                            <FormLabel>生年月日</FormLabel>
-                            <div className="grid grid-cols-3 gap-2">
-                                <FormField
-                                    control={form.control}
-                                    name="year"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="年" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {years.map(year => <SelectItem key={year} value={year.toString()}>{year}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                 <FormField
-                                    control={form.control}
-                                    name="month"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="月" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {months.map(month => <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="day"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="日" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {days.map(day => <SelectItem key={day} value={day}>{day}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-                            <FormDescription>
-                                18歳未満のユーザーは権限が制限されます。
-                            </FormDescription>
-                        </FormItem>
-                        <Button type="button" onClick={handleNextStep} className="w-full">
-                            次へ：確認
-                        </Button>
-                    </>
-                )}
-
-                {step === 2 && (
-                    <div className="space-y-6">
-                        <div>
-                            <h3 className="text-lg font-medium font-headline">AI本人確認</h3>
-                            <p className="text-sm text-muted-foreground">詐欺防止のため、ライブ写真と身分証明書が必要です。</p>
-                        </div>
-                        <FormItem>
-                            <FormLabel>1. ライブ写真</FormLabel>
-                            <WebcamCapture onCapture={setPhotoDataUri} />
-                        </FormItem>
-                        <FormItem>
-                            <FormLabel>2. 身分証明書</FormLabel>
-                            <FormControl>
-                                <Input type="file" accept="image/*" onChange={(e) => e.target.files && setDocumentFile(e.target.files[0])} />
-                            </FormControl>
-                            <FormDescription>運転免許証、パスポート、または国民IDカードの鮮明な写真をアップロードしてください。</FormDescription>
-                        </FormItem>
-                        
-                        {aiResult && !aiResult.isLegitimate && (
-                            <Alert variant="destructive">
-                                <AlertCircle className="h-4 w-4" />
-                                <AlertTitle>認証の問題</AlertTitle>
-                                <AlertDescription>{aiResult.reason}</AlertDescription>
-                            </Alert>
-                        )}
-                        
-                        <div className="flex gap-4">
-                            <Button type="button" variant="outline" onClick={() => setStep(1)} className="w-full">
-                                戻る
-                            </Button>
-                            <Button type="submit" className="w-full" disabled={isLoading || !photoDataUri || !documentFile}>
-                                {isLoading ? <LoadingSpinner /> : '登録を完了する'}
-                            </Button>
-                        </div>
-                    </div>
-                )}
-            </form>
-        </Form>
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center space-y-4">
+            <h2 className="text-2xl font-headline font-semibold">王国へようこそ！</h2>
+            <div className="flex justify-center">
+              <CheckCircle className="w-12 h-12 text-green-500" />
+            </div>
+            <p className="text-muted-foreground">登録が完了しました。ダッシュボードにリダイレクト中...</p>
+          </div>
+        </CardContent>
+      </Card>
     );
+  }
+  // Show different content based on current step
+  const basicInfoStep = (
+    <Card>
+      <CardContent className="p-6">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-headline font-semibold mb-2">王国への招待</h2>
+          <p className="text-muted-foreground">まずは基本情報を入力してください</p>
+        </div>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="displayName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>表示名</FormLabel>
+                  <FormControl>
+                    <Input placeholder="表示名を入力してください" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    コミュニティ内で表示される名前です
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>メールアドレス</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="メールアドレスを入力してください" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>パスワード</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="パスワードを作成してください" autoComplete="new-password" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    最低6文字以上である必要があります。
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button type="submit" className="w-full">
+              次へ: プロフィール入力へ ✨
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+
+
+  const profileStep = (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-headline font-semibold mb-2">プロフィールを完成させましょう</h2>
+        <p className="text-muted-foreground">
+          あなたの興味や価値観を教えてください
+        </p>
+      </div>
+
+      <Profiler onProfileComplete={handleProfileComplete} isSubmitting={isLoading} />
+
+      <div className="flex justify-center gap-4">
+        <Button onClick={() => setCurrentStep(0)} variant="outline" disabled={isLoading}>
+          戻る
+        </Button>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <div className={currentStep === 0 ? "block" : "hidden"}>{basicInfoStep}</div>
+      <div className={currentStep === 1 ? "block" : "hidden"}>{profileStep}</div>
+    </>
+  );
 }

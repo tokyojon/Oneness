@@ -1,0 +1,132 @@
+#!/usr/bin/env node
+
+/**
+ * Team Post Generator Script
+ * Generates inspirational posts about peace, love, and harmony every 6 hours
+ * Run with: node scripts/generate-team-post.js
+ * Or set up cron job: 0 */6 * * * /usr/bin/node /path/to/scripts/generate-team-post.js
+ */
+
+const { createClient } = require('@supabase/supabase-js');
+
+// Load environment variables
+require('dotenv').config({ path: '.env.local' });
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+// Array of prompts with hints and tips on peace, love, and harmony
+const teamPrompts = [
+  {
+    title: "Creating a Peaceful and Harmonious Neighborhood",
+    content: "To create a peaceful and harmonious neighborhood, start by fostering open communication among residents. Organize community meetings where everyone can share concerns and ideas. Encourage acts of kindness, like helping neighbors with groceries or organizing block parties. Respect differences and promote inclusivity by celebrating diverse cultures and backgrounds. Maintain common spaces clean and safe, and collaborate on local initiatives that benefit everyone."
+  },
+  {
+    title: "Cultivating Love in Daily Interactions",
+    content: "Cultivating love in daily interactions begins with empathy. Listen actively to others without judgment, offer support during challenging times, and express gratitude regularly. Small gestures like a smile, a thank-you note, or helping a neighbor can build stronger bonds. Practice forgiveness and understanding to resolve conflicts peacefully."
+  },
+  {
+    title: "Harmonizing Community Efforts",
+    content: "Harmonizing community efforts involves aligning goals for the greater good. Identify shared values and work together on projects that unite people, such as community gardens or local clean-ups. Encourage participation from all ages and backgrounds to ensure inclusivity. Celebrate achievements collectively to reinforce positive change."
+  },
+  {
+    title: "Building Bridges of Understanding",
+    content: "Building bridges of understanding requires patience and curiosity. Take time to learn about others' perspectives and experiences. Share your own story authentically while remaining open to different viewpoints. Find common ground in shared human experiences and universal values that connect us all."
+  },
+  {
+    title: "The Power of Mindful Communication",
+    content: "Mindful communication transforms relationships. Before speaking, pause to consider your words' impact. Listen with full attention, seeking to understand rather than just respond. Use 'I' statements to express feelings without blame. Practice active listening by reflecting back what you've heard before sharing your thoughts."
+  },
+  {
+    title: "Fostering Inner Peace for Outer Harmony",
+    content: "Inner peace creates outer harmony. Start your day with quiet reflection or meditation. Practice deep breathing when stress arises. Cultivate gratitude by noting three things you're thankful for daily. Let go of what you cannot control and focus on what you can influence positively."
+  },
+  {
+    title: "Embracing Diversity as Strength",
+    content: "Diversity strengthens communities when celebrated. Recognize that different backgrounds bring unique perspectives and solutions. Create spaces where everyone feels valued and heard. Learn from cultural differences rather than fearing them, building richer, more resilient communities."
+  },
+  {
+    title: "The Ripple Effect of Kindness",
+    content: "Small acts of kindness create powerful ripples. Hold doors open, offer genuine compliments, help someone carry heavy bags. Volunteer time or resources to causes you care about. Pay attention to how kindness spreads when you initiate it, inspiring others to do the same."
+  }
+];
+
+async function generateTeamPost() {
+  try {
+    console.log('🚀 Starting team post generation...');
+
+    // Get or create the Oneness Kingdom Team user profile
+    const teamUserId = '00000000-0000-0000-0000-000000000000';
+
+    // Check if team user exists, if not, create
+    const { data: existingProfile } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('user_id', teamUserId)
+      .single();
+
+    if (!existingProfile) {
+      console.log('📝 Creating team profile...');
+      await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: teamUserId,
+          display_name: 'Oneness Kingdom Team',
+          banner_url: '/default_banner.png',
+          bio: 'Official account sharing hints and tips on peace, love, and harmony.',
+          rank: 'admin'
+        });
+      console.log('✅ Team profile created');
+    }
+
+    // Select a random prompt
+    const promptIndex = Math.floor(Math.random() * teamPrompts.length);
+    const selectedPrompt = teamPrompts[promptIndex];
+
+    console.log(`📝 Selected prompt: "${selectedPrompt.title}"`);
+
+    // Create the post
+    const { data: newPost, error: insertError } = await supabase
+      .from('posts')
+      .insert({
+        user_id: teamUserId,
+        content: `${selectedPrompt.title}\n\n${selectedPrompt.content}`,
+        likes: 0,
+        comments: 0,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('❌ Post creation error:', insertError);
+      throw insertError;
+    }
+
+    console.log(`✅ Team post created successfully! Post ID: ${newPost.id}`);
+    console.log(`📅 Timestamp: ${new Date().toISOString()}`);
+
+    return newPost;
+
+  } catch (error) {
+    console.error('💥 Error generating team post:', error);
+    throw error;
+  }
+}
+
+// Run the script
+if (require.main === module) {
+  generateTeamPost()
+    .then(() => {
+      console.log('🎉 Team post generation completed successfully');
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('💥 Team post generation failed:', error);
+      process.exit(1);
+    });
+}
+
+module.exports = { generateTeamPost, teamPrompts };

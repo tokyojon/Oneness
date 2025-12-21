@@ -5,33 +5,68 @@ import { Button } from '@/components/ui/button';
 import { OnenessKingdomLogo } from '@/lib/icons';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Search, MessageSquare, Bell } from 'lucide-react';
+import { Search, MessageSquare, Bell, Wallet } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { logoutAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
+import { logout } from '@/lib/auth';
+import { LanguageSelector } from '@/components/layout/LanguageSelector';
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
 
+  const { isLoggedIn, user } = useAuth();
   const isDashboard = pathname.startsWith('/dashboard');
 
   const handleLogout = async () => {
-    const result = await logoutAction();
-    if (result.success) {
-      localStorage.removeItem('isLoggedIn');
+    try {
+      console.log('Starting logout process...');
+      // Clear client-side authentication data
+      logout();
+      console.log('Client-side logout completed');
+      
+      // Call server action for any server-side cleanup
+      const result = await logoutAction();
+      console.log('Server action result:', result);
+      
+      if (result.success) {
+        toast({
+          title: 'ログアウト成功',
+          description: result.message,
+        });
+        // Force a page refresh to update navbar state
+        router.push('/');
+        router.refresh();
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'ログアウトエラー',
+          description: 'ログアウトに失敗しました。',
+        });
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
       toast({
-        title: 'ログアウト成功',
-        description: result.message,
+        variant: 'destructive',
+        title: 'ログアウトエラー',
+        description: 'ログアウト中にエラーが発生しました。',
       });
-      router.push('/');
     }
   };
 
-  if (isDashboard) {
+  const handleSearch = (searchTerm: string) => {
+    if (searchTerm.trim()) {
+      // Navigate to search results page with query parameter
+      router.push(`/dashboard/search?q=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
+
+  if (isDashboard || isLoggedIn) {
     return (
       <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-sm border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
@@ -41,20 +76,46 @@ export default function Header() {
           </Link>
           
           <div className="flex-1 max-w-md mx-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input placeholder="検索..." className="pl-10" />
+            <div className="relative flex gap-2">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+              <Input 
+                placeholder="検索..." 
+                className="pl-10 flex-1"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const target = e.target as HTMLInputElement;
+                    handleSearch(target.value);
+                  }
+                }}
+              />
+              <Button 
+                size="sm" 
+                className="px-3"
+                onClick={(e) => {
+                  const input = e.currentTarget.parentElement?.querySelector('input');
+                  if (input) handleSearch(input.value);
+                }}
+              >
+                Go
+              </Button>
             </div>
           </div>
 
           <nav className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="hidden sm:inline-flex" asChild>
+            <LanguageSelector />
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/dashboard/wallet">
+                <Wallet className="h-6 w-6" />
+                <span className="sr-only">ウォレット</span>
+              </Link>
+            </Button>
+            <Button variant="ghost" size="icon" asChild>
               <Link href="/dashboard/notifications">
                 <MessageSquare className="h-6 w-6" />
                 <span className="sr-only">メッセージ</span>
               </Link>
             </Button>
-            <Button variant="ghost" size="icon" className="hidden sm:inline-flex" asChild>
+            <Button variant="ghost" size="icon" asChild>
               <Link href="/dashboard/notifications">
                 <Bell className="h-6 w-6" />
                 <span className="sr-only">お知らせ</span>
@@ -65,21 +126,27 @@ export default function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src="https://picsum.photos/seed/user1/100/100" alt="User" />
-                    <AvatarFallback>A</AvatarFallback>
+                    <AvatarImage src={user?.profile?.avatar_url || "https://picsum.photos/seed/user1/100/100"} alt="User" />
+                    <AvatarFallback>{user?.profile?.display_name?.charAt(0) || 'U'}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">愛 平和</p>
+                    <p className="text-sm font-medium leading-none">{user?.profile?.display_name || 'ユーザー'}</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      ai_heiwa
+                      {user?.email || 'user@example.com'}
                     </p>
+                    {user?.points && (
+                      <p className="text-xs leading-none text-primary font-semibold">
+                        🪙 {user.points.total} OP
+                      </p>
+                    )}
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild><Link href="/dashboard/wallet">🪙 ウォレット</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link href="/dashboard/profile">プロフィール</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link href="/dashboard/settings">設定</Link></DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -106,6 +173,7 @@ export default function Header() {
           <span>ワンネスキングダム</span>
         </Link>
         <nav className="flex items-center gap-4">
+          <LanguageSelector />
           <Button variant="ghost" asChild className={cn(isTransparent && "hover:bg-white/10")}>
             <Link href="/exchange">両替</Link>
           </Button>
@@ -115,10 +183,7 @@ export default function Header() {
           <Button asChild className={cn(isTransparent ? "bg-white/90 text-black hover:bg-white" : "bg-primary text-primary-foreground")}>
             <Link href="/register">登録</Link>
           </Button>
-          <Button variant="outline" asChild className={cn(isTransparent && "border-white/80 text-white hover:bg-white/10")}>
-            <Link href="/verify-age">年齢確認</Link>
-          </Button>
-        </nav>
+          </nav>
       </div>
     </header>
   );

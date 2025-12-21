@@ -1,46 +1,77 @@
+'use client';
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useEffect, useState } from "react";
+import { LoadingSpinner } from "@/lib/icons";
 
-// Mock Data
-const notifications = [
-    {
-        id: 1,
-        type: 'like',
-        user: { name: 'Satoshi', avatarUrl: 'https://picsum.photos/seed/story1/80/80' },
-        postContent: '今日の収穫です！愛情を込めて育てた野菜は...',
-        timestamp: '2時間前',
-        read: false
-    },
-    {
-        id: 2,
-        type: 'comment',
-        user: { name: 'Yuki', avatarUrl: 'https://picsum.photos/seed/story2/80/80' },
-        comment: '素晴らしいアートですね！感動しました。',
-        timestamp: '5時間前',
-        read: false
-    },
-    {
-        id: 3,
-        type: 'follow',
-        user: { name: '未来技術ラボ', avatarUrl: 'https://picsum.photos/seed/sug1/80/80' },
-        timestamp: '1日前',
-        read: true
-    },
-    {
-        id: 4,
-        type: 'mention',
-        user: { name: 'Haru', avatarUrl: 'https://picsum.photos/seed/story3/80/80' },
-        postContent: '... @ai_heiwa さんも興味があるかも？',
-        timestamp: '2日前',
-        read: true
-    }
-];
-
+interface Notification {
+    id: string;
+    type: string;
+    message: string;
+    timestamp: string;
+    read: boolean;
+}
 
 export default function NotificationsPage() {
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchNotifications = async () => {
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    setLoading(false);
+                    return;
+                }
+
+                const response = await fetch('/api/notifications', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setNotifications(data.notifications || []);
+                } else {
+                    console.error('Failed to fetch notifications');
+                    setNotifications([]);
+                }
+            } catch (error) {
+                console.error('Error fetching notifications:', error);
+                setNotifications([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchNotifications();
+    }, []);
+
     const unreadNotifications = notifications.filter(n => !n.read);
     const earlierNotifications = notifications.filter(n => n.read);
+
+    if (loading) {
+        return (
+            <div className="container mx-auto max-w-2xl py-8">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-2xl font-headline">お知らせ</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center justify-center py-8">
+                            <LoadingSpinner className="h-8 w-8 animate-spin" />
+                            <span className="ml-2 text-muted-foreground">読み込み中...</span>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="container mx-auto max-w-2xl py-8">
@@ -73,21 +104,14 @@ export default function NotificationsPage() {
     );
 }
 
-const NotificationItem = ({ notification }: { notification: (typeof notifications)[0] }) => {
+const NotificationItem = ({ notification }: { notification: Notification }) => {
     return (
         <div className="flex items-start gap-4 p-3 rounded-lg hover:bg-muted transition-colors">
             <Avatar className="h-10 w-10">
-                <AvatarImage src={notification.user.avatarUrl} alt={notification.user.name} />
-                <AvatarFallback>{notification.user.name.charAt(0)}</AvatarFallback>
+                <AvatarFallback>N</AvatarFallback>
             </Avatar>
             <div className="flex-grow text-sm">
-                <p>
-                    <span className="font-bold">{notification.user.name}</span>
-                    {notification.type === 'like' && `さんがあなたの投稿に「いいね！」しました: "${notification.postContent?.substring(0, 20)}..."`}
-                    {notification.type === 'comment' && `さんがコメントしました: "${notification.comment}"`}
-                    {notification.type === 'follow' && 'さんがあなたをフォローしました。'}
-                    {notification.type === 'mention' && `さんがあなたをメンションしました: "${notification.postContent?.substring(0, 20)}..."`}
-                </p>
+                <p>{notification.message}</p>
                 <p className="text-xs text-muted-foreground mt-1">{notification.timestamp}</p>
             </div>
             {!notification.read && <div className="h-2.5 w-2.5 rounded-full bg-primary mt-1 flex-shrink-0" />}
