@@ -63,16 +63,16 @@ export function TipButton({ recipientId, recipientName, postId, className }: Tip
 
     setIsSending(true);
     try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        throw new Error('Not authenticated');
+      const guestUserId = localStorage.getItem('guest_user_id');
+      if (!guestUserId) {
+        throw new Error('Missing guest user id');
       }
 
       const response = await fetch(`/api/posts/${postId}/tip`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
+          'x-guest-user-id': guestUserId,
         },
         body: JSON.stringify({ 
           amount: tipAmount,

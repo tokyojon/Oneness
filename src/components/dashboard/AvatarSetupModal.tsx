@@ -5,16 +5,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import KawaiiGenerator, { GeneratedAvatarPayload } from "../KawaiiGenerator";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from 'next/navigation';
-
-import { login } from "@/lib/auth";
 
 export default function AvatarSetupModal() {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
-  const router = useRouter();
 
   useEffect(() => {
     // Check if user is logged in and has no avatar
@@ -64,10 +60,7 @@ export default function AvatarSetupModal() {
   const handleAvatarSave = async (data: { avatar: GeneratedAvatarPayload['avatarConfig']; imageUrl: string }) => {
     setIsSaving(true);
     try {
-      const token = localStorage.getItem('auth_token');
-      // Note: We are using cookie-based auth mostly, but some components might check this.
-      // If using cookies, we don't strictly need the token header if the API handles cookies.
-      // However, the existing upload code used it.
+      const guestUserId = localStorage.getItem('guest_user_id');
       
       // Resize and convert to blob
       const blob = await resizeImage(data.imageUrl, 512);
@@ -81,6 +74,9 @@ export default function AvatarSetupModal() {
       // Upload avatar
       const uploadResponse = await fetch('/api/upload/avatar', {
         method: 'POST',
+        headers: {
+          'x-guest-user-id': guestUserId || '',
+        },
         body: formData,
       });
 
@@ -96,18 +92,7 @@ export default function AvatarSetupModal() {
       });
       
       // Update local user state
-      if (user) {
-        const updatedUser = { 
-          ...user, 
-          profile: { 
-            ...user.profile, 
-            avatar_url: result.url || data.imageUrl 
-          } 
-        };
-        login(updatedUser);
-        // Force a reload to update all components
-        window.location.reload();
-      }
+      window.location.reload();
       
       setIsOpen(false);
       

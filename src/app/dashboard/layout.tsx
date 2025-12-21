@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import { Bell, Clapperboard, Compass, Home, Send, User, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { ReactNode, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { LoadingSpinner } from "@/lib/icons";
 import AvatarSetupModal from "@/components/dashboard/AvatarSetupModal";
@@ -30,16 +29,10 @@ const LeftSidebar = () => {
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
-                const token = localStorage.getItem('auth_token');
-                if (!token) {
-                    setLoading(false);
-                    return;
-                }
-
+                const guestUserId = localStorage.getItem('guest_user_id');
                 const response = await fetch('/api/profile', {
                     headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
+                        'x-guest-user-id': guestUserId || '',
                     },
                 });
 
@@ -185,15 +178,7 @@ const RightSidebar = () => {
 };
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-    const { isLoggedIn, loading } = useAuth();
-    const router = useRouter();
-
-    useEffect(() => {
-        // If not loading and not logged in, redirect to login
-        if (!loading && !isLoggedIn) {
-            router.replace('/login');
-        }
-    }, [isLoggedIn, loading, router]);
+    const { loading } = useAuth();
 
     // Show loading spinner while checking auth
     if (loading) {
@@ -202,11 +187,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <LoadingSpinner className="h-8 w-8" />
             </div>
         );
-    }
-
-    // If not logged in, don't render anything (redirect will happen)
-    if (!isLoggedIn) {
-        return null;
     }
 
     return (

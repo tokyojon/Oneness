@@ -8,38 +8,9 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    // Get the user from the session using Supabase auth
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.split(' ')[1];
-    
-    // Create a Supabase client with the user's JWT token
-    const userSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      }
-    );
-
-    // Verify the user is authenticated
-    const { data: { user }, error: authError } = await userSupabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
-      );
+    const guestUserId = request.headers.get('x-guest-user-id');
+    if (!guestUserId) {
+      return NextResponse.json({ error: 'Missing guest user id' }, { status: 400 });
     }
 
     // Parse the multipart form data
@@ -71,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     // Generate unique file name
     const fileExt = file.name.split('.').pop();
-    const fileName = `banner-${user.id}-${Date.now()}.${fileExt}`;
+    const fileName = `banner-${guestUserId}-${Date.now()}.${fileExt}`;
     const filePath = `banners/${fileName}`;
 
     // Upload to Supabase Storage
@@ -96,10 +67,10 @@ export async function POST(request: NextRequest) {
       .getPublicUrl(filePath);
 
     // Update user's profile with new banner URL
-    const { error: updateError } = await userSupabase
+    const { error: updateError } = await supabase
       .from('user_profiles')
       .upsert({
-        user_id: user.id,
+        user_id: guestUserId,
         banner_url: publicUrl,
         updated_at: new Date().toISOString()
       });

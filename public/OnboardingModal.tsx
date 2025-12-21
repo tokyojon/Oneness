@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { generateCharacterAnalysis, estimateAge, generateAvatar } from '../lib/gemini';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../src/lib/supabase';
 import { Button } from './ui/Button';
 import { 
   MapPin, 

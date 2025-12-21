@@ -13,12 +13,11 @@ import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { fileToDataUri } from "@/lib/utils";
-import ProtectedRoute from "@/components/auth/protected-route";
 import { useAuth } from "@/hooks/use-auth";
 import { TipButton } from "@/components/wallet/tip-button";
 import { useEffect } from "react";
 import LoadingSpinner from "@/components/common/loading-state";
-import { useRouter } from "next/navigation";
+import Profiler from "@/components/Profiler";
 
 interface Post {
     id: number;
@@ -60,39 +59,78 @@ export default function DashboardPage() {
     const [userProfile, setUserProfile] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
     const { toast } = useToast();
-    const router = useRouter();
+    const [isOnboardingSaving, setIsOnboardingSaving] = useState(false);
+
+    const handleOnboardingComplete = async (profile: any) => {
+        const guestUserId = localStorage.getItem('guest_user_id');
+        if (!guestUserId) return;
+
+        setIsOnboardingSaving(true);
+        try {
+            const response = await fetch('/api/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-guest-user-id': guestUserId,
+                },
+                body: JSON.stringify({
+                    display_name: profile.displayName,
+                    bio: profile.bio,
+                    location: profile.location,
+                    occupation: profile.occupation,
+                    relationship_status: profile.relationshipStatus,
+                    favorite_quote: profile.favoriteQuote,
+                    interests: profile.interests,
+                    personality_traits: profile.personality,
+                    goals: profile.goals,
+                    values: profile.values,
+                    hobbies: profile.hobbies,
+                }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({}));
+                throw new Error(data?.error || 'Failed to save profile');
+            }
+
+            toast({
+                title: 'プロフィールを保存しました',
+                description: 'ようこそ！ダッシュボードへ進みましょう。',
+            });
+
+            const refreshed = await fetch('/api/profile', {
+                headers: {
+                    'x-guest-user-id': guestUserId,
+                },
+            });
+            if (refreshed.ok) {
+                const refreshedData = await refreshed.json();
+                setUserProfile(refreshedData.profile);
+            }
+        } catch (e) {
+            toast({
+                variant: 'destructive',
+                title: '保存エラー',
+                description: e instanceof Error ? e.message : 'プロフィールの保存に失敗しました',
+            });
+        } finally {
+            setIsOnboardingSaving(false);
+        }
+    };
 
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
                 setError(null);
                 setLoading(true);
-                
-                const token = localStorage.getItem('auth_token');
-                if (!token) {
-                    throw new Error('No auth token found');
-                }
-
+                const guestUserId = localStorage.getItem('guest_user_id');
                 const profileResponse = await fetch('/api/profile', {
                     headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
+                        'x-guest-user-id': guestUserId || '',
                     },
                 });
 
                 if (!profileResponse.ok) {
-                    if (profileResponse.status === 401) {
-                        if (typeof window !== 'undefined') {
-                            localStorage.removeItem('auth_token');
-                            router.push('/login');
-                        }
-                        toast({
-                            variant: 'destructive',
-                            title: 'セッションが切れました',
-                            description: '再度ログインしてください',
-                        });
-                        return;
-                    }
                     throw new Error(`Profile fetch failed: ${profileResponse.status}`);
                 }
 
@@ -101,20 +139,11 @@ export default function DashboardPage() {
 
                 const postsResponse = await fetch('/api/posts', {
                     headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
+                        'x-guest-user-id': guestUserId || '',
                     },
                 });
 
                 if (!postsResponse.ok) {
-                    if (postsResponse.status === 401) {
-                        if (typeof window !== 'undefined') {
-                            localStorage.removeItem('auth_token');
-                            router.push('/login');
-                        }
-                        return;
-                    }
-                    
                     console.error('Posts API failed, using fallback');
                     setPosts([]);
                 } else {
@@ -141,15 +170,12 @@ export default function DashboardPage() {
         };
 
         fetchDashboardData();
-    }, [user, router, toast]);
+    }, [user, toast]);
 
     const handleNewPost = async (content: string, mediaUrl?: string, mediaType?: 'image' | 'video') => {
         try {
             console.log('Creating new post:', { content, mediaUrl, mediaType });
-            const token = localStorage.getItem('auth_token');
-            if (!token) {
-                throw new Error('Not authenticated');
-            }
+            const guestUserId = localStorage.getItem('guest_user_id');
 
             const postData: any = { content };
             if (mediaUrl) {
@@ -165,8 +191,8 @@ export default function DashboardPage() {
             const response = await fetch('/api/posts', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
+                    'x-guest-user-id': guestUserId || '',
                 },
                 body: JSON.stringify(postData),
             });
@@ -211,48 +237,48 @@ export default function DashboardPage() {
 
     if (loading) {
         return (
-            <ProtectedRoute>
-                <div className="flex items-center justify-center min-h-[400px]">
-                    <div className="text-center space-y-4">
-                        <LoadingSpinner className="h-8 w-8 animate-spin mx-auto" />
-                        <p className="text-muted-foreground">読み込み中...</p>
-                    </div>
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center space-y-4">
+                    <LoadingSpinner className="h-8 w-8 animate-spin mx-auto" />
+                    <p className="text-muted-foreground">読み込み中...</p>
                 </div>
-            </ProtectedRoute>
+            </div>
         );
     }
 
     if (error) {
         return (
-            <ProtectedRoute>
-                <div className="flex items-center justify-center min-h-[400px]">
-                    <div className="text-center space-y-4">
-                        <p className="text-destructive">{error}</p>
-                        <Button onClick={() => window.location.reload()}>
-                            再読み込み
-                        </Button>
-                    </div>
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center space-y-4">
+                    <p className="text-destructive">{error}</p>
+                    <Button onClick={() => window.location.reload()}>
+                        再読み込み
+                    </Button>
                 </div>
-            </ProtectedRoute>
+            </div>
         );
     }
 
     return (
-        <ProtectedRoute>
-            <div className="space-y-6">
-                <Stories stories={stories} />
-                <CreatePostCard onNewPost={handleNewPost} />
-                {posts.length === 0 ? (
-                    <Card>
-                        <CardContent className="text-center py-8">
-                            <p className="text-muted-foreground">まだ投稿がありません。最初の投稿を作成しましょう！</p>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    posts.map(post => <PostCard key={post.id} post={post} />)
-                )}
-            </div>
-        </ProtectedRoute>
+        <div className="space-y-6">
+            {!userProfile?.onboardingCompleted ? (
+                <Profiler onProfileComplete={handleOnboardingComplete} isSubmitting={isOnboardingSaving} />
+            ) : (
+                <>
+                    <Stories stories={stories} />
+                    <CreatePostCard onNewPost={handleNewPost} />
+                    {posts.length === 0 ? (
+                        <Card>
+                            <CardContent className="text-center py-8">
+                                <p className="text-muted-foreground">まだ投稿がありません。最初の投稿を作成しましょう！</p>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        posts.map(post => <PostCard key={post.id} post={post} />)
+                    )}
+                </>
+            )}
+        </div>
     );
 }
 
@@ -291,13 +317,12 @@ const CreatePostCard = ({ onNewPost }: { onNewPost: (content: string, mediaUrl?:
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
-                const token = localStorage.getItem('auth_token');
-                if (!token) return;
+                const guestUserId = localStorage.getItem('guest_user_id');
+                if (!guestUserId) return;
 
                 const response = await fetch('/api/profile', {
                     headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
+                        'x-guest-user-id': guestUserId,
                     },
                 });
 
@@ -457,21 +482,14 @@ const PostCard = ({ post }: { post: Post }) => {
 
     const handleLike = async () => {
         try {
-            const token = localStorage.getItem('auth_token');
-            if (!token) {
-                toast({
-                    variant: 'destructive',
-                    title: '認証エラー',
-                    description: 'ログインしてください。',
-                });
-                return;
-            }
+            const guestUserId = localStorage.getItem('guest_user_id');
+            if (!guestUserId) return;
 
             const response = await fetch(`/api/posts/${post.id}/like`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
+                    'x-guest-user-id': guestUserId,
                 },
             });
 
@@ -498,21 +516,14 @@ const PostCard = ({ post }: { post: Post }) => {
 
     const handleBookmark = async () => {
         try {
-            const token = localStorage.getItem('auth_token');
-            if (!token) {
-                toast({
-                    variant: 'destructive',
-                    title: '認証エラー',
-                    description: 'ログインしてください。',
-                });
-                return;
-            }
+            const guestUserId = localStorage.getItem('guest_user_id');
+            if (!guestUserId) return;
 
             const response = await fetch(`/api/posts/${post.id}/bookmark`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
+                    'x-guest-user-id': guestUserId,
                 },
             });
 
@@ -540,13 +551,12 @@ const PostCard = ({ post }: { post: Post }) => {
         if (!showComments) {
             setCommentsLoading(true);
             try {
-                const token = localStorage.getItem('auth_token');
-                if (!token) return;
+                const guestUserId = localStorage.getItem('guest_user_id');
+                if (!guestUserId) return;
 
                 const response = await fetch(`/api/posts/${post.id}/comments`, {
                     headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
+                        'x-guest-user-id': guestUserId,
                     },
                 });
 
@@ -570,16 +580,14 @@ const PostCard = ({ post }: { post: Post }) => {
 
         setSubmittingComment(true);
         try {
-            const token = localStorage.getItem('auth_token');
-            if (!token) {
-                throw new Error('Not authenticated');
-            }
+            const guestUserId = localStorage.getItem('guest_user_id');
+            if (!guestUserId) throw new Error('Missing guest user id');
 
             const response = await fetch(`/api/posts/${post.id}/comments`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
+                    'x-guest-user-id': guestUserId,
                 },
                 body: JSON.stringify({ content: newComment.trim() }),
             });
@@ -610,21 +618,14 @@ const PostCard = ({ post }: { post: Post }) => {
 
     const handleShare = async (platform: string = 'copy') => {
         try {
-            const token = localStorage.getItem('auth_token');
-            if (!token) {
-                toast({
-                    variant: 'destructive',
-                    title: '認証エラー',
-                    description: 'ログインしてください。',
-                });
-                return;
-            }
+            const guestUserId = localStorage.getItem('guest_user_id');
+            if (!guestUserId) return;
 
             const response = await fetch(`/api/posts/${post.id}/share`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
+                    'x-guest-user-id': guestUserId,
                 },
                 body: JSON.stringify({ platform }),
             });

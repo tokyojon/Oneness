@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-const supabase = createClient(
+const supabase = createClient<any>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
@@ -10,36 +10,43 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
   try {
     const { postId } = params;
 
-    // Get the user from the session using Supabase auth
+    const guestUserId = request.headers.get('x-guest-user-id');
     const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+
+    let userId: string | null = null;
+    let userSupabase: ReturnType<typeof createClient<any>> = supabase;
+
+    if (guestUserId) {
+      userId = guestUserId;
+    } else if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+
+      const userScoped = createClient<any>(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        }
+      );
+
+      const { data: { user }, error: authError } = await userScoped.auth.getUser();
+
+      if (authError || !user) {
+        return NextResponse.json(
+          { error: 'Invalid token' },
+          { status: 401 }
+        );
+      }
+
+      userId = user.id;
+      userSupabase = userScoped;
+    } else {
       return NextResponse.json(
         { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.split(' ')[1];
-    
-    // Create a Supabase client with the user's JWT token
-    const userSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      }
-    );
-
-    // Verify the user is authenticated
-    const { data: { user }, error: authError } = await userSupabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
         { status: 401 }
       );
     }
@@ -49,7 +56,7 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
       .from('user_bookmarks')
       .select('*')
       .eq('post_id', postId)
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single();
 
     if (bookmarkCheckError && bookmarkCheckError.code !== 'PGRST116') {
@@ -68,7 +75,7 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
         .from('user_bookmarks')
         .delete()
         .eq('post_id', postId)
-        .eq('user_id', user.id);
+        .eq('user_id', userId);
 
       if (unbookmarkError) {
         console.error('Unbookmark error:', unbookmarkError);
@@ -85,7 +92,7 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
         .from('user_bookmarks')
         .insert({
           post_id: postId,
-          user_id: user.id
+          user_id: userId
         });
 
       if (bookmarkError) {

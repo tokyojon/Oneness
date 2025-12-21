@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-const supabase = createClient(
+const supabase = createClient<any>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
@@ -11,36 +11,42 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
     const { postId } = params;
     const { platform } = await request.json();
 
-    // Get the user from the session using Supabase auth
+    const guestUserId = request.headers.get('x-guest-user-id');
     const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+
+    let userId: string | null = null;
+    let userSupabase: ReturnType<typeof createClient<any>> = supabase;
+
+    if (guestUserId) {
+      userId = guestUserId;
+    } else if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const scoped = createClient<any>(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        }
+      );
+
+      const { data: { user }, error: authError } = await scoped.auth.getUser();
+
+      if (authError || !user) {
+        return NextResponse.json(
+          { error: 'Invalid token' },
+          { status: 401 }
+        );
+      }
+
+      userId = user.id;
+      userSupabase = scoped;
+    } else {
       return NextResponse.json(
         { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.split(' ')[1];
-    
-    // Create a Supabase client with the user's JWT token
-    const userSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      }
-    );
-
-    // Verify the user is authenticated
-    const { data: { user }, error: authError } = await userSupabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
         { status: 401 }
       );
     }
@@ -70,7 +76,7 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
         .from('post_shares')
         .insert({
           post_id: postId,
-          user_id: user.id,
+          user_id: userId,
           platform: platform || 'unknown'
         });
     } catch (shareError) {
@@ -81,8 +87,9 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
     // Generate share URLs
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     const postUrl = `${baseUrl}/dashboard/post/${postId}`;
-    
-    const authorName = post.user_profiles?.display_name || 'ユーザー';
+
+    const userProfiles = (post as any).user_profiles;
+    const authorName = (Array.isArray(userProfiles) ? userProfiles?.[0]?.display_name : userProfiles?.display_name) || 'ユーザー';
     const truncatedContent = post.content.length > 100 
       ? post.content.substring(0, 100) + '...' 
       : post.content;

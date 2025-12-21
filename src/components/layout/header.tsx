@@ -9,10 +9,8 @@ import { Search, MessageSquare, Bell, Wallet } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { logoutAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
-import { logout } from '@/lib/auth';
 import { LanguageSelector } from '@/components/layout/LanguageSelector';
 
 export default function Header() {
@@ -22,42 +20,6 @@ export default function Header() {
 
   const { isLoggedIn, user } = useAuth();
   const isDashboard = pathname.startsWith('/dashboard');
-
-  const handleLogout = async () => {
-    try {
-      console.log('Starting logout process...');
-      // Clear client-side authentication data
-      logout();
-      console.log('Client-side logout completed');
-      
-      // Call server action for any server-side cleanup
-      const result = await logoutAction();
-      console.log('Server action result:', result);
-      
-      if (result.success) {
-        toast({
-          title: 'ログアウト成功',
-          description: result.message,
-        });
-        // Force a page refresh to update navbar state
-        router.push('/');
-        router.refresh();
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'ログアウトエラー',
-          description: 'ログアウトに失敗しました。',
-        });
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast({
-        variant: 'destructive',
-        title: 'ログアウトエラー',
-        description: 'ログアウト中にエラーが発生しました。',
-      });
-    }
-  };
 
   const handleSearch = (searchTerm: string) => {
     if (searchTerm.trim()) {
@@ -150,7 +112,7 @@ export default function Header() {
                 <DropdownMenuItem asChild><Link href="/dashboard/profile">プロフィール</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link href="/dashboard/settings">設定</Link></DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>ログアウト</DropdownMenuItem>
+                <DropdownMenuItem disabled>ゲストモード</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -177,11 +139,8 @@ export default function Header() {
           <Button variant="ghost" asChild className={cn(isTransparent && "hover:bg-white/10")}>
             <Link href="/exchange">両替</Link>
           </Button>
-          <Button variant="ghost" asChild className={cn(isTransparent && "hover:bg-white/10")}>
-            <Link href="/login">ログイン</Link>
-          </Button>
           <Button asChild className={cn(isTransparent ? "bg-white/90 text-black hover:bg-white" : "bg-primary text-primary-foreground")}>
-            <Link href="/register">登録</Link>
+            <Link href="/dashboard">はじめる</Link>
           </Button>
           </nav>
       </div>

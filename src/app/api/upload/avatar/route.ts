@@ -8,38 +8,9 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    // Get the user from the session using Supabase auth
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.split(' ')[1];
-
-    // Create a Supabase client with the user's JWT token
-    const userSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      }
-    );
-
-    // Verify the user is authenticated
-    const { data: { user }, error: authError } = await userSupabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
-      );
+    const guestUserId = request.headers.get('x-guest-user-id');
+    if (!guestUserId) {
+      return NextResponse.json({ error: 'Missing guest user id' }, { status: 400 });
     }
 
     // Parse the multipart form data
@@ -72,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     // Generate unique file name
     const fileExt = file.name.split('.').pop() || 'png';
-    const fileName = `avatar-${user.id}-${Date.now()}.${fileExt}`;
+    const fileName = `avatar-${guestUserId}-${Date.now()}.${fileExt}`;
     const filePath = `avatars/${fileName}`;
 
     // Upload to Supabase Storage
@@ -97,10 +68,10 @@ export async function POST(request: NextRequest) {
       .getPublicUrl(filePath);
 
     // Update user's profile with new avatar URL and config
-    const { error: updateError } = await userSupabase
+    const { error: updateError } = await supabase
       .from('user_profiles')
       .upsert({
-        user_id: user.id,
+        user_id: guestUserId,
         avatar_url: publicUrl,
         avatar_config: avatarConfig ? JSON.parse(avatarConfig) : null,
         updated_at: new Date().toISOString()

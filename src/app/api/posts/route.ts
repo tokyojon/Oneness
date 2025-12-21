@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-const supabase = createClient(
+const supabase = createClient<any>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
@@ -15,11 +15,16 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0');
     
     const authHeader = request.headers.get('authorization');
+    const guestUserId = request.headers.get('x-guest-user-id');
     let user: any | null = null;
     let token: string | null = null;
-    let userSupabase: ReturnType<typeof createClient> | null = null;
+    let userSupabase: ReturnType<typeof createClient<any>> | null = null;
 
-    if (authHeader && authHeader.startsWith('Bearer ')) {
+    if (guestUserId) {
+      user = { id: guestUserId };
+      userSupabase = supabase;
+      console.log('GET /api/posts - Guest user:', guestUserId);
+    } else if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.split(' ')[1];
       console.log('GET /api/posts - Token found');
 
@@ -36,7 +41,7 @@ export async function GET(request: NextRequest) {
       user = authUser;
       console.log('GET /api/posts - User authenticated:', user.id);
 
-      userSupabase = createClient(
+      userSupabase = createClient<any>(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
@@ -171,43 +176,41 @@ export async function POST(request: NextRequest) {
   try {
     console.log('POST /api/posts - Starting post creation...');
     
-    // Get the user from the session using Supabase auth
+    const guestUserId = request.headers.get('x-guest-user-id');
     const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('POST /api/posts - No authorization header');
+
+    let userId: string | null = null;
+    let userEmail: string | null = null;
+
+    if (guestUserId) {
+      userId = guestUserId;
+      userEmail = 'guest@oneness.local';
+      console.log('POST /api/posts - Guest user:', userId);
+    } else if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      console.log('POST /api/posts - Token found');
+
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+      if (authError || !user) {
+        console.log('POST /api/posts - Invalid token:', authError);
+        return NextResponse.json(
+          { error: 'Invalid token' },
+          { status: 401 }
+        );
+      }
+
+      userId = user.id;
+      userEmail = user.email || null;
+      console.log('POST /api/posts - User authenticated:', userId);
+    } else {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const token = authHeader.split(' ')[1];
-    console.log('POST /api/posts - Token found');
-    
-    // Verify the user is authenticated by decoding the JWT
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      console.log('POST /api/posts - Invalid token:', authError);
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
-      );
-    }
-
-    console.log('POST /api/posts - User authenticated:', user.id);
-
-    const userSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      }
-    );
+    const userSupabase = supabase;
 
     // Parse request body
     const { content, imageUrl, imageHint, videoUrl } = await request.json();
@@ -226,7 +229,7 @@ export async function POST(request: NextRequest) {
     const { data: newPost, error: insertError } = await userSupabase
       .from('posts')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         content,
         image_url: imageUrl,
         image_hint: imageHint,
@@ -251,7 +254,7 @@ export async function POST(request: NextRequest) {
     const { data: profile } = await userSupabase
       .from('user_profiles')
       .select('display_name, avatar_url')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single();
 
     console.log('POST /api/posts - User profile:', profile);
@@ -269,8 +272,8 @@ export async function POST(request: NextRequest) {
       isLiked: false, // User just created it, so they haven't liked it yet
       isBookmarked: false, // User just created it, so they haven't bookmarked it yet
       author: {
-        name: profile?.display_name || user.email?.split('@')[0] || 'ユーザー',
-        username: user.email?.split('@')[0] || 'user',
+        name: profile?.display_name || userEmail?.split('@')[0] || 'ユーザー',
+        username: userEmail?.split('@')[0] || 'user',
         avatarUrl: profile?.avatar_url || "https://picsum.photos/seed/user1/100/100"
       }
     };

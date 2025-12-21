@@ -45,18 +45,12 @@ export default function ProfilePage() {
         const fetchProfileData = async () => {
             try {
                 console.log('Profile page - Starting data fetch...');
-                const token = localStorage.getItem('auth_token');
-                if (!token) {
-                    console.log('Profile page - No auth token found');
-                    setLoading(false);
-                    return;
-                }
+                const guestUserId = localStorage.getItem('guest_user_id');
 
                 console.log('Profile page - Fetching profile data...');
                 const response = await fetch('/api/profile', {
                     headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
+                        'x-guest-user-id': guestUserId || '',
                     },
                 });
 

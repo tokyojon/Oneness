@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { isAuthenticated, getCurrentUser } from '@/lib/auth';
 
 export const useAuth = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -9,32 +8,60 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check authentication status
-    const checkAuth = async () => {
+    const initGuest = async () => {
       try {
-        // Optimize: Check local storage first to avoid unnecessary API calls
-        // This prevents 401 errors in console for non-logged in users
-        const currentUser = getCurrentUser();
-        
-        if (!currentUser) {
-          setIsLoggedIn(false);
-          setUser(null);
-          setLoading(false);
-          return;
+        const storedGuestUserId = localStorage.getItem('guest_user_id');
+
+        const initResponse = await fetch('/api/guest/init', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ guestUserId: storedGuestUserId || undefined }),
+        });
+
+        const initData = await initResponse.json();
+        if (!initResponse.ok) {
+          throw new Error(initData?.error || 'Failed to init guest user');
         }
 
-        const authenticated = await isAuthenticated();
-
-        if (!authenticated) {
-          // If API check fails (e.g. session expired), clear local state
-          setIsLoggedIn(false);
-          setUser(null);
-        } else {
-          setIsLoggedIn(true);
-          setUser(currentUser);
+        const guestUserId: string | undefined = initData?.guestUserId;
+        if (!guestUserId) {
+          throw new Error('Guest user id missing from init response');
         }
+
+        localStorage.setItem('guest_user_id', guestUserId);
+
+        const profileResponse = await fetch('/api/profile', {
+          headers: {
+            'x-guest-user-id': guestUserId,
+          },
+        });
+
+        if (!profileResponse.ok) {
+          const errData = await profileResponse.json().catch(() => ({}));
+          throw new Error(errData?.error || 'Failed to load guest profile');
+        }
+
+        const profileData = await profileResponse.json();
+        const profile = profileData?.profile;
+
+        setUser({
+          id: profile?.id || guestUserId,
+          email: profile?.email || 'guest@oneness.local',
+          profile: {
+            display_name: profile?.name || 'ゲスト',
+            avatar_url: profile?.avatarUrl,
+            banner_url: profile?.bannerUrl,
+            bio: profile?.bio,
+          },
+          points: {
+            total: profile?.op_balance ?? 0,
+          },
+        });
+        setIsLoggedIn(true);
       } catch (error) {
-        console.error('Auth check failed:', error);
+        console.error('Guest init failed:', error);
         setIsLoggedIn(false);
         setUser(null);
       } finally {
@@ -42,21 +69,7 @@ export const useAuth = () => {
       }
     };
 
-    checkAuth();
-
-    // Listen for storage changes (in case another tab logs out)
-    const handleStorageChange = () => {
-      const currentUser = getCurrentUser();
-      setUser(currentUser);
-      // For login status, we might need to re-check API
-      checkAuth();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
+    initGuest();
   }, []);
 
   return { isLoggedIn, user, loading };
