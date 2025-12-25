@@ -1,10 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-<<<<<<< HEAD
 import { isAuthenticated, getCurrentUser } from '@/lib/auth';
-=======
->>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
 
 export const useAuth = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -12,34 +9,29 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-<<<<<<< HEAD
-    // Check authentication status
     const checkAuth = async () => {
       try {
-        // Optimize: Check local storage first to avoid unnecessary API calls
-        // This prevents 401 errors in console for non-logged in users
+        // Check for regular authentication first
         const currentUser = getCurrentUser();
-        
-        if (!currentUser) {
-          setIsLoggedIn(false);
-          setUser(null);
+        const authenticated = currentUser ? await isAuthenticated() : false;
+
+        if (authenticated) {
+          setIsLoggedIn(true);
+          setUser(currentUser);
           setLoading(false);
           return;
         }
 
-        const authenticated = await isAuthenticated();
-
-        if (!authenticated) {
-          // If API check fails (e.g. session expired), clear local state
-          setIsLoggedIn(false);
-          setUser(null);
-        } else {
-          setIsLoggedIn(true);
-          setUser(currentUser);
-        }
+        // If not authenticated, try guest login
+        await initGuest();
       } catch (error) {
         console.error('Auth check failed:', error);
-=======
+        setIsLoggedIn(false);
+        setUser(null);
+        setLoading(false);
+      }
+    };
+
     const initGuest = async () => {
       try {
         const storedGuestUserId = localStorage.getItem('guest_user_id');
@@ -94,7 +86,6 @@ export const useAuth = () => {
         setIsLoggedIn(true);
       } catch (error) {
         console.error('Guest init failed:', error);
->>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
         setIsLoggedIn(false);
         setUser(null);
       } finally {
@@ -102,26 +93,28 @@ export const useAuth = () => {
       }
     };
 
-<<<<<<< HEAD
-    checkAuth();
-
     // Listen for storage changes (in case another tab logs out)
     const handleStorageChange = () => {
       const currentUser = getCurrentUser();
-      setUser(currentUser);
-      // For login status, we might need to re-check API
-      checkAuth();
+      if (currentUser) {
+        setUser(currentUser);
+        setIsLoggedIn(true);
+      } else {
+        // If user was logged in and now isn't, re-check auth
+        if (isLoggedIn) {
+          checkAuth();
+        }
+      }
     };
 
-    window.addEventListener('storage', handleStorageChange);
+    // Initial auth check
+    checkAuth();
 
+    window.addEventListener('storage', handleStorageChange);
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-=======
-    initGuest();
->>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
-  }, []);
+  }, [isLoggedIn]);
 
   return { isLoggedIn, user, loading };
 };

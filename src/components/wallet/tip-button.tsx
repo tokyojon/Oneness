@@ -63,28 +63,25 @@ export function TipButton({ recipientId, recipientName, postId, className }: Tip
 
     setIsSending(true);
     try {
-<<<<<<< HEAD
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+
+      // Add appropriate authentication header
       const token = localStorage.getItem('auth_token');
-      if (!token) {
-        throw new Error('Not authenticated');
-=======
       const guestUserId = localStorage.getItem('guest_user_id');
-      if (!guestUserId) {
-        throw new Error('Missing guest user id');
->>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      } else if (guestUserId) {
+        headers['x-guest-user-id'] = guestUserId;
+      } else {
+        throw new Error('認証情報が見つかりません');
       }
 
       const response = await fetch(`/api/posts/${postId}/tip`, {
         method: 'POST',
-        headers: {
-<<<<<<< HEAD
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-=======
-          'Content-Type': 'application/json',
-          'x-guest-user-id': guestUserId,
->>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
-        },
+        headers,
         body: JSON.stringify({ 
           amount: tipAmount,
           recipientId: recipientId 

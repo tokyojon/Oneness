@@ -12,6 +12,70 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, Users, Lightbulb, Target, Sparkles } from 'lucide-react';
 import { LoadingSpinner } from '@/lib/icons';
 
+interface PersonalityQuizOption {
+  value: string;
+  label: string;
+}
+
+interface PersonalityQuestion {
+  id: string;
+  question: string;
+  options: PersonalityQuizOption[];
+}
+
+const personalityQuestions: PersonalityQuestion[] = [
+  {
+    id: 'social',
+    question: '週末の過ごし方で最も好きなのは？',
+    options: [
+      { value: 'party', label: 'にぎやかなパーティーで過ごす' },
+      { value: 'reading', label: '静かに本を読む' },
+      { value: 'friends', label: '友人と過ごしてリフレッシュ' },
+      { value: 'alone', label: '一人で過ごしてリフレッシュ' }
+    ]
+  },
+  {
+    id: 'energy',
+    question: 'エネルギーが湧いてくるときは？',
+    options: [
+      { value: 'people', label: '人と一緒にいるとき' },
+      { value: 'alone', label: '一人でいるとき' },
+      { value: 'nature', label: '自然の中で過ごすとき' },
+      { value: 'creating', label: '何かを作っているとき' }
+    ]
+  },
+  {
+    id: 'decision',
+    question: '決断を下すとき、最も重視するのは？',
+    options: [
+      { value: 'logic', label: '論理的な分析' },
+      { value: 'feeling', label: '直感や感情' },
+      { value: 'others', label: '周りの人の意見' },
+      { value: 'values', label: '自分の価値観' }
+    ]
+  },
+  {
+    id: 'stress',
+    question: 'ストレスを感じたとき、どう対処しますか？',
+    options: [
+      { value: 'talk', label: '誰かに話す' },
+      { value: 'alone', label: '一人で考える' },
+      { value: 'exercise', label: '体を動かす' },
+      { value: 'creative', label: '創造的なことをする' }
+    ]
+  },
+  {
+    id: 'success',
+    question: '成功とは何だと思いますか？',
+    options: [
+      { value: 'achievement', label: '目標を達成すること' },
+      { value: 'happiness', label: '幸せを感じること' },
+      { value: 'impact', label: '他者に良い影響を与えること' },
+      { value: 'growth', label: '成長し続けること' }
+    ]
+  }
+];
+
 interface UserProfile {
   displayName: string;
   bio: string;
@@ -24,10 +88,7 @@ interface UserProfile {
   location: string;
   favoriteQuote: string;
   hobbies: string[];
-<<<<<<< HEAD
-=======
   personalityQuiz: Record<string, string>;
->>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
 }
 
 interface ProfilerProps {
@@ -70,83 +131,21 @@ const Profiler: React.FC<ProfilerProps> = ({ onProfileComplete, isSubmitting = f
     occupation: '',
     location: '',
     favoriteQuote: '',
-<<<<<<< HEAD
-    hobbies: []
-=======
     hobbies: [],
     personalityQuiz: {}
->>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
   });
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentStep]);
 
-<<<<<<< HEAD
-  const steps = [
-    { title: '基本情報', icon: Users },
-=======
-  const personalityQuestions = [
-    {
-      id: 'social',
-      question: '週末の過ごし方で最も好きなのは？',
-      options: [
-        { value: 'party', label: 'にぎやかなパーティーで過ごす' },
-        { value: 'reading', label: '静かに本を読む' },
-        { value: 'friends', label: '友人と過ごしてリフレッシュ' },
-        { value: 'alone', label: '一人で過ごしてリフレッシュ' }
-      ]
-    },
-    {
-      id: 'vacation',
-      question: '休暇の過ごし方で一番好きなのは？',
-      options: [
-        { value: 'thrilling', label: 'スリル満点のジェットコースター' },
-        { value: 'home', label: '家でのんびり過ごす' },
-        { value: 'mountain', label: '冒険的な山小屋での休暇' },
-        { value: 'beach', label: 'リゾート地でのんびり過ごす' }
-      ]
-    },
-    {
-      id: 'planning',
-      question: '旅行の計画を立てる際、どのようにしますか？',
-      options: [
-        { value: 'detailed', label: '詳細なスケジュールを立てる' },
-        { value: 'spontaneous', label: '行き当たりばったりが好き' },
-        { value: 'predictable', label: '予定通りに進めるのが好き' },
-        { value: 'surprises', label: '突然のサプライズが好き' }
-      ]
-    },
-    {
-      id: 'hobby',
-      question: '午後の過ごし方で好きなのは？',
-      options: [
-        { value: 'art', label: 'アートや音楽を楽しむ' },
-        { value: 'math', label: '数学や科学について考える' },
-        { value: 'building', label: '何かを作る' },
-        { value: 'puzzle', label: '論理パズルを解く' }
-      ]
-    },
-    {
-      id: 'outlook',
-      question: 'コップの水が半分入っているとき、あなたは？',
-      options: [
-        { value: 'optimist', label: 'まだ半分も残っていると考える（楽観的）' },
-        { value: 'pessimist', label: 'もう半分しか残っていないと考える（悲観的）' },
-        { value: 'realist', label: 'ちょうど半分残っていると考える（現実的）' },
-        { value: 'opportunist', label: 'コップを満たす方法を考える（機転が利く）' }
-      ]
-    }
-  ];
-
   const steps = [
     { title: '基本情報', icon: Users },
     { title: '性格診断', icon: Heart },
->>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
-    { title: '性格', icon: Heart },
+    { title: '性格タイプ', icon: Sparkles },
     { title: '興味・価値観', icon: Lightbulb },
     { title: '目標・夢', icon: Target },
-    { title: 'プロフィール確認', icon: Sparkles }
+    { title: '確認', icon: Sparkles }
   ];
 
   const updateProfile = (field: keyof UserProfile, value: any) => {
@@ -263,9 +262,6 @@ const Profiler: React.FC<ProfilerProps> = ({ onProfileComplete, isSubmitting = f
           </div>
         );
 
-<<<<<<< HEAD
-      case 1: // Personality
-=======
       case 1: // Personality Quiz
         return (
           <div className="space-y-8">
@@ -304,8 +300,7 @@ const Profiler: React.FC<ProfilerProps> = ({ onProfileComplete, isSubmitting = f
           </div>
         );
 
-      case 2: // Personality
->>>>>>> 27f513108b8ea2cfb0d05b37f9cb2fdd04931371
+      case 2: // Personality Traits
         return (
           <div className="space-y-6">
             <div>
